@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/hxreborn/PixelInjector/compare/v1.7.0...v1.7.1) (2026-10-12)
+
+### Bug Fixes
+
+* **hook:** hook the View empty shade when the Compose one is missing ([d806dff](https://github.com/hxreborn/PixelInjector/commit/d806dff5e8360bb96eec89868511cdce98097315))
+
 ## [1.7.0](https://github.com/hxreborn/PixelInjector/compare/v1.6.0...v1.7.0) (2026-10-05)
 
 ### Features
