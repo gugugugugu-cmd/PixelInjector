@@ -26,6 +26,7 @@ data class ReportEvent(
     val fixedIn: String?,
     val note: String?,
     val at: Long,
+    val issue: Int? = null,
 ) {
     fun toJson(): JSONObject =
         JSONObject()
@@ -35,6 +36,7 @@ data class ReportEvent(
             ).put("fixedIn", fixedIn)
             .put("note", note)
             .put("at", at)
+            .put("issue", issue)
 
     companion object {
         fun from(json: JSONObject): ReportEvent? =
@@ -44,6 +46,7 @@ data class ReportEvent(
                     json.optStringOrNull("fixedIn"),
                     json.optStringOrNull("note"),
                     json.optLong("at"),
+                    json.optIntOrNull("issue"),
                 )
             }
 
@@ -78,6 +81,8 @@ data class SentReport(
     val events: List<ReportEvent> = emptyList(),
     val noteKeyPrivate: String? = null,
     val noteKeyPublic: String? = null,
+    val issue: Int? = null,
+    val fixLine: String? = null,
 ) {
     val noteKey: Hpke.NoteKey? by lazy {
         if (noteKeyPrivate == null || noteKeyPublic == null) {
@@ -126,6 +131,8 @@ data class SentReport(
             .put("events", JSONArray(events.map { it.toJson() }))
             .put("noteKeyPrivate", noteKeyPrivate)
             .put("noteKeyPublic", noteKeyPublic)
+            .put("issue", issue)
+            .put("fixLine", fixLine)
 
     companion object {
         fun from(json: JSONObject): SentReport =
@@ -147,9 +154,13 @@ data class SentReport(
                 events = ReportEvent.list(json.optJSONArray("events")),
                 noteKeyPrivate = json.optStringOrNull("noteKeyPrivate"),
                 noteKeyPublic = json.optStringOrNull("noteKeyPublic"),
+                issue = json.optIntOrNull("issue"),
+                fixLine = json.optStringOrNull("fixLine"),
             )
     }
 }
+
+fun JSONObject.optIntOrNull(key: String): Int? = if (has(key) && !isNull(key)) optInt(key) else null
 
 fun JSONObject.optStringOrNull(key: String): String? =
     if (isNull(key)) {

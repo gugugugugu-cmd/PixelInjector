@@ -328,7 +328,7 @@ fun DashboardScreen(
                     item(key = "update") {
                         UpdateCard(
                             release,
-                            support.fixedByUpdate,
+                            support.fixesByLine,
                             onLater = { actions.onLater(release.versionCode) },
                             onUpdate = actions.onUpdate,
                         )

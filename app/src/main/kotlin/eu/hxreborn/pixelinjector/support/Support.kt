@@ -280,6 +280,8 @@ class Support(
                         short = json.optStringOrNull("short") ?: report.short,
                         status = ReportStatus.of(wire) ?: report.status,
                         fixedIn = json.optStringOrNull("fixedIn"),
+                        fixLine = json.optStringOrNull("fixLine"),
+                        issue = json.optIntOrNull("issue"),
                         note = note,
                         noteSeen = report.noteSeen && note == report.note,
                         events =

@@ -237,7 +237,7 @@ private fun Thread(
     val entries =
         buildList {
             add(ThreadEntry(report.sentAt, fromYou = true, you, report.message))
-            report.events.forEach { add(ThreadEntry(it.at, fromYou = false, statusStyle(it.status, it.fixedIn).label, it.note)) }
+            report.events.forEach { add(ThreadEntry(it.at, fromYou = false, statusStyle(it.status, it.fixedIn, it.issue).label, it.note)) }
             replies.forEach { add(ThreadEntry(it.sentAt, fromYou = true, you, it.message)) }
         }.sortedBy { it.at }
     Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

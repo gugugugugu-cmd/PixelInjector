@@ -152,7 +152,7 @@
         <item quantity="one">%1$d more in the release notes</item>
         <item quantity="other">%1$d more in the release notes</item>
     </plurals>
-    <string name="fixes_your_report">Fixes your report</string>
+    <string name="fixes_your_report">Fixes your report %1$s</string>
     <plurals name="updated_reloaded">
         <item quantity="one">Updated to %2$s. %1$d process reloaded</item>
         <item quantity="other">Updated to %2$s. %1$d processes reloaded</item>
@@ -166,6 +166,7 @@
     <string name="status_waiting">Waiting to send</string>
     <string name="status_received">Received</string>
     <string name="status_investigating">Looking into it</string>
+    <string name="status_tracked">Tracked in #%1$d</string>
     <string name="status_need_info">Need more info</string>
     <string name="status_fixed">Fixed in %1$s</string>
     <string name="status_fixed_plain">Fixed</string>

@@ -28,12 +28,14 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -63,7 +65,7 @@ class UpdateActions(
 @Composable
 fun UpdateSheet(
     release: Release,
-    fixed: List<SentReport>,
+    fixes: Map<String, List<SentReport>>,
     step: InstallStep,
     actions: UpdateActions,
 ) {
@@ -78,15 +80,9 @@ fun UpdateSheet(
         )
         when (step) {
             InstallStep.Idle, InstallStep.NeedsPermission -> {
-                fixed.forEach { report ->
-                    Block(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer, Icons.Outlined.Check) {
-                        Text(stringResource(R.string.fixes_your_report), style = AppText.tileTitle)
-                        Text(listOfNotNull(reportTitle(report), report.short).joinToString("  "), style = AppText.tileSupporting)
-                    }
-                }
-                Notes(stringResource(R.string.notes_new), release.notesNew)
-                Notes(stringResource(R.string.notes_fixed), release.notesFixed)
-                Notes(stringResource(R.string.notes_other), release.notesOther)
+                Notes(stringResource(R.string.notes_new), release.notesNew, fixes)
+                Notes(stringResource(R.string.notes_fixed), release.notesFixed, fixes)
+                Notes(stringResource(R.string.notes_other), release.notesOther, fixes)
                 if (step == InstallStep.NeedsPermission) {
                     Block(MaterialTheme.colorScheme.surfaceContainer, MaterialTheme.colorScheme.onSurface, Icons.Outlined.Shield) {
                         Text(stringResource(R.string.update_allow_title), style = AppText.tileTitle)
@@ -232,11 +228,15 @@ fun UpdateSheet(
 private fun Notes(
     title: String,
     lines: List<String>,
+    fixes: Map<String, List<SentReport>>,
 ) {
     if (lines.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (title.isNotEmpty()) Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        lines.forEach { Text("•  $it", style = MaterialTheme.typography.bodyMedium) }
+        lines.forEach { line ->
+            Text("•  $line", style = MaterialTheme.typography.bodyMedium)
+            fixes[line]?.let { CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary) { FixMark(it) } }
+        }
     }
 }
 

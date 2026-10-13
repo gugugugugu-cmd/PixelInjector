@@ -33,18 +33,22 @@ import eu.hxreborn.pixelinjector.support.SentReport
 import eu.hxreborn.pixelinjector.ui.theme.AppText
 
 private const val LINES_PER_GROUP = 2
-private const val MARK_ALPHA = 0.12f
+private val FixMarkIndent = 14.dp
+private const val SHORT_ID_LENGTH = 8
+private val FixMarkIconSize = 16.dp
 
 @Composable
 fun UpdateCard(
     release: Release,
-    fixed: List<SentReport>,
+    fixes: Map<String, List<SentReport>>,
     onLater: () -> Unit,
     onUpdate: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val shown = release.notesNew.take(LINES_PER_GROUP) + release.notesFixed.take(LINES_PER_GROUP)
-    val more = release.notesNew.size + release.notesFixed.size + release.notesOther.size - shown.size
+    val newLines = shownLines(release.notesNew, fixes)
+    val fixedLines = shownLines(release.notesFixed, fixes)
+    val otherLines = release.notesOther.filter { it in fixes }
+    val more = release.notesNew.size + release.notesFixed.size + release.notesOther.size - newLines.size - fixedLines.size - otherLines.size
     Surface(
         shape = MaterialTheme.shapes.largeIncreased,
         color = scheme.primaryContainer,
@@ -59,23 +63,9 @@ fun UpdateCard(
                         stringResource(R.string.update_card_title, stringResource(R.string.app_name), release.versionName),
                         style = MaterialTheme.typography.titleMediumEmphasized,
                     )
-                    fixed.forEach { report ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .background(scheme.onPrimaryContainer.copy(alpha = MARK_ALPHA), RoundedCornerShape(12.dp))
-                                .padding(horizontal = 10.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Icon(Icons.Outlined.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Column {
-                                Text(stringResource(R.string.fixes_your_report), style = MaterialTheme.typography.labelLarge)
-                                Text(reportTitle(report), style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                    }
-                    NoteGroup(stringResource(R.string.notes_new), release.notesNew.take(LINES_PER_GROUP))
-                    NoteGroup(stringResource(R.string.notes_fixed), release.notesFixed.take(LINES_PER_GROUP))
+                    NoteGroup(stringResource(R.string.notes_new), newLines, fixes)
+                    NoteGroup(stringResource(R.string.notes_fixed), fixedLines, fixes)
+                    NoteGroup(stringResource(R.string.notes_other), otherLines, fixes)
                     if (more > 0) Text(pluralStringResource(R.plurals.notes_more, more, more), style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -102,14 +92,38 @@ fun UpdateCard(
     }
 }
 
+private fun shownLines(
+    lines: List<String>,
+    fixes: Map<String, List<SentReport>>,
+): List<String> = lines.take(LINES_PER_GROUP) + lines.drop(LINES_PER_GROUP).filter { it in fixes }
+
 @Composable
 private fun NoteGroup(
     title: String,
     lines: List<String>,
+    fixes: Map<String, List<SentReport>>,
 ) {
     if (lines.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(title, style = MaterialTheme.typography.labelMedium)
-        lines.forEach { Text("•  $it", style = MaterialTheme.typography.bodyMedium) }
+        lines.forEach { line ->
+            Text("•  $line", style = MaterialTheme.typography.bodyMedium)
+            fixes[line]?.let { FixMark(it) }
+        }
+    }
+}
+
+@Composable
+fun FixMark(reports: List<SentReport>) {
+    Row(
+        Modifier.padding(start = FixMarkIndent),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.CheckCircle, contentDescription = null, modifier = Modifier.size(FixMarkIconSize))
+        Text(
+            stringResource(R.string.fixes_your_report, reports.joinToString(" ") { it.short ?: it.id.take(SHORT_ID_LENGTH) }),
+            style = MaterialTheme.typography.labelLarge,
+        )
     }
 }

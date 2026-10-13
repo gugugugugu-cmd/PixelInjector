@@ -42,13 +42,13 @@ data class SupportState(
     val needsReply: Boolean get() = reports.any { it.status == ReportStatus.NEED_INFO && !it.noteSeen }
     val showUpdateCard: Boolean get() = available?.let { it.versionCode > postponedVersion } == true
 
-    val fixedByUpdate: List<SentReport>
-        get() =
-            available
-                ?.versionName
-                ?.let { version ->
-                    reports.filter { it.status == ReportStatus.FIXED && it.fixedIn == version }
-                }.orEmpty()
+    val fixesByLine: Map<String, List<SentReport>>
+        get() {
+            val version = available?.versionName ?: return emptyMap()
+            return reports
+                .filter { it.status == ReportStatus.FIXED && it.fixedIn == version && it.fixLine != null }
+                .groupBy { it.fixLine.orEmpty() }
+        }
 }
 
 class StatusStyle(
@@ -59,12 +59,13 @@ class StatusStyle(
 )
 
 @Composable
-fun statusStyle(report: SentReport): StatusStyle = statusStyle(report.status, report.fixedIn)
+fun statusStyle(report: SentReport): StatusStyle = statusStyle(report.status, report.fixedIn, report.issue)
 
 @Composable
 fun statusStyle(
     status: ReportStatus,
     fixedIn: String?,
+    issue: Int?,
 ): StatusStyle {
     val scheme = MaterialTheme.colorScheme
     return when (status) {
@@ -88,7 +89,7 @@ fun statusStyle(
 
         ReportStatus.INVESTIGATING -> {
             StatusStyle(
-                stringResource(R.string.status_investigating),
+                issue?.let { stringResource(R.string.status_tracked, it) } ?: stringResource(R.string.status_investigating),
                 Icons.Outlined.ManageSearch,
                 scheme.secondaryContainer,
                 scheme.onSecondaryContainer,

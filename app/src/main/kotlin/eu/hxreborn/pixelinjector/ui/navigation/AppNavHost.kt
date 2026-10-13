@@ -269,7 +269,7 @@ fun AppNavHost(
                         }
                         UpdateSheet(
                             release = release,
-                            fixed = support.fixedByUpdate,
+                            fixes = support.fixesByLine,
                             step = support.install,
                             actions =
                                 UpdateActions(
