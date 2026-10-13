@@ -188,7 +188,13 @@ private fun VersionTile(
 ) {
     val release = state.release
     val available = state.available
-    Tile(shape = shape) {
+    val onClick =
+        when {
+            available != null -> actions.onUpdate
+            release is ReleaseCheck.Checking -> null
+            else -> actions.onCheck
+        }
+    Tile(shape = shape, onClick = onClick) {
         val supporting =
             when {
                 available != null -> {
