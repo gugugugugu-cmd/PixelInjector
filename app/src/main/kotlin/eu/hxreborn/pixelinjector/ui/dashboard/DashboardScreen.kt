@@ -94,8 +94,10 @@ import eu.hxreborn.pixelinjector.prefs.AppPrefs
 import eu.hxreborn.pixelinjector.prefs.BoolPref
 import eu.hxreborn.pixelinjector.prefs.IntPref
 import eu.hxreborn.pixelinjector.sound.SystemSounds
+import eu.hxreborn.pixelinjector.ui.component.AppGlyph
 import eu.hxreborn.pixelinjector.ui.component.SectionGap
 import eu.hxreborn.pixelinjector.ui.component.Tile
+import eu.hxreborn.pixelinjector.ui.component.TileLeading
 import eu.hxreborn.pixelinjector.ui.component.TileText
 import eu.hxreborn.pixelinjector.ui.component.installedVersionLabel
 import eu.hxreborn.pixelinjector.ui.component.readableGutter
@@ -341,6 +343,7 @@ fun DashboardScreen(
                     if (index > 0) item(key = "gap:$group") { Spacer(Modifier.height(SectionGap)) }
                     scope(
                         title,
+                        group,
                         state.packages[group]?.packages.orEmpty(),
                         rows(group, state.prefs),
                         errorLines,
@@ -362,6 +365,7 @@ private data class TileError(
 
 private fun LazyListScope.scope(
     title: String,
+    group: TweakGroup,
     packages: List<String>,
     tiles: List<DashTile>,
     errors: Map<String, TileError>,
@@ -370,10 +374,12 @@ private fun LazyListScope.scope(
     onOpen: (Destination) -> Unit,
     onReport: (String?) -> Unit,
 ) {
-    sectionHeader(title, packages)
+    val iconPackageName = if (group == TweakGroup.SYSTEM) "android" else packages.firstOrNull()
+    val groupSymbol = groupSymbols[group]
+    sectionHeader(title, packages) { AppGlyph(iconPackageName, groupSymbol) }
     tileGroup(tiles, key = { it.title }) { tile, shape ->
         when (tile) {
-            is DashTile.Toggle -> ToggleTile(tile, shape, errors[tile.tweak.key], onToggle, onReport)
+            is DashTile.Toggle -> ToggleTile(tile, shape, errors[tile.tweak.key], tweakSymbol(tile.tweak.key), onToggle, onReport)
             is DashTile.Link -> LinkTile(tile, shape, onOpen)
             is DashTile.Slide -> SlideTile(tile, shape, onSlide)
             is DashTile.Sound -> SoundTile(tile, shape, onOpen)
@@ -389,6 +395,7 @@ private fun SlideTile(
 ) {
     var value by remember(tile.value) { mutableIntStateOf(tile.value) }
     Tile(shape = shape) {
+        TileLeading(null)
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TileText(stringResource(tile.title), stringResource(tile.slider.description))
@@ -415,6 +422,7 @@ private fun ToggleTile(
     tile: DashTile.Toggle,
     shape: RoundedCornerShape,
     error: TileError?,
+    icon: ImageVector?,
     onToggle: (BoolPref, Boolean) -> Unit,
     onReport: (String?) -> Unit,
 ) {
@@ -428,6 +436,7 @@ private fun ToggleTile(
         },
         modifier = Modifier.semantics { role = Role.Switch },
     ) {
+        TileLeading(icon)
         if (error != null) {
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -463,6 +472,7 @@ private fun SoundTile(
     onOpen: (Destination) -> Unit,
 ) {
     Tile(shape = shape, onClick = { onOpen(tile.sound.destination) }) {
+        TileLeading(null)
         val label = if (tile.path.isEmpty()) stringResource(R.string.sound_none) else SystemSounds.label(tile.path)
         TileText(stringResource(tile.title), label)
         Box(Modifier.width(LinkChevronSlot), contentAlignment = Alignment.Center) {
@@ -478,6 +488,7 @@ private fun LinkTile(
     onOpen: (Destination) -> Unit,
 ) {
     Tile(shape = shape, onClick = { onOpen(tile.editor.destination) }) {
+        TileLeading(null)
         TileText(stringResource(tile.title), tile.editor.description?.let { stringResource(it) })
         Text(
             tile.summary,

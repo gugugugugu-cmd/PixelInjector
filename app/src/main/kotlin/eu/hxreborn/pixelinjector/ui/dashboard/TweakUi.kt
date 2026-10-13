@@ -1,6 +1,30 @@
 package eu.hxreborn.pixelinjector.ui.dashboard
 
 import android.os.Build
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.ContentPaste
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.EditNotifications
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.HorizontalRule
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.outlined.Screenshot
+import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.UnfoldMore
+import androidx.compose.material.icons.outlined.VolumeOff
+import androidx.compose.material.icons.outlined.WifiOff
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import eu.hxreborn.pixelinjector.ModuleConstants.GBOARD_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.KDE_CONNECT_PACKAGE
 import eu.hxreborn.pixelinjector.ModuleConstants.LAUNCHER_PACKAGES
@@ -175,4 +199,44 @@ val restartOnChange: Map<PrefSpec<*>, Set<String>> =
         Prefs.NAV_SPACE to LAUNCHER_PACKAGES,
         Prefs.GBOARD_BLACK to GBOARD_PACKAGES,
         Prefs.KDE_CONNECT_QUIET to setOf(KDE_CONNECT_PACKAGE),
+    )
+
+private val moduleIcons: Map<String, Int> =
+    mapOf(
+        "WarmTiles" to R.drawable.ic_tweak_warm_tiles,
+        "BiometricBypass" to R.drawable.ic_tweak_biometric_bypass,
+        "DialerDechip" to R.drawable.ic_tweak_dialer_dechip,
+        "FilesSortByDate" to R.drawable.ic_tweak_files_sort,
+        "GhFastPass" to R.drawable.ic_github,
+    )
+
+private val tweakSymbols: Map<String, ImageVector> =
+    mapOf(
+        "PillShot" to Icons.Outlined.Screenshot,
+        "ScreenshotSound" to Icons.Outlined.VolumeOff,
+        "EmptyShade" to Icons.Outlined.EditNotifications,
+        "ExpandNotifications" to Icons.Outlined.UnfoldMore,
+        "StatusBarDoubleTap" to Icons.Outlined.TouchApp,
+        "ForceNewTask" to Icons.Outlined.Layers,
+        "ClipboardAllowlist" to Icons.Outlined.ContentPaste,
+        "DoubleTapToSleep" to Icons.Outlined.Bedtime,
+        "TaskbarHandle" to Icons.Outlined.HorizontalRule,
+        "HideSearchBar" to Icons.Outlined.SearchOff,
+        "GboardBlack" to Icons.Outlined.DarkMode,
+        "KdeConnectQuiet" to Icons.Outlined.WifiOff,
+    )
+
+@Composable
+fun tweakSymbol(key: String): ImageVector? = moduleIcons[key]?.let { ImageVector.vectorResource(it) } ?: tweakSymbols[key]
+
+val groupSymbols: Map<TweakGroup, ImageVector> =
+    mapOf(
+        TweakGroup.SYSTEM_UI to Icons.Outlined.PhoneAndroid,
+        TweakGroup.SYSTEM to Icons.Outlined.Android,
+        TweakGroup.LAUNCHER to Icons.Outlined.Home,
+        TweakGroup.GBOARD to Icons.Outlined.Keyboard,
+        TweakGroup.DIALER to Icons.Outlined.Call,
+        TweakGroup.FILES to Icons.Outlined.Folder,
+        TweakGroup.KDE_CONNECT to Icons.Outlined.Devices,
+        TweakGroup.GITHUB to Icons.Outlined.Code,
     )

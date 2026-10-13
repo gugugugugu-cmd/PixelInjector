@@ -146,12 +146,14 @@ fun RowScope.TileText(
 fun SectionHeader(
     title: String,
     details: List<String> = emptyList(),
+    leading: @Composable () -> Unit = {},
 ) {
     FlowRow(
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 8.dp).semantics { heading() },
         horizontalArrangement = Arrangement.spacedBy(SectionDetailGap),
-        itemVerticalAlignment = Alignment.Bottom,
+        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
+        leading()
         Text(title, style = AppText.subheader, color = MaterialTheme.colorScheme.primary)
         if (details.isNotEmpty()) {
             val detail = if (details.size == 1) "(${details[0]})" else details.joinToString(prefix = "[", postfix = "]")
@@ -167,8 +169,9 @@ fun SectionHeader(
 fun LazyListScope.sectionHeader(
     title: String,
     details: List<String> = emptyList(),
+    leading: @Composable () -> Unit = {},
 ) {
-    item(key = "section:$title") { SectionHeader(title, details) }
+    item(key = "section:$title") { SectionHeader(title, details, leading) }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

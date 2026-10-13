@@ -22,10 +22,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Forum
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -41,8 +46,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -58,6 +65,7 @@ import eu.hxreborn.pixelinjector.ui.component.SectionGap
 import eu.hxreborn.pixelinjector.ui.component.SectionHeader
 import eu.hxreborn.pixelinjector.ui.component.Tile
 import eu.hxreborn.pixelinjector.ui.component.TileGap
+import eu.hxreborn.pixelinjector.ui.component.TileLeading
 import eu.hxreborn.pixelinjector.ui.component.TileText
 import eu.hxreborn.pixelinjector.ui.component.readableGutter
 import eu.hxreborn.pixelinjector.ui.component.tileShape
@@ -104,6 +112,7 @@ fun SettingsScreen(
 
                     1 -> {
                         Tile(shape = shape, onClick = actions.onSendReport) {
+                            TileLeading(Icons.Outlined.BugReport)
                             TileText(stringResource(R.string.send_report), stringResource(R.string.send_report_summary))
                             Chevron()
                         }
@@ -122,6 +131,7 @@ fun SettingsScreen(
                     onCheckedChange = actions.onShareHookStatus,
                     modifier = Modifier.semantics { role = Role.Switch },
                 ) {
+                    TileLeading(Icons.Outlined.Insights)
                     TileText(stringResource(R.string.share_hook_status), stringResource(R.string.share_hook_status_summary))
                     Switch(
                         checked = state.shareHookStatus,
@@ -140,11 +150,13 @@ fun SettingsScreen(
             Group(stringResource(R.string.settings_about), 2) { index, shape ->
                 if (index == 0) {
                     Tile(shape = shape, onClick = actions.onModuleLog) {
+                        TileLeading(Icons.AutoMirrored.Outlined.Notes)
                         TileText(stringResource(R.string.module_log), stringResource(R.string.module_log_summary))
                         Chevron()
                     }
                 } else {
                     Tile(shape = shape, onClick = actions.onGitHub) {
+                        TileLeading(ImageVector.vectorResource(R.drawable.ic_github))
                         TileText(stringResource(R.string.source_on_github), ReportConfig.repo, supportingStyle = AppText.meta)
                         Box(Modifier.width(ChevronSlot), contentAlignment = Alignment.Center) {
                             Icon(
@@ -195,6 +207,7 @@ private fun VersionTile(
             else -> actions.onCheck
         }
     Tile(shape = shape, onClick = onClick) {
+        TileLeading(Icons.Outlined.Info)
         val supporting =
             when {
                 available != null -> {
@@ -254,6 +267,7 @@ private fun ReportsTile(
     val newest: SentReport? =
         state.conversations.firstOrNull { it.status == ReportStatus.NEED_INFO && !it.noteSeen } ?: state.conversations.firstOrNull()
     Tile(shape = shape, onClick = onClick) {
+        TileLeading(Icons.Outlined.Forum)
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.your_reports), style = AppText.tileTitle)
