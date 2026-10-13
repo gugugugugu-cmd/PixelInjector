@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/hxreborn/PixelInjector?style=flat-square)](https://github.com/hxreborn/PixelInjector/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/hxreborn/PixelInjector/total?style=flat-square)](https://github.com/hxreborn/PixelInjector/releases)
 
-Opinionated Xposed module that bundles the Pixel tweaks I would otherwise need twenty modules for. One app, one switch per tweak, live reload with no reboot.
+Opinionated Xposed module that bundles the Pixel tweaks I would otherwise need twenty modules for. I built it for my own phone, but if a tweak is useful to you and breaks on your build, I can adapt or fix it on demand.
 
 ## Screenshots
 
@@ -73,7 +73,7 @@ Needs Android 14 or newer, arm64 and an Xposed framework with libxposed API 102 
 
 ## Report a problem
 
-PixelInjector is built for my own phone, but if a tweak is useful to you and breaks on your build, I am happy to adapt or fix it. The app detects tweaks that fail to load and can send a report straight from Settings, end-to-end encrypted with [HPKE](https://www.rfc-editor.org/rfc/rfc9180) ([X25519](https://www.rfc-editor.org/rfc/rfc7748) and [AES-256-GCM](https://csrc.nist.gov/pubs/sp/800/38/d/final)). Reports are opt-in and nothing leaves the phone until you tap Send encrypted report.
+Report from the app itself, end-to-end encrypted with [HPKE](https://www.rfc-editor.org/rfc/rfc9180) ([X25519](https://www.rfc-editor.org/rfc/rfc7748) and [AES-256-GCM](https://csrc.nist.gov/pubs/sp/800/38/d/final)). Opt-in: nothing leaves the phone until you tap Send encrypted report.
 
 1. Open Settings and tap Send a report.
 2. Say what happened and pick the tweak if it is about one. Tap Send encrypted report.
