@@ -93,7 +93,7 @@ class Support(
     private val _install = MutableStateFlow<InstallStep>(InstallStep.Idle)
     val install: StateFlow<InstallStep> = _install.asStateFlow()
 
-    private val _shareHookStatus = MutableStateFlow(prefs.getBoolean(SHARE_HOOK_STATUS, true))
+    private val _shareHookStatus = MutableStateFlow(prefs.getBoolean(SHARE_HOOK_STATUS, false))
     val shareHookStatus: StateFlow<Boolean> = _shareHookStatus.asStateFlow()
 
     private val _postponedVersion = MutableStateFlow(prefs.getInt(POSTPONED_VERSION, 0))

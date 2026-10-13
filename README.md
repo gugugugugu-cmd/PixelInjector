@@ -90,7 +90,7 @@ Needs Android 14 or newer, arm64 and an Xposed framework with libxposed API 102 
 | Server | `reports.hxreborn.eu` holds no private key |
 | Hidden in the log | Emails, IP and MAC addresses, Wi-Fi names, device IDs, storage paths, URL and header tokens ([Redactor](app/src/main/kotlin/eu/hxreborn/pixelinjector/support/Redactor.kt)) |
 | Retention | 90 days |
-| Hook status | On by default in Settings. Sends which tweaks load per Android build, once per version |
+| Hook status | Opt-in in Settings. Sends which tweaks load per Android build, once per version |
 
 Known bugs: [open bug issues](https://github.com/hxreborn/PixelInjector/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug). Without the app, [open an issue](https://github.com/hxreborn/PixelInjector/issues/new) and attach the module log from your Xposed manager.
 
