@@ -4,6 +4,8 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -48,6 +50,10 @@ import eu.hxreborn.pixelinjector.ui.support.UpdateSheet
 import eu.hxreborn.pixelinjector.ui.viewmodel.MainViewModel
 
 private val SlideDistance = 30.dp
+private const val ENTERING_SCREEN_ABOVE = 1f
+private const val LEAVING_SCREEN_BELOW = -1f
+private const val PREDICTIVE_INITIAL_SCALE = 0.95f
+private const val PREDICTIVE_EXIT_SCALE = 0.9f
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -111,28 +117,30 @@ fun AppNavHost(
             )
         }
     val slideDistance = with(LocalDensity.current) { SlideDistance.roundToPx() }
-    val enterSpatialSpec = MaterialTheme.motionScheme.fastSpatialSpec<IntOffset>()
-    val exitSpatialSpec = MaterialTheme.motionScheme.fastSpatialSpec<IntOffset>()
-    val enterEffectsSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
-    val exitEffectsSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
+    val spatialSpec = MaterialTheme.motionScheme.fastSpatialSpec<IntOffset>()
+    val scaleSpec = MaterialTheme.motionScheme.fastSpatialSpec<Float>()
+    val effectsSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
+
+    val enterFromEnd = slideInHorizontally(spatialSpec) { slideDistance } + fadeIn(effectsSpec)
+    val exitToStart = slideOutHorizontally(spatialSpec) { -slideDistance }
+    val enterFromStart = slideInHorizontally(spatialSpec) { -slideDistance }
+    val exitToEnd = slideOutHorizontally(spatialSpec) { slideDistance } + fadeOut(effectsSpec)
+    val forward = (enterFromEnd togetherWith exitToStart).apply { targetContentZIndex = ENTERING_SCREEN_ABOVE }
+    val back = (enterFromStart togetherWith exitToEnd).apply { targetContentZIndex = LEAVING_SCREEN_BELOW }
+    val predictiveBack =
+        (
+            (enterFromStart + scaleIn(scaleSpec, PREDICTIVE_INITIAL_SCALE)) togetherWith
+                (exitToEnd + scaleOut(scaleSpec, PREDICTIVE_EXIT_SCALE))
+        ).apply { targetContentZIndex = LEAVING_SCREEN_BELOW }
 
     NavDisplay(
         modifier = modifier,
         backStack = backStack,
         onBack = { if (backStack.size > 1) backStack.removeLastOrNull() },
         sceneStrategies = listOf(sheetStrategy),
-        transitionSpec = {
-            (slideInHorizontally(enterSpatialSpec) { slideDistance } + fadeIn(enterEffectsSpec)) togetherWith
-                (slideOutHorizontally(exitSpatialSpec) { -slideDistance } + fadeOut(exitEffectsSpec))
-        },
-        popTransitionSpec = {
-            (slideInHorizontally(enterSpatialSpec) { -slideDistance } + fadeIn(enterEffectsSpec)) togetherWith
-                (slideOutHorizontally(exitSpatialSpec) { slideDistance } + fadeOut(exitEffectsSpec))
-        },
-        predictivePopTransitionSpec = {
-            (slideInHorizontally(enterSpatialSpec) { -slideDistance } + fadeIn(enterEffectsSpec)) togetherWith
-                (slideOutHorizontally(exitSpatialSpec) { slideDistance } + fadeOut(exitEffectsSpec))
-        },
+        transitionSpec = { forward },
+        popTransitionSpec = { back },
+        predictivePopTransitionSpec = { predictiveBack },
         entryProvider =
             entryProvider<NavKey> {
                 entry<Destination.Dashboard> {
