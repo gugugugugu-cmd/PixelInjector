@@ -30,7 +30,6 @@ class DashboardActions(
     val onSlide: (IntPref, Int) -> Unit,
     val onRestart: () -> Unit,
     val onRefresh: () -> Unit,
-    val onOpenLog: () -> Unit,
     val onOpen: (Destination) -> Unit,
     val onHotReload: () -> Unit,
     val onToggleTargets: () -> Unit,

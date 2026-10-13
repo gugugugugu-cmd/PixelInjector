@@ -34,7 +34,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -313,7 +312,6 @@ fun DashboardScreen(
                 bound = state.bound,
                 reloadCount = state.reloadCount,
                 targetsOpen = targetsOpen,
-                onOpenLog = actions.onOpenLog,
                 onOpenSettings = actions.onOpenSettings,
                 badge =
                     when {
@@ -567,7 +565,6 @@ private fun Toolbar(
     bound: Boolean,
     reloadCount: Int,
     targetsOpen: Boolean,
-    onOpenLog: () -> Unit,
     onOpenSettings: () -> Unit,
     badge: String?,
     onHotReload: () -> Unit,
@@ -581,9 +578,6 @@ private fun Toolbar(
         colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
         scrollBehavior = scrollBehavior,
     ) {
-        IconButton(onClick = onOpenLog, shapes = IconButtonDefaults.shapes(), modifier = Modifier.size(ToolbarButtonSize)) {
-            Icon(Icons.AutoMirrored.Outlined.Notes, contentDescription = stringResource(R.string.module_log))
-        }
         IconButton(onClick = onOpenSettings, shapes = IconButtonDefaults.shapes(), modifier = Modifier.size(ToolbarButtonSize)) {
             BadgedBox(badge = { if (badge != null) Badge() }) {
                 Icon(Icons.Outlined.Settings, contentDescription = badge ?: stringResource(R.string.settings))

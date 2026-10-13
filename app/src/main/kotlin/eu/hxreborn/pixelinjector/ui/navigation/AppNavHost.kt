@@ -94,7 +94,6 @@ fun AppNavHost(
                     viewModel.refreshModuleLog()
                     viewModel.refreshLauncherApps()
                 },
-                onOpenLog = { push(Destination.ModuleLog) },
                 onOpen = { push(it) },
                 onHotReload = viewModel::hotReloadPending,
                 onToggleTargets = {
