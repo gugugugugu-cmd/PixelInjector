@@ -73,6 +73,11 @@ private const val META_ALPHA = 0.7f
 private val StatusRadius = 8.dp
 private val StatusIconSize = 16.dp
 private val QuestionStripe = 3.dp
+private val StatusPaddingHorizontal = 8.dp
+private val StatusPaddingVertical = 4.dp
+private val StatusIconGap = 6.dp
+private val QuestionInset = 12.dp
+private val QuestionLineGap = 2.dp
 
 @Composable
 fun ReportsSheet(
@@ -228,9 +233,9 @@ private fun StatusLine(report: SentReport) {
         contentColor = content,
     ) {
         Row(
-            Modifier.padding(horizontal = if (act) 8.dp else 0.dp, vertical = if (act) 4.dp else 0.dp),
+            Modifier.padding(horizontal = if (act) StatusPaddingHorizontal else 0.dp, vertical = if (act) StatusPaddingVertical else 0.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(StatusIconGap),
         ) {
             Icon(style.icon, contentDescription = null, modifier = Modifier.size(StatusIconSize))
             Text(style.label, style = MaterialTheme.typography.labelLarge)
@@ -243,7 +248,7 @@ private fun Question(text: String) {
     val scheme = MaterialTheme.colorScheme
     Row(Modifier.height(IntrinsicSize.Min)) {
         Box(Modifier.width(QuestionStripe).fillMaxHeight().background(scheme.tertiary, RoundedCornerShape(QuestionStripe)))
-        Column(Modifier.padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(Modifier.padding(start = QuestionInset), verticalArrangement = Arrangement.spacedBy(QuestionLineGap)) {
             Text(
                 stringResource(R.string.report_developer_asks),
                 style = MaterialTheme.typography.labelMedium,
