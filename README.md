@@ -1,8 +1,34 @@
 # PixelInjector
 
-Opinionated Xposed module of some tweaks, specially for Pixel phones so I can avoid having twenty modules installed.
+[![Release](https://img.shields.io/github/v/release/hxreborn/PixelInjector?style=flat-square)](https://github.com/hxreborn/PixelInjector/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/hxreborn/PixelInjector/total?style=flat-square)](https://github.com/hxreborn/PixelInjector/releases)
 
-Needs Android 14 or newer and an Xposed framework with libxposed API 102.
+Opinionated Xposed module that bundles the Pixel tweaks I would otherwise need twenty modules for. One app, one switch per tweak, live reload with no reboot.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/dashboard.webp" width="240" alt="Dashboard"></td>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/settings.webp" width="240" alt="Settings"></td>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/reports.webp" width="240" alt="Your reports"></td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/report.webp" width="240" alt="Send a report"></td>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/log.webp" width="240" alt="Module log"></td>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/reload.webp" width="240" alt="Hot reload"></td>
+  </tr>
+</table>
+
+## Install
+
+Needs Android 14 or newer, arm64 and an Xposed framework with libxposed API 102 (LSPosed 2.x or Vector).
+
+1. Download the APK from [Releases](https://github.com/hxreborn/PixelInjector/releases/latest) or the [Xposed Modules Repo](https://github.com/Xposed-Modules-Repo/eu.hxreborn.pixelinjector/releases).
+2. Enable PixelInjector in your Xposed manager. The scope comes preset.
+3. Reboot once. Later updates install from the app and reload without a reboot.
+
+## Tweaks
 
 ### System UI
 
@@ -51,24 +77,22 @@ Needs Android 14 or newer and an Xposed framework with libxposed API 102.
 2. Say what happened and pick the tweak if it is about one. Tap Send encrypted report.
 3. Follow it in Settings, Your reports. A question from the developer shows there with a Reply button, and the GitHub issue once there is one.
 
-Your message and module log are end-to-end encrypted on the phone with HPKE (X25519 and AES-256-GCM), with personal details in the log replaced before encryption. Only the developer's key opens them. Phone model, build and framework travel unencrypted so a fix can be matched to your build. No account is needed and the report site deletes reports after 90 days. The update that fixes your report marks the release note line that closed it, and updates install in the app after the checksum and the signing certificate match.
+| | |
+| --- | --- |
+| Consent | Opt-in. Nothing leaves the phone until you tap Send encrypted report |
+| Scheme | [HPKE](https://www.rfc-editor.org/rfc/rfc9180) RFC 9180 base mode |
+| Key exchange | DHKEM [X25519](https://www.rfc-editor.org/rfc/rfc7748) HKDF-SHA256 |
+| Cipher | [AES-256-GCM](https://csrc.nist.gov/pubs/sp/800/38/d/final) |
+| Encrypted | Message, module log, app versions |
+| Not encrypted | Phone model, build, framework. Bound to the ciphertext as [associated data](https://www.rfc-editor.org/rfc/rfc9180#section-5.2) |
+| Developer key | `3d76ec6a` |
+| Reply key | X25519 per report, wrapped by [Android Keystore](https://developer.android.com/privacy-and-security/keystore) |
+| Server | `reports.hxreborn.eu` holds no private key |
+| Hidden in the log | Emails, IP and MAC addresses, Wi-Fi names, device IDs, storage paths, URL and header tokens ([Redactor](app/src/main/kotlin/eu/hxreborn/pixelinjector/support/Redactor.kt)) |
+| Retention | 90 days |
+| Hook status | On by default in Settings. Sends which tweaks load per Android build, once per version |
 
-Without the app, [open an issue](https://github.com/hxreborn/PixelInjector/issues/new) and attach the module log from your Xposed manager.
-
-## Screenshots
-
-<table>
-  <tr>
-    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/dashboard.webp" width="240" alt="Dashboard"></td>
-    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/settings.webp" width="240" alt="Settings"></td>
-    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/reports.webp" width="240" alt="Your reports"></td>
-  </tr>
-  <tr>
-    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/report.webp" width="240" alt="Send a report"></td>
-    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/log.webp" width="240" alt="Module log"></td>
-    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/reload.webp" width="240" alt="Hot reload"></td>
-  </tr>
-</table>
+Known bugs: [open bug issues](https://github.com/hxreborn/PixelInjector/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug). Without the app, [open an issue](https://github.com/hxreborn/PixelInjector/issues/new) and attach the module log from your Xposed manager.
 
 ## Credits
 
