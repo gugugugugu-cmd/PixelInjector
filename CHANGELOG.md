@@ -1,3 +1,10 @@
+## [1.8.0](https://github.com/hxreborn/PixelInjector/compare/v1.7.1...v1.8.0) (2026-10-13)
+
+### Features
+
+* **app:** send private reports and install updates in the app ([c111617](https://github.com/hxreborn/PixelInjector/commit/c111617df9a1be7bc57a859dacf354d8038f0bd7))
+* **app:** show the conversation on each report ([18ccff4](https://github.com/hxreborn/PixelInjector/commit/18ccff43b7e7fd2ea78dd28ae85c57382d320302))
+
 ## [1.7.1](https://github.com/hxreborn/PixelInjector/compare/v1.7.0...v1.7.1) (2026-10-12)
 
 ### Bug Fixes
