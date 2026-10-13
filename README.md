@@ -51,7 +51,7 @@ Needs Android 14 or newer and an Xposed framework with libxposed API 102.
 2. Say what happened and pick the tweak if it is about one. Tap Send encrypted report.
 3. Follow it in Settings, Your reports. A question from the developer shows there with a Reply button, and the GitHub issue once there is one.
 
-Your message and module log are end-to-end encrypted on the phone with HPKE (X25519 and AES-256-GCM), with personal details replaced before encryption. Only the developer's key opens them. Phone model, build and framework travel unencrypted so a fix can be matched to your build. No account is needed and the report site deletes reports after 90 days. The update that fixes your report marks the release note line that closed it, and updates install in the app after the checksum and the signing certificate match.
+Your message and module log are end-to-end encrypted on the phone with HPKE (X25519 and AES-256-GCM), with personal details in the log replaced before encryption. Only the developer's key opens them. Phone model, build and framework travel unencrypted so a fix can be matched to your build. No account is needed and the report site deletes reports after 90 days. The update that fixes your report marks the release note line that closed it, and updates install in the app after the checksum and the signing certificate match.
 
 Without the app, [open an issue](https://github.com/hxreborn/PixelInjector/issues/new) and attach the module log from your Xposed manager.
 
