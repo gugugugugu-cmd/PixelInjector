@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -45,17 +46,28 @@ fun DetailScaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = { Text(title) },
-                subtitle = subtitle?.let { { Text(it) } },
-                navigationIcon = {
-                    IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_up))
-                    }
-                },
-                actions = actions,
-                scrollBehavior = scrollBehavior,
-            )
+            val navigationIcon: @Composable () -> Unit = {
+                IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_up))
+                }
+            }
+            if (compactHeight()) {
+                TopAppBar(
+                    title = { Text(title) },
+                    subtitle = { subtitle?.let { Text(it) } },
+                    navigationIcon = navigationIcon,
+                    actions = actions,
+                    scrollBehavior = scrollBehavior,
+                )
+            } else {
+                LargeFlexibleTopAppBar(
+                    title = { Text(title) },
+                    subtitle = subtitle?.let { { Text(it) } },
+                    navigationIcon = navigationIcon,
+                    actions = actions,
+                    scrollBehavior = scrollBehavior,
+                )
+            }
         },
     ) { innerPadding ->
         Column(

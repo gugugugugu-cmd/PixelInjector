@@ -108,6 +108,7 @@ fun UpdateSheet(
                         enabled =
                             release.asset != null,
                     )
+                    InstallerNote()
                     GitHubLink(actions.onGitHub)
                 }
             }
@@ -124,14 +125,7 @@ fun UpdateSheet(
                     Text("${(fraction * 100).toInt()}%", style = AppText.meta)
                 }
                 VerifyLog(release.asset?.sha256, step.partialHash, hashing = true, installed = null, file = null, signerChecking = false)
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(Icons.Outlined.VerifiedUser, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(
-                        stringResource(R.string.update_installer_note),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                InstallerNote()
                 OutlinedButton(onClick = actions.onCancel, shapes = ButtonDefaults.shapes(), modifier = Modifier.align(Alignment.End)) {
                     Text(stringResource(R.string.cancel))
                 }
@@ -225,6 +219,18 @@ fun UpdateSheet(
 }
 
 @Composable
+private fun InstallerNote() {
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Icon(Icons.Outlined.VerifiedUser, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            stringResource(R.string.update_installer_note),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
 private fun Notes(
     title: String,
     lines: List<String>,
@@ -234,7 +240,7 @@ private fun Notes(
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (title.isNotEmpty()) Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         lines.forEach { line ->
-            Text("•  $line", style = MaterialTheme.typography.bodyMedium)
+            NoteLine(line)
             fixes[line]?.let { CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.primary) { FixMark(it) } }
         }
     }

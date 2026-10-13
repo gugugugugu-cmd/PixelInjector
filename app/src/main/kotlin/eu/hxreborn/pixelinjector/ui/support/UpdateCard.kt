@@ -26,10 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.support.Release
 import eu.hxreborn.pixelinjector.support.SentReport
+import eu.hxreborn.pixelinjector.ui.component.compactHeight
 import eu.hxreborn.pixelinjector.ui.theme.AppText
 
 private const val LINES_PER_GROUP = 2
@@ -45,8 +47,9 @@ fun UpdateCard(
     onUpdate: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val newLines = shownLines(release.notesNew, fixes)
-    val fixedLines = shownLines(release.notesFixed, fixes)
+    val compact = compactHeight()
+    val newLines = shownLines(release.notesNew, fixes, compact)
+    val fixedLines = shownLines(release.notesFixed, fixes, compact)
     val otherLines = release.notesOther.filter { it in fixes }
     val more = release.notesNew.size + release.notesFixed.size + release.notesOther.size - newLines.size - fixedLines.size - otherLines.size
     Surface(
@@ -95,7 +98,11 @@ fun UpdateCard(
 private fun shownLines(
     lines: List<String>,
     fixes: Map<String, List<SentReport>>,
-): List<String> = lines.take(LINES_PER_GROUP) + lines.drop(LINES_PER_GROUP).filter { it in fixes }
+    compact: Boolean,
+): List<String> {
+    val head = if (compact) 0 else LINES_PER_GROUP
+    return lines.take(head) + lines.drop(head).filter { it in fixes }
+}
 
 @Composable
 private fun NoteGroup(
@@ -107,9 +114,17 @@ private fun NoteGroup(
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(title, style = MaterialTheme.typography.labelMedium)
         lines.forEach { line ->
-            Text("•  $line", style = MaterialTheme.typography.bodyMedium)
+            NoteLine(line)
             fixes[line]?.let { FixMark(it) }
         }
+    }
+}
+
+@Composable
+fun NoteLine(line: String) {
+    Row {
+        Text("•", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(FixMarkIndent).clearAndSetSemantics { })
+        Text(line.replaceFirstChar(Char::uppercase), style = MaterialTheme.typography.bodyMedium)
     }
 }
 

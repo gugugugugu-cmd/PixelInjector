@@ -73,6 +73,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.BuildConfig
 import eu.hxreborn.pixelinjector.R
@@ -80,6 +81,7 @@ import eu.hxreborn.pixelinjector.support.ReportConfig
 import eu.hxreborn.pixelinjector.support.ReportPreview
 import eu.hxreborn.pixelinjector.support.SentReport
 import eu.hxreborn.pixelinjector.ui.component.SheetHeader
+import eu.hxreborn.pixelinjector.ui.component.compactHeight
 import eu.hxreborn.pixelinjector.ui.dashboard.TweakGroup
 import eu.hxreborn.pixelinjector.ui.dashboard.tweakUis
 import eu.hxreborn.pixelinjector.ui.theme.AppText
@@ -137,6 +139,10 @@ fun ReportSheet(
 
         else -> {}
     }
+    val footerScrolls = compactHeight()
+    val footer: @Composable () -> Unit = {
+        Footer(phase, ready = preview != null, onSend = { onSend(message.trim(), tweak) }, onTryNow = onTryNow, onClose = onClose)
+    }
     Column(Modifier.padding(horizontal = SheetPadding)) {
         Column(
             Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()),
@@ -163,10 +169,7 @@ fun ReportSheet(
                     enabled = phase == ReportPhase.Compose || phase is ReportPhase.Rejected,
                     modifier = Modifier.fillMaxWidth(),
                     supportingText = {
-                        Row {
-                            Text(stringResource(R.string.report_optional), Modifier.weight(1f))
-                            Text("${message.length}/$MESSAGE_MAX")
-                        }
+                        Text("${message.length}/$MESSAGE_MAX", Modifier.fillMaxWidth(), textAlign = TextAlign.End)
                     },
                 )
             }
@@ -175,8 +178,9 @@ fun ReportSheet(
                 exact =
                     !exact
             })
+            if (footerScrolls) footer()
         }
-        Footer(phase, ready = preview != null, onSend = { onSend(message.trim(), tweak) }, onTryNow = onTryNow, onClose = onClose)
+        if (!footerScrolls) footer()
     }
 }
 
@@ -434,7 +438,11 @@ private fun FieldGroup(
 private fun ExactText(preview: ReportPreview) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            stringResource(R.string.report_exact_body),
+            if (preview.log.length > EXACT_TAIL) {
+                stringResource(R.string.report_exact_tail, EXACT_TAIL, preview.log.length)
+            } else {
+                stringResource(R.string.report_exact_body)
+            },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -456,7 +464,7 @@ private const val EXACT_TAIL = 20_000
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ColumnScope.Footer(
+private fun Footer(
     phase: ReportPhase,
     ready: Boolean,
     onSend: () -> Unit,

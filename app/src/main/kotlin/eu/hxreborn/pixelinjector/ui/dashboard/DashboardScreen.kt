@@ -99,6 +99,7 @@ import eu.hxreborn.pixelinjector.ui.component.SectionGap
 import eu.hxreborn.pixelinjector.ui.component.Tile
 import eu.hxreborn.pixelinjector.ui.component.TileLeading
 import eu.hxreborn.pixelinjector.ui.component.TileText
+import eu.hxreborn.pixelinjector.ui.component.compactHeight
 import eu.hxreborn.pixelinjector.ui.component.installedVersionLabel
 import eu.hxreborn.pixelinjector.ui.component.readableGutter
 import eu.hxreborn.pixelinjector.ui.component.sectionHeader
@@ -283,7 +284,7 @@ fun DashboardScreen(
                         )
                     }
                 },
-                expandedHeight = TopBarExpandedHeight,
+                expandedHeight = if (compactHeight()) TopAppBarDefaults.TopAppBarExpandedHeight else TopBarExpandedHeight,
                 scrollBehavior = scrollBehavior,
             )
         },

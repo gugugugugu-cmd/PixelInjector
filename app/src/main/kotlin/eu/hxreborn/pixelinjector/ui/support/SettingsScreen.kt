@@ -27,12 +27,15 @@ import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -52,6 +55,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -97,7 +101,6 @@ fun SettingsScreen(
 ) {
     DetailScaffold(
         title = stringResource(R.string.settings),
-        subtitle = state.framework,
         onBack = onBack,
         contentPadding = PaddingValues(horizontal = readableGutter(), vertical = 16.dp),
     ) { padding ->
@@ -149,8 +152,14 @@ fun SettingsScreen(
                 )
             }
             Spacer(Modifier.height(SectionGap))
-            Group(stringResource(R.string.settings_about), 2) { index, shape ->
-                if (index == 0) {
+            val framework = state.framework
+            Group(stringResource(R.string.settings_about), if (framework != null) 3 else 2) { index, shape ->
+                if (index == 2 && framework != null) {
+                    Tile(shape = shape) {
+                        TileLeading(Icons.Outlined.Extension)
+                        TileText(stringResource(R.string.settings_framework), framework, supportingStyle = AppText.meta)
+                    }
+                } else if (index == 0) {
                     Tile(shape = shape, onClick = actions.onModuleLog) {
                         TileLeading(Icons.AutoMirrored.Outlined.Notes)
                         TileText(stringResource(R.string.module_log), stringResource(R.string.module_log_summary))
@@ -272,7 +281,11 @@ private fun VersionTile(
         )
         when {
             available != null -> {
-                FilledTonalButton(onClick = actions.onUpdate) { Text(stringResource(R.string.update)) }
+                FilledTonalButton(onClick = actions.onUpdate, modifier = Modifier.clearAndSetSemantics { }) {
+                    Icon(Icons.Outlined.Download, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.update))
+                }
             }
 
             release is ReleaseCheck.Checking -> {
@@ -284,6 +297,7 @@ private fun VersionTile(
                     Icon(
                         if (failed) Icons.Outlined.ErrorOutline else Icons.Outlined.Refresh,
                         contentDescription = stringResource(R.string.update_check),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -297,8 +311,6 @@ private fun ReportsTile(
     shape: RoundedCornerShape,
     onClick: () -> Unit,
 ) {
-    val newest: SentReport? =
-        state.conversations.firstOrNull { it.status == ReportStatus.NEED_INFO && !it.noteSeen } ?: state.conversations.firstOrNull()
     Tile(shape = shape, onClick = onClick) {
         TileLeading(Icons.Outlined.Forum)
         Column(Modifier.weight(1f)) {
@@ -320,9 +332,13 @@ private fun ReportsTile(
                 style = AppText.tileSupporting,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            newest?.let {
-                Spacer(Modifier.height(6.dp))
-                StatusChip(it)
+            val waiting = state.conversations.count { it.status == ReportStatus.NEED_INFO && !it.noteSeen }
+            if (waiting > 0) {
+                Text(
+                    pluralStringResource(R.plurals.reports_need_reply, waiting, waiting),
+                    style = AppText.tileSupporting,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
             }
         }
         Chevron()

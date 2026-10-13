@@ -38,6 +38,7 @@ import eu.hxreborn.pixelinjector.ui.theme.AppText
 
 val SectionGap = 14.dp
 val ContentMaxWidth = 640.dp
+private val CompactHeight = 480.dp
 private val MinGutter = 16.dp
 val TileGap = 2.dp
 private val TileStartPadding = 16.dp
@@ -193,6 +194,13 @@ fun <T> LazyListScope.tileGroup(
         }
     }
 }
+
+@Composable
+fun compactHeight(): Boolean =
+    with(LocalDensity.current) {
+        LocalWindowInfo.current.containerSize.height
+            .toDp()
+    } < CompactHeight
 
 @Composable
 fun readableGutter(): Dp {
