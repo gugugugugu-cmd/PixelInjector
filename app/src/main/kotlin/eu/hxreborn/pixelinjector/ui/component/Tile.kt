@@ -6,10 +6,13 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,15 +24,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import eu.hxreborn.pixelinjector.ui.theme.AppText
 
 val SectionGap = 14.dp
+val ContentMaxWidth = 640.dp
+private val MinGutter = 16.dp
 val TileGap = 2.dp
 private val TileStartPadding = 16.dp
 private val TileEndPadding = 8.dp
@@ -180,4 +189,18 @@ fun <T> LazyListScope.tileGroup(
             if (index < items.lastIndex) Spacer(Modifier.height(TileGap))
         }
     }
+}
+
+@Composable
+fun readableGutter(): Dp {
+    val density = LocalDensity.current
+    val direction = LocalLayoutDirection.current
+    val insets = WindowInsets.safeDrawing.asPaddingValues()
+    val windowWidth =
+        with(density) {
+            LocalWindowInfo.current.containerSize.width
+                .toDp()
+        }
+    val width = windowWidth - insets.calculateLeftPadding(direction) - insets.calculateRightPadding(direction)
+    return max(MinGutter, (width - ContentMaxWidth) / 2)
 }

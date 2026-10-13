@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import eu.hxreborn.pixelinjector.App
+import eu.hxreborn.pixelinjector.BuildConfig
 import eu.hxreborn.pixelinjector.ModuleConstants
 import eu.hxreborn.pixelinjector.ModuleConstants.FILES_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.GBOARD_PACKAGES
@@ -19,20 +20,33 @@ import eu.hxreborn.pixelinjector.ModuleConstants.LAUNCHER_PACKAGES
 import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.prefs.AppPrefs
 import eu.hxreborn.pixelinjector.prefs.PrefSpec
+import eu.hxreborn.pixelinjector.support.Framework
+import eu.hxreborn.pixelinjector.support.LogArchive
+import eu.hxreborn.pixelinjector.support.MissingTarget
+import eu.hxreborn.pixelinjector.support.ReportBuilder
+import eu.hxreborn.pixelinjector.support.ReportFacts
+import eu.hxreborn.pixelinjector.support.ReportPreview
+import eu.hxreborn.pixelinjector.support.SendResult
+import eu.hxreborn.pixelinjector.support.SentReport
 import eu.hxreborn.pixelinjector.ui.dashboard.DashboardState
 import eu.hxreborn.pixelinjector.ui.dashboard.HookedPackages
 import eu.hxreborn.pixelinjector.ui.dashboard.TweakGroup
 import eu.hxreborn.pixelinjector.ui.dashboard.restartOnChange
+import eu.hxreborn.pixelinjector.ui.dashboard.tweakUis
 import eu.hxreborn.pixelinjector.ui.log.ModuleLogState
 import eu.hxreborn.pixelinjector.ui.log.deriveErrors
 import eu.hxreborn.pixelinjector.ui.log.parseModuleLog
 import eu.hxreborn.pixelinjector.ui.reload.HotReloadRunner
 import eu.hxreborn.pixelinjector.ui.reload.ReloadRun
+import eu.hxreborn.pixelinjector.ui.support.ReportPhase
+import eu.hxreborn.pixelinjector.ui.support.SupportState
 import eu.hxreborn.pixelinjector.ui.util.LauncherApp
 import eu.hxreborn.pixelinjector.ui.util.Root
 import eu.hxreborn.pixelinjector.ui.util.loadLauncherApps
 import io.github.libxposed.service.HookedTarget
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +57,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -68,6 +83,9 @@ class MainViewModel(
 ) : AndroidViewModel(application) {
     private val app = App.from(application)
     private val runner = HotReloadRunner(viewModelScope, application.filesDir)
+    val support = app.support
+    private val logArchive = LogArchive(application.filesDir)
+    private var rawLog: List<String>? = null
 
     val prefs: StateFlow<AppPrefs> =
         app.prefs.state.stateIn(viewModelScope, SharingStarted.WhileSubscribed(PREFS_SUBSCRIPTION_TIMEOUT_MS), app.prefs.snapshot())
@@ -195,6 +213,157 @@ class MainViewModel(
             ),
         )
 
+    private fun frameworkLabel(): String? =
+        app.service.value?.let { "${it.frameworkName} ${it.frameworkVersion}  API ${it.apiVersion}  ${android.os.Build.ID}" }
+
+    val supportState: StateFlow<SupportState> =
+        combine(
+            combine(
+                support.release,
+                support.reports,
+                support.shareHookStatus,
+            ) { release, reports, share -> Triple(release, reports, share) },
+            support.postponedVersion,
+            support.install,
+            bound,
+        ) { (release, reports, share), postponed, install, _ ->
+            SupportState(release, reports.filter { it.replyTo == null }, share, postponed, install, frameworkLabel())
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            SupportState(
+                support.release.value,
+                support.reports.value,
+                support.shareHookStatus.value,
+                support.postponedVersion.value,
+                support.install.value,
+                null,
+            ),
+        )
+
+    private val _updatedNotice = MutableStateFlow<Pair<Int, Int>?>(null)
+    val updatedNotice: StateFlow<Pair<Int, Int>?> = _updatedNotice.asStateFlow()
+    private var updateNoticeShown = false
+
+    fun consumeUpdatedNotice() {
+        _updatedNotice.value = null
+    }
+
+    private fun announceUpdate(list: List<HookedTarget>) {
+        if (updateNoticeShown || support.updatedFrom == null || list.isEmpty()) return
+        updateNoticeShown = true
+        val stale = list.count { it.loadedVersionCode < BuildConfig.VERSION_CODE }
+        _updatedNotice.value = (list.size - stale) to stale
+    }
+
+    fun reportFacts(): ReportFacts {
+        val service = app.service.value
+        val log = _moduleLog.value
+        val errors = _errors.value
+        val prefsNow = prefs.value
+        val missing =
+            log.entries
+                .filter { it.body.startsWith("target not found") && it.tweak != null && it.tweak in errors }
+                .map { entry ->
+                    MissingTarget(
+                        entry.tweak.orEmpty(),
+                        logField(entry.body, "member")?.trim('"')?.substringAfterLast('.')?.substringAfterLast(' '),
+                        logField(entry.body, "reason"),
+                    )
+                }.distinctBy { it.tweak }
+        return ReportFacts(
+            framework = service?.let { Framework(it.frameworkName, it.frameworkVersion, it.apiVersion) },
+            rootDenied = log.denied,
+            logLines = rawLog,
+            tweaks =
+                tweakUis.associate {
+                    it.key to
+                        when {
+                            !prefsNow[it.pref] -> "off"
+                            it.key in errors -> "miss"
+                            else -> "ok"
+                        }
+                },
+            missing = missing,
+            packages =
+                targets.value
+                    .map {
+                        it.processName.substringBefore(
+                            ':',
+                        )
+                    }.toSet() + ModuleConstants.SYSTEMUI_PACKAGE - SYSTEM_PROCESS,
+        )
+    }
+
+    private fun logField(
+        body: String,
+        key: String,
+    ): String? = Regex("""\b$key=("[^"]*"|\S+)""").find(body)?.groupValues?.get(1)
+
+    private fun postHookStatus() {
+        if (_moduleLog.value.loading) return
+        support.postHookStatus { ReportBuilder.meta(getApplication(), reportFacts(), null, forReport = false) }
+    }
+
+    private val _reportPreview = MutableStateFlow<ReportPreview?>(null)
+    val reportPreview: StateFlow<ReportPreview?> = _reportPreview.asStateFlow()
+
+    private val _reportPhase = MutableStateFlow<ReportPhase>(ReportPhase.Compose)
+    val reportPhase: StateFlow<ReportPhase> = _reportPhase.asStateFlow()
+
+    private var reportJob: Job? = null
+
+    fun openReport() {
+        reportJob?.cancel()
+        _reportPhase.value = ReportPhase.Compose
+        _reportPreview.value = null
+        reportJob =
+            viewModelScope.launch(Dispatchers.IO) {
+                if (rawLog == null || _moduleLog.value.denied) loadModuleLog()
+                _reportPreview.value = ReportBuilder.preview(reportFacts())
+            }
+    }
+
+    fun retryReport(report: SentReport) {
+        reportJob?.cancel()
+        _reportPhase.value = ReportPhase.Sending
+        reportJob = viewModelScope.launch(Dispatchers.IO) { showResult(support.resend(report)) }
+    }
+
+    private fun CoroutineScope.showResult(result: SendResult) {
+        if (!isActive) return
+        _reportPhase.value =
+            when (result) {
+                is SendResult.Sent -> ReportPhase.Sent(result.report)
+                is SendResult.Waiting -> ReportPhase.Waiting(result.report)
+                is SendResult.Rejected -> ReportPhase.Rejected(result.reason)
+            }
+    }
+
+    fun sendReport(
+        message: String,
+        tweak: String?,
+        replyTo: String?,
+    ) {
+        val preview = _reportPreview.value ?: return
+        _reportPhase.value = ReportPhase.Sending
+        reportJob =
+            viewModelScope.launch(Dispatchers.IO) {
+                val result =
+                    runCatching { support.send(ReportBuilder.encrypt(getApplication(), preview, message, tweak, replyTo), tweak, replyTo) }
+                        .onFailure { Log.e(ModuleConstants.LOG_TAG, "report failed reason=${it.message}", it) }
+                        .getOrElse { SendResult.Rejected(it.message ?: it.javaClass.simpleName) }
+                showResult(result)
+            }
+    }
+
+    fun onResumeSupport() {
+        support.checkRelease(force = false)
+        support.refreshStatuses()
+        support.retryWaiting()
+        postHookStatus()
+    }
+
     init {
         refreshLauncherApps()
         refreshModuleLog()
@@ -218,6 +387,7 @@ class MainViewModel(
                 runCatching { service.runningTargets }
                     .onFailure { Log.w(ModuleConstants.LOG_TAG, "getRunningTargets failed reason=${it.message}", it) }
                     .getOrDefault(emptyList())
+            announceUpdate(targets.value)
             scope.value =
                 runCatching { service.scope.toSet() }
                     .onFailure { Log.w(ModuleConstants.LOG_TAG, "getScope failed reason=${it.message}", it) }
@@ -226,21 +396,26 @@ class MainViewModel(
     }
 
     fun refreshModuleLog() {
-        _moduleLog.update { it.copy(loading = true) }
-        viewModelScope.launch(Dispatchers.IO) {
-            val state =
-                when (val read = runCatching { Root.readModuleLog() }.getOrElse { Root.LogRead.Denied }) {
-                    Root.LogRead.Denied -> {
-                        ModuleLogState(loading = false, denied = true)
-                    }
+        viewModelScope.launch(Dispatchers.IO) { loadModuleLog() }
+    }
 
-                    is Root.LogRead.Lines -> {
-                        ModuleLogState(loading = false, entries = parseModuleLog(read.lines, read.processes))
-                    }
-                }
-            _moduleLog.value = state
-            _errors.value = deriveErrors(state.entries)
+    private fun loadModuleLog() {
+        _moduleLog.update { it.copy(loading = true) }
+        when (val read = runCatching { Root.readModuleLog() }.getOrElse { Root.LogRead.Denied }) {
+            Root.LogRead.Denied -> {
+                rawLog = null
+                _moduleLog.value = ModuleLogState(loading = false, denied = true)
+                _errors.value = deriveErrors(emptyList())
+            }
+
+            is Root.LogRead.Lines -> {
+                val lines = logArchive.merge(read.lines)
+                rawLog = lines
+                _moduleLog.value = ModuleLogState(loading = false, entries = parseModuleLog(lines, read.processes))
+                _errors.value = deriveErrors(parseModuleLog(read.lines, read.processes))
+            }
         }
+        postHookStatus()
     }
 
     fun hotReload(selected: List<HookedTarget>) {
