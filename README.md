@@ -73,11 +73,13 @@ Needs Android 14 or newer, arm64 and an Xposed framework with libxposed API 102 
 
 ## Report a problem
 
-Report from the app itself, end-to-end encrypted with [HPKE](https://www.rfc-editor.org/rfc/rfc9180) ([X25519](https://www.rfc-editor.org/rfc/rfc7748) and [AES-256-GCM](https://csrc.nist.gov/pubs/sp/800/38/d/final)). Opt-in: nothing leaves the phone until you tap Send encrypted report.
+PixelInjector is built for my own phone, but if a tweak is useful to you and breaks on your build, I am happy to adapt or fix it. The app detects tweaks that fail to load and can send a report straight from Settings, end-to-end encrypted with [HPKE](https://www.rfc-editor.org/rfc/rfc9180) ([X25519](https://www.rfc-editor.org/rfc/rfc7748) and [AES-256-GCM](https://csrc.nist.gov/pubs/sp/800/38/d/final)). Reports are opt-in and nothing leaves the phone until you tap Send encrypted report.
 
 1. Open Settings and tap Send a report.
 2. Say what happened and pick the tweak if it is about one. Tap Send encrypted report.
-3. Follow it in Settings, Your reports. A question from the developer shows there with a Reply button, and the GitHub issue once there is one.
+3. Follow it in Settings, Your reports. A question from me shows there with a Reply button, and the GitHub issue once there is one.
+
+Prefer not to use the app? [Open an issue](https://github.com/hxreborn/PixelInjector/issues/new) with the module log from your Xposed manager, or reach me at [hxreborn@duck.com](mailto:hxreborn@duck.com) or on [Telegram](https://t.me/hxreb0rn). [Open bugs](https://github.com/hxreborn/PixelInjector/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) are tracked on GitHub.
 
 <details>
 <summary>Full specs</summary>
@@ -97,8 +99,6 @@ Report from the app itself, end-to-end encrypted with [HPKE](https://www.rfc-edi
 | Hook status | Opt-in in Settings. Sends which tweaks load per Android build, once per version |
 
 </details>
-
-Known bugs: [open bug issues](https://github.com/hxreborn/PixelInjector/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug). Without the app, [open an issue](https://github.com/hxreborn/PixelInjector/issues/new) and attach the module log from your Xposed manager.
 
 ## Credits
 
