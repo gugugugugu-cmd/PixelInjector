@@ -71,11 +71,11 @@ Needs Android 14 or newer, arm64 and an Xposed framework with libxposed API 102 
 
 - GH FastPass: closes the Verification request approved dialog of the GitHub app as soon as a 2FA push is approved. Same hook as [gh-fast-pass](https://github.com/hxreborn/gh-fast-pass).
 
-## Report a problem
+## Report a bug
 
 Report from the app itself, end-to-end encrypted with [HPKE](https://www.rfc-editor.org/rfc/rfc9180) ([X25519](https://www.rfc-editor.org/rfc/rfc7748) and [AES-256-GCM](https://csrc.nist.gov/pubs/sp/800/38/d/final)). Opt-in: nothing leaves the phone until you tap Send encrypted report.
 
-1. Open Settings and tap Send a report.
+1. Open Settings and tap Report a bug.
 2. Say what happened and pick the tweak if it is about one. Tap Send encrypted report.
 3. Follow it in Settings, Your reports. A question from me shows there with a Reply button, and the GitHub issue once there is one.
 
