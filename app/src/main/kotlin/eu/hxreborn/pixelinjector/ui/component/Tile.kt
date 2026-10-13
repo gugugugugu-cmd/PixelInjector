@@ -179,13 +179,14 @@ fun LazyListScope.sectionHeader(
 fun <T> LazyListScope.tileGroup(
     items: List<T>,
     key: (T) -> Any,
+    animatePlacement: Boolean = true,
     content: @Composable (item: T, shape: RoundedCornerShape) -> Unit,
 ) {
     itemsIndexed(items, key = { _, item -> key(item) }) { index, item ->
         Column(
             Modifier.animateItem(
                 fadeInSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-                placementSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                placementSpec = if (animatePlacement) MaterialTheme.motionScheme.defaultSpatialSpec() else null,
                 fadeOutSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
             ),
         ) {

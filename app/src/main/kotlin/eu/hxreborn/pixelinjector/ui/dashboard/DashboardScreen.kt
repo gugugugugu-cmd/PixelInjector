@@ -1,11 +1,18 @@
 package eu.hxreborn.pixelinjector.ui.dashboard
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -74,6 +81,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -119,6 +128,8 @@ private val ToolbarButtonSize = 48.dp
 private val ToolbarGap = 4.dp
 private val ChevronSize = 22.dp
 private val LinkChevronSlot = 40.dp
+private val ChildStartPadding = 52.dp
+private val ChildShape = RoundedCornerShape(0.dp)
 private val LeadingButtonPadding = PaddingValues(start = 16.dp, end = 20.dp)
 private val ReportButtonInset = (-12).dp
 private const val CHEVRON_OPEN_ROTATION = 180f
@@ -126,6 +137,11 @@ private const val RELOAD_COUNT_ALPHA = 0.85f
 private const val PERCENT_MAX = 100
 private const val PERCENT_STEP = 10
 private const val SLIDER_STEPS = PERCENT_MAX / PERCENT_STEP - 1
+
+private class TweakRow(
+    val toggle: DashTile.Toggle,
+    val children: List<DashTile>,
+)
 
 private sealed interface DashTile {
     val title: Int
@@ -163,14 +179,15 @@ private fun rows(
     group: TweakGroup,
     prefs: AppPrefs,
     hidden: Set<String>,
-): List<DashTile> =
-    tweakUis.filter { it.group == group && it.key !in hidden }.flatMap { tweak ->
-        val checked = prefs[tweak.pref]
-        listOfNotNull(
-            DashTile.Toggle(tweak, checked),
-            tweak.editor?.takeIf { checked }?.let { DashTile.Link(it, it.summary(prefs)) },
-            tweak.slider?.takeIf { checked }?.let { DashTile.Slide(it, prefs[it.pref]) },
-            tweak.sound?.takeIf { checked }?.let { DashTile.Sound(it, prefs[it.pref]) },
+): List<TweakRow> =
+    tweakUis.filter { it.group == group && it.key !in hidden }.map { tweak ->
+        TweakRow(
+            DashTile.Toggle(tweak, prefs[tweak.pref]),
+            listOfNotNull(
+                tweak.editor?.let { DashTile.Link(it, it.summary(prefs)) },
+                tweak.slider?.let { DashTile.Slide(it, prefs[it.pref]) },
+                tweak.sound?.let { DashTile.Sound(it, prefs[it.pref]) },
+            ),
         )
     }
 
@@ -377,7 +394,7 @@ private fun LazyListScope.scope(
     group: TweakGroup,
     packages: List<String>,
     showPackages: Boolean,
-    tiles: List<DashTile>,
+    tiles: List<TweakRow>,
     errors: Map<String, TileError>,
     onToggle: (BoolPref, Boolean) -> Unit,
     onSlide: (IntPref, Int) -> Unit,
@@ -390,25 +407,56 @@ private fun LazyListScope.scope(
         Box(Modifier.size(HeaderGlyphSlot), contentAlignment = Alignment.Center) { AppGlyph(iconPackageName, groupSymbol) }
         Spacer(Modifier.width(0.dp))
     }
-    tileGroup(tiles, key = { it.title }) { tile, shape ->
-        when (tile) {
-            is DashTile.Toggle -> ToggleTile(tile, shape, errors[tile.tweak.key], tweakSymbol(tile.tweak.key), onToggle, onReport)
-            is DashTile.Link -> LinkTile(tile, shape, onOpen)
-            is DashTile.Slide -> SlideTile(tile, shape, onSlide)
-            is DashTile.Sound -> SoundTile(tile, shape, onOpen)
+    tileGroup(tiles, key = { it.toggle.title }, animatePlacement = false) { row, shape ->
+        val toggle = row.toggle
+        Column(Modifier.clip(shape).background(MaterialTheme.colorScheme.surfaceContainer)) {
+            ToggleTile(toggle, errors[toggle.tweak.key], tweakSymbol(toggle.tweak.key), onToggle, onReport)
+            AnimatedVisibility(
+                visible = toggle.checked && row.children.isNotEmpty(),
+                enter =
+                    fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) +
+                        expandVertically(MaterialTheme.motionScheme.defaultSpatialSpec()),
+                exit =
+                    fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) + shrinkVertically(MaterialTheme.motionScheme.fastSpatialSpec()),
+            ) {
+                Column(Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh)) {
+                    row.children.forEach { child ->
+                        when (child) {
+                            is DashTile.Link -> LinkTile(child, onOpen)
+                            is DashTile.Slide -> SlideTile(child, onSlide)
+                            is DashTile.Sound -> SoundTile(child, onOpen)
+                            is DashTile.Toggle -> Unit
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
+private fun ChildTile(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    content: @Composable RowScope.() -> Unit,
+) {
+    Tile(
+        shape = ChildShape,
+        modifier = modifier,
+        color = Color.Transparent,
+        startPadding = ChildStartPadding,
+        onClick = onClick,
+        content = content,
+    )
+}
+
+@Composable
 private fun SlideTile(
     tile: DashTile.Slide,
-    shape: RoundedCornerShape,
     onSlide: (IntPref, Int) -> Unit,
 ) {
     var value by remember(tile.value) { mutableIntStateOf(tile.value) }
-    Tile(shape = shape) {
-        TileLeading(null)
+    ChildTile {
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 TileText(stringResource(tile.title), stringResource(tile.slider.description))
@@ -433,7 +481,6 @@ private fun SlideTile(
 @Composable
 private fun ToggleTile(
     tile: DashTile.Toggle,
-    shape: RoundedCornerShape,
     error: TileError?,
     icon: ImageVector?,
     onToggle: (BoolPref, Boolean) -> Unit,
@@ -441,7 +488,8 @@ private fun ToggleTile(
 ) {
     val haptic = LocalHapticFeedback.current
     Tile(
-        shape = shape,
+        shape = ChildShape,
+        color = Color.Transparent,
         checked = tile.checked,
         onCheckedChange = {
             haptic.performHapticFeedback(if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
@@ -481,11 +529,9 @@ private fun ToggleTile(
 @Composable
 private fun SoundTile(
     tile: DashTile.Sound,
-    shape: RoundedCornerShape,
     onOpen: (Destination) -> Unit,
 ) {
-    Tile(shape = shape, onClick = { onOpen(tile.sound.destination) }) {
-        TileLeading(null)
+    ChildTile(onClick = { onOpen(tile.sound.destination) }) {
         val label = if (tile.path.isEmpty()) stringResource(R.string.sound_none) else SystemSounds.label(tile.path)
         TileText(stringResource(tile.title), label)
         Box(Modifier.width(LinkChevronSlot), contentAlignment = Alignment.Center) {
@@ -497,11 +543,9 @@ private fun SoundTile(
 @Composable
 private fun LinkTile(
     tile: DashTile.Link,
-    shape: RoundedCornerShape,
     onOpen: (Destination) -> Unit,
 ) {
-    Tile(shape = shape, onClick = { onOpen(tile.editor.destination) }) {
-        TileLeading(null)
+    ChildTile(onClick = { onOpen(tile.editor.destination) }) {
         TileText(stringResource(tile.title), tile.editor.description?.let { stringResource(it) })
         Text(
             tile.summary,
