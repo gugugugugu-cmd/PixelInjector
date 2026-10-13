@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -81,6 +82,7 @@ class SettingsActions(
     val onSendReport: () -> Unit,
     val onReports: () -> Unit,
     val onShareHookStatus: (Boolean) -> Unit,
+    val onHideUnavailable: (Boolean) -> Unit,
     val onModuleLog: () -> Unit,
     val onGitHub: () -> Unit,
 )
@@ -89,6 +91,7 @@ class SettingsActions(
 @Composable
 fun SettingsScreen(
     state: SupportState,
+    hideUnavailable: Boolean,
     actions: SettingsActions,
     onBack: () -> Unit,
 ) {
@@ -124,27 +127,26 @@ fun SettingsScreen(
                 }
             }
             Spacer(Modifier.height(SectionGap))
+            Group(stringResource(R.string.settings_dashboard), 1) { _, shape ->
+                SwitchTile(
+                    shape,
+                    Icons.Outlined.VisibilityOff,
+                    stringResource(R.string.hide_unavailable),
+                    stringResource(R.string.hide_unavailable_summary),
+                    hideUnavailable,
+                    actions.onHideUnavailable,
+                )
+            }
+            Spacer(Modifier.height(SectionGap))
             Group(stringResource(R.string.settings_privacy), 1) { _, shape ->
-                Tile(
-                    shape = shape,
-                    checked = state.shareHookStatus,
-                    onCheckedChange = actions.onShareHookStatus,
-                    modifier = Modifier.semantics { role = Role.Switch },
-                ) {
-                    TileLeading(Icons.Outlined.Insights)
-                    TileText(stringResource(R.string.share_hook_status), stringResource(R.string.share_hook_status_summary))
-                    Switch(
-                        checked = state.shareHookStatus,
-                        onCheckedChange = null,
-                        thumbContent = {
-                            Icon(
-                                if (state.shareHookStatus) Icons.Filled.Check else Icons.Filled.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        },
-                    )
-                }
+                SwitchTile(
+                    shape,
+                    Icons.Outlined.Insights,
+                    stringResource(R.string.share_hook_status),
+                    stringResource(R.string.share_hook_status_summary),
+                    state.shareHookStatus,
+                    actions.onShareHookStatus,
+                )
             }
             Spacer(Modifier.height(SectionGap))
             Group(stringResource(R.string.settings_about), 2) { index, shape ->
@@ -181,6 +183,37 @@ private fun Group(
     SectionHeader(title)
     Column(verticalArrangement = Arrangement.spacedBy(TileGap)) {
         repeat(count) { content(it, tileShape(count, it)) }
+    }
+}
+
+@Composable
+private fun SwitchTile(
+    shape: RoundedCornerShape,
+    icon: ImageVector,
+    title: String,
+    summary: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Tile(
+        shape = shape,
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        modifier = Modifier.semantics { role = Role.Switch },
+    ) {
+        TileLeading(icon)
+        TileText(title, summary)
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            thumbContent = {
+                Icon(
+                    if (checked) Icons.Filled.Check else Icons.Filled.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                )
+            },
+        )
     }
 }
 

@@ -161,8 +161,9 @@ private sealed interface DashTile {
 private fun rows(
     group: TweakGroup,
     prefs: AppPrefs,
+    hidden: Set<String>,
 ): List<DashTile> =
-    tweakUis.filter { it.group == group }.flatMap { tweak ->
+    tweakUis.filter { it.group == group && it.key !in hidden }.flatMap { tweak ->
         val checked = prefs[tweak.pref]
         listOfNotNull(
             DashTile.Toggle(tweak, checked),
@@ -179,6 +180,7 @@ fun DashboardScreen(
     support: SupportState,
     updatedNotice: Pair<Int, Int>?,
     targetsOpen: Boolean,
+    hideUnavailable: Boolean,
     actions: DashboardActions,
     modifier: Modifier = Modifier,
 ) {
@@ -339,20 +341,24 @@ fun DashboardScreen(
                         Spacer(Modifier.height(SectionGap))
                     }
                 }
-                sections.forEachIndexed { index, (group, title) ->
-                    if (index > 0) item(key = "gap:$group") { Spacer(Modifier.height(SectionGap)) }
-                    scope(
-                        title,
-                        group,
-                        state.packages[group]?.packages.orEmpty(),
-                        rows(group, state.prefs),
-                        errorLines,
-                        actions.onToggle,
-                        actions.onSlide,
-                        actions.onOpen,
-                        actions.onReport,
-                    )
-                }
+                val hidden = if (hideUnavailable) errorLines.keys else emptySet()
+                sections
+                    .map { (group, title) -> Triple(group, title, rows(group, state.prefs, hidden)) }
+                    .filter { (_, _, tiles) -> tiles.isNotEmpty() }
+                    .forEachIndexed { index, (group, title, tiles) ->
+                        if (index > 0) item(key = "gap:$group") { Spacer(Modifier.height(SectionGap)) }
+                        scope(
+                            title,
+                            group,
+                            state.packages[group]?.packages.orEmpty(),
+                            tiles,
+                            errorLines,
+                            actions.onToggle,
+                            actions.onSlide,
+                            actions.onOpen,
+                            actions.onReport,
+                        )
+                    }
             }
         }
     }

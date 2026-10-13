@@ -94,6 +94,9 @@ class MainViewModel(
         app.service.map { it != null }.stateIn(viewModelScope, SharingStarted.Eagerly, app.service.value != null)
 
     val everBound: StateFlow<Boolean> = app.everBound
+    val hideUnavailable: StateFlow<Boolean> = app.hideUnavailable
+
+    fun setHideUnavailable(hide: Boolean) = app.setHideUnavailable(hide)
 
     private val targets = MutableStateFlow<List<HookedTarget>>(emptyList())
     private val scope = MutableStateFlow<Set<String>?>(null)
