@@ -9,6 +9,7 @@ import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.util.Base64
 import java.util.UUID
 import java.util.zip.GZIPOutputStream
 
@@ -46,6 +47,7 @@ class EncryptedReport(
     val envelope: ByteArray,
     val readToken: String,
     val deleteToken: String,
+    val noteKey: Hpke.NoteKey,
 )
 
 object ReportBuilder {
@@ -76,11 +78,15 @@ object ReportBuilder {
             sha256(cert).copyOf(SIGNER_BYTES).toHex()
         }.getOrNull()
 
+    val noteInfo: ByteArray =
+        "reportkit/v1/note".toByteArray() + byteArrayOf(0) + ReportConfig.app.toByteArray()
+
     fun meta(
         context: Context,
         facts: ReportFacts,
         tweak: String?,
         forReport: Boolean,
+        notePublicKey: ByteArray? = null,
     ): JSONObject {
         val missing =
             facts.missing.firstOrNull { it.tweak == tweak }
@@ -123,6 +129,12 @@ object ReportBuilder {
                     },
                 ),
             )
+            notePublicKey?.let {
+                put(
+                    "noteKey",
+                    Base64.getUrlEncoder().withoutPadding().encodeToString(it),
+                )
+            }
             if (forReport) {
                 put("log", if (facts.logLines.isNullOrEmpty()) "unavailable" else "attached")
                 tweak?.let { put("tweak", it) }
@@ -143,6 +155,7 @@ object ReportBuilder {
         message: String,
         tweak: String?,
         replyTo: String?,
+        noteKey: Hpke.NoteKey,
     ): EncryptedReport {
         val metaBytes =
             meta(
@@ -150,6 +163,7 @@ object ReportBuilder {
                 preview.facts,
                 tweak,
                 forReport = true,
+                notePublicKey = noteKey.publicRaw,
             ).toString().toByteArray()
         val versions = JSONObject()
         preview.facts.packages.forEach { pkg ->
@@ -176,6 +190,7 @@ object ReportBuilder {
             envelope = header + hpke.enc + hpke.ciphertext,
             readToken = token(),
             deleteToken = token(),
+            noteKey = noteKey,
         )
     }
 

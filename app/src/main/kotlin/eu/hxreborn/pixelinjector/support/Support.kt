@@ -24,6 +24,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import java.io.File
+import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 
 sealed interface ReleaseCheck {
@@ -137,6 +138,10 @@ class Support(
         _postponedVersion.value = versionCode
     }
 
+    fun noteKeyFor(replyTo: String?): Hpke.NoteKey =
+        replyTo?.let { root -> _reports.value.firstOrNull { it.id == root }?.noteKey }
+            ?: Hpke.newNoteKey()
+
     fun markNotesSeen() = mutate { list -> list.map { it.copy(noteSeen = true) } }
 
     suspend fun send(
@@ -159,6 +164,11 @@ class Support(
                 replyTo = replyTo,
                 build = Build.ID,
                 message = message.ifBlank { null },
+                noteKeyPrivate =
+                    Base64.getEncoder().encodeToString(
+                        KeyWrap.wrap(encrypted.noteKey.privatePkcs8),
+                    ),
+                noteKeyPublic = Base64.getEncoder().encodeToString(encrypted.noteKey.publicRaw),
             )
         ledger.envelope(report.id).writeBytes(encrypted.envelope)
         ledger.meta(report.id).writeBytes(encrypted.meta)
@@ -265,7 +275,7 @@ class Support(
                     val json = byId[report.id] ?: return@mapNotNull report
                     val wire = json.optString("status")
                     if (wire == "gone") return@mapNotNull null
-                    val note = json.optStringOrNull("note")
+                    val note = report.noteOf(json)
                     report.copy(
                         short = json.optStringOrNull("short") ?: report.short,
                         status = ReportStatus.of(wire) ?: report.status,
@@ -274,10 +284,8 @@ class Support(
                         noteSeen = report.noteSeen && note == report.note,
                         events =
                             ReportEvent
-                                .list(
-                                    json.optJSONArray("events"),
-                                ).ifEmpty { report.events },
-                        message = report.message ?: json.optStringOrNull("message"),
+                                .list(json.optJSONArray("events"), report::noteOf)
+                                .ifEmpty { report.events },
                     )
                 }
             }

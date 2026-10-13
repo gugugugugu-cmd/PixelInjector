@@ -365,7 +365,7 @@ class MainViewModel(
                 val result =
                     runCatching {
                         support.send(
-                            ReportBuilder.encrypt(getApplication(), preview, message, tweak, replyTo),
+                            ReportBuilder.encrypt(getApplication(), preview, message, tweak, replyTo, support.noteKeyFor(replyTo)),
                             message,
                             tweak,
                             replyTo,

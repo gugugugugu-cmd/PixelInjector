@@ -5,6 +5,7 @@ import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.PrivateKey
+import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
 import javax.crypto.KeyAgreement
@@ -30,6 +31,21 @@ object Hpke {
         val ciphertext: ByteArray,
     )
 
+    class NoteKey(
+        val privatePkcs8: ByteArray,
+        val publicRaw: ByteArray,
+    )
+
+    fun newNoteKey(): NoteKey {
+        val pair = KeyPairGenerator.getInstance("X25519").generateKeyPair()
+        return NoteKey(
+            pair.private.encoded,
+            pair.public.encoded
+                .takeLast(RAW_KEY_LENGTH)
+                .toByteArray(),
+        )
+    }
+
     fun seal(
         recipientPublic: ByteArray,
         info: ByteArray,
@@ -52,7 +68,42 @@ object Hpke {
             ephemeral.public.encoded
                 .takeLast(RAW_KEY_LENGTH)
                 .toByteArray()
-        val dh = dh(ephemeral.private, recipientPublic)
+        val cipher =
+            cipher(
+                Cipher.ENCRYPT_MODE,
+                dh(ephemeral.private, recipientPublic),
+                enc,
+                recipientPublic,
+                info,
+            )
+        cipher.updateAAD(aad)
+        return Sealed(enc, cipher.doFinal(plaintext))
+    }
+
+    fun open(
+        key: NoteKey,
+        info: ByteArray,
+        aad: ByteArray,
+        sealed: ByteArray,
+    ): ByteArray {
+        val enc = sealed.copyOf(RAW_KEY_LENGTH)
+        val private =
+            KeyFactory
+                .getInstance(
+                    "XDH",
+                ).generatePrivate(PKCS8EncodedKeySpec(key.privatePkcs8))
+        val cipher = cipher(Cipher.DECRYPT_MODE, dh(private, enc), enc, key.publicRaw, info)
+        cipher.updateAAD(aad)
+        return cipher.doFinal(sealed, RAW_KEY_LENGTH, sealed.size - RAW_KEY_LENGTH)
+    }
+
+    private fun cipher(
+        mode: Int,
+        dh: ByteArray,
+        enc: ByteArray,
+        recipientPublic: ByteArray,
+        info: ByteArray,
+    ): Cipher {
         val prk = labeledExtract(kemSuite, ByteArray(0), "eae_prk", dh)
         val shared =
             labeledExpand(kemSuite, prk, "shared_secret", enc + recipientPublic, KEY_LENGTH)
@@ -64,14 +115,9 @@ object Hpke {
         val secret = labeledExtract(hpkeSuite, shared, "secret", empty)
         val key = labeledExpand(hpkeSuite, secret, "key", context, KEY_LENGTH)
         val nonce = labeledExpand(hpkeSuite, secret, "base_nonce", context, NONCE_LENGTH)
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(
-            Cipher.ENCRYPT_MODE,
-            SecretKeySpec(key, "AES"),
-            GCMParameterSpec(TAG_BITS, nonce),
-        )
-        cipher.updateAAD(aad)
-        return Sealed(enc, cipher.doFinal(plaintext))
+        return Cipher.getInstance("AES/GCM/NoPadding").apply {
+            init(mode, SecretKeySpec(key, "AES"), GCMParameterSpec(TAG_BITS, nonce))
+        }
     }
 
     private fun dh(

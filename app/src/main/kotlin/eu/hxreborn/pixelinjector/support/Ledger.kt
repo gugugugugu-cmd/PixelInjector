@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.support
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.util.Base64
 
 enum class ReportStatus(
     val wire: String,
@@ -46,10 +47,15 @@ data class ReportEvent(
                 )
             }
 
-        fun list(array: JSONArray?): List<ReportEvent> =
+        fun list(
+            array: JSONArray?,
+            noteOf: (JSONObject) -> String? = { it.optStringOrNull("note") },
+        ): List<ReportEvent> =
             array
                 ?.let { a ->
-                    List(a.length()) { a.optJSONObject(it) }.mapNotNull { it?.let(::from) }
+                    List(a.length()) { a.optJSONObject(it) }.mapNotNull { json ->
+                        json?.let(::from)?.copy(note = noteOf(json))
+                    }
                 }.orEmpty()
     }
 }
@@ -70,7 +76,37 @@ data class SentReport(
     val noteSeen: Boolean = true,
     val message: String? = null,
     val events: List<ReportEvent> = emptyList(),
+    val noteKeyPrivate: String? = null,
+    val noteKeyPublic: String? = null,
 ) {
+    val noteKey: Hpke.NoteKey? by lazy {
+        if (noteKeyPrivate == null || noteKeyPublic == null) {
+            null
+        } else {
+            runCatching {
+                Hpke.NoteKey(
+                    KeyWrap.unwrap(Base64.getDecoder().decode(noteKeyPrivate)),
+                    Base64.getDecoder().decode(noteKeyPublic),
+                )
+            }.getOrNull()
+        }
+    }
+
+    fun noteOf(json: JSONObject): String? {
+        val sealed = json.optStringOrNull("noteSealed") ?: return json.optStringOrNull("note")
+        val key = noteKey ?: return null
+        return runCatching {
+            String(
+                Hpke.open(
+                    key,
+                    ReportBuilder.noteInfo,
+                    id.toByteArray(),
+                    Base64.getDecoder().decode(sealed),
+                ),
+            )
+        }.getOrNull()
+    }
+
     fun toJson(): JSONObject =
         JSONObject()
             .put("id", id)
@@ -88,6 +124,8 @@ data class SentReport(
             .put("noteSeen", noteSeen)
             .put("message", message)
             .put("events", JSONArray(events.map { it.toJson() }))
+            .put("noteKeyPrivate", noteKeyPrivate)
+            .put("noteKeyPublic", noteKeyPublic)
 
     companion object {
         fun from(json: JSONObject): SentReport =
@@ -107,6 +145,8 @@ data class SentReport(
                 noteSeen = json.optBoolean("noteSeen", true),
                 message = json.optStringOrNull("message"),
                 events = ReportEvent.list(json.optJSONArray("events")),
+                noteKeyPrivate = json.optStringOrNull("noteKeyPrivate"),
+                noteKeyPublic = json.optStringOrNull("noteKeyPublic"),
             )
     }
 }
