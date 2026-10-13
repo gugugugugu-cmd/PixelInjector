@@ -98,6 +98,10 @@ class MainViewModel(
 
     fun setHideUnavailable(hide: Boolean) = app.setHideUnavailable(hide)
 
+    val showPackages: StateFlow<Boolean> = app.showPackages
+
+    fun setShowPackages(show: Boolean) = app.setShowPackages(show)
+
     private val targets = MutableStateFlow<List<HookedTarget>>(emptyList())
     private val scope = MutableStateFlow<Set<String>?>(null)
 

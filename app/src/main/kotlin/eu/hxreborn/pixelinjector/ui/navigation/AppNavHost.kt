@@ -59,6 +59,7 @@ fun AppNavHost(
     val sheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     val dashboard by viewModel.dashboard.collectAsStateWithLifecycle()
     val hideUnavailable by viewModel.hideUnavailable.collectAsStateWithLifecycle()
+    val showPackages by viewModel.showPackages.collectAsStateWithLifecycle()
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     val targets by viewModel.reloadTargets.collectAsStateWithLifecycle()
     val run by viewModel.reload.collectAsStateWithLifecycle()
@@ -142,6 +143,7 @@ fun AppNavHost(
                         updatedNotice = updatedNotice,
                         targetsOpen = targetsOpen,
                         hideUnavailable = hideUnavailable,
+                        showPackages = showPackages,
                         actions = actions,
                     )
                     run?.let { ProgressSheet(it, onCancel = viewModel::cancelHotReload, onClose = viewModel::dismissHotReload) }
@@ -201,6 +203,7 @@ fun AppNavHost(
                     SettingsScreen(
                         state = support,
                         hideUnavailable = hideUnavailable,
+                        showPackages = showPackages,
                         actions =
                             SettingsActions(
                                 onCheck = { viewModel.support.checkRelease(force = true) },
@@ -216,6 +219,7 @@ fun AppNavHost(
                                 },
                                 onShareHookStatus = viewModel.support::setShareHookStatus,
                                 onHideUnavailable = viewModel::setHideUnavailable,
+                                onShowPackages = viewModel::setShowPackages,
                                 onModuleLog = {
                                     push(Destination.ModuleLog)
                                 },

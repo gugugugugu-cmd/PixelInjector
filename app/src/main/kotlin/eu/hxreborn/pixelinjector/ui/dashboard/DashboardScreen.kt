@@ -182,6 +182,7 @@ fun DashboardScreen(
     updatedNotice: Pair<Int, Int>?,
     targetsOpen: Boolean,
     hideUnavailable: Boolean,
+    showPackages: Boolean,
     actions: DashboardActions,
     modifier: Modifier = Modifier,
 ) {
@@ -352,6 +353,7 @@ fun DashboardScreen(
                             title,
                             group,
                             state.packages[group]?.packages.orEmpty(),
+                            showPackages,
                             tiles,
                             errorLines,
                             actions.onToggle,
@@ -374,6 +376,7 @@ private fun LazyListScope.scope(
     title: String,
     group: TweakGroup,
     packages: List<String>,
+    showPackages: Boolean,
     tiles: List<DashTile>,
     errors: Map<String, TileError>,
     onToggle: (BoolPref, Boolean) -> Unit,
@@ -383,7 +386,7 @@ private fun LazyListScope.scope(
 ) {
     val iconPackageName = if (group == TweakGroup.SYSTEM) "android" else packages.firstOrNull()
     val groupSymbol = groupSymbols[group]
-    sectionHeader(title, packages) {
+    sectionHeader(title, if (showPackages) packages else emptyList()) {
         Box(Modifier.size(HeaderGlyphSlot), contentAlignment = Alignment.Center) { AppGlyph(iconPackageName, groupSymbol) }
         Spacer(Modifier.width(0.dp))
     }

@@ -26,6 +26,9 @@ class App :
     private val _hideUnavailable = MutableStateFlow(false)
     val hideUnavailable: StateFlow<Boolean> = _hideUnavailable.asStateFlow()
 
+    private val _showPackages = MutableStateFlow(false)
+    val showPackages: StateFlow<Boolean> = _showPackages.asStateFlow()
+
     lateinit var prefs: PrefsRepository
         private set
 
@@ -48,6 +51,7 @@ class App :
             }
         _everBound.value = state.getBoolean(EVER_BOUND, false)
         _hideUnavailable.value = state.getBoolean(HIDE_UNAVAILABLE, false)
+        _showPackages.value = state.getBoolean(SHOW_PACKAGES, false)
         XposedServiceHelper.registerListener(this)
     }
 
@@ -69,6 +73,11 @@ class App :
         _hideUnavailable.value = hide
     }
 
+    fun setShowPackages(show: Boolean) {
+        state.edit { putBoolean(SHOW_PACKAGES, show) }
+        _showPackages.value = show
+    }
+
     override fun onServiceDied(service: XposedService) {
         Log.w(ModuleConstants.LOG_TAG, "service died")
         _service.value = null
@@ -78,6 +87,7 @@ class App :
         private const val STATE_PREFS = "state"
         private const val EVER_BOUND = "everBound"
         private const val HIDE_UNAVAILABLE = "hideUnavailable"
+        private const val SHOW_PACKAGES = "showPackages"
         private const val SHELL_TIMEOUT_SECONDS = 10L
 
         fun from(context: Context): App = context.applicationContext as App

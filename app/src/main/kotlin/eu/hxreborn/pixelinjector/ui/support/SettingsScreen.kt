@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Extension
@@ -91,6 +92,7 @@ class SettingsActions(
     val onReports: () -> Unit,
     val onShareHookStatus: (Boolean) -> Unit,
     val onHideUnavailable: (Boolean) -> Unit,
+    val onShowPackages: (Boolean) -> Unit,
     val onModuleLog: () -> Unit,
     val onGitHub: () -> Unit,
 )
@@ -100,6 +102,7 @@ class SettingsActions(
 fun SettingsScreen(
     state: SupportState,
     hideUnavailable: Boolean,
+    showPackages: Boolean,
     actions: SettingsActions,
     onBack: () -> Unit,
 ) {
@@ -145,15 +148,26 @@ fun SettingsScreen(
                 }
             }
             Spacer(Modifier.height(SectionGap))
-            Group(stringResource(R.string.settings_dashboard), 1) { _, shape ->
-                SwitchTile(
-                    shape,
-                    Icons.Outlined.VisibilityOff,
-                    stringResource(R.string.hide_unavailable),
-                    stringResource(R.string.hide_unavailable_summary),
-                    hideUnavailable,
-                    actions.onHideUnavailable,
-                )
+            Group(stringResource(R.string.settings_dashboard), 2) { index, shape ->
+                if (index == 0) {
+                    SwitchTile(
+                        shape,
+                        Icons.Outlined.VisibilityOff,
+                        stringResource(R.string.hide_unavailable),
+                        stringResource(R.string.hide_unavailable_summary),
+                        hideUnavailable,
+                        actions.onHideUnavailable,
+                    )
+                } else {
+                    SwitchTile(
+                        shape,
+                        Icons.Outlined.Code,
+                        stringResource(R.string.show_packages),
+                        stringResource(R.string.show_packages_summary),
+                        showPackages,
+                        actions.onShowPackages,
+                    )
+                }
             }
             Spacer(Modifier.height(SectionGap))
             val framework = state.framework
