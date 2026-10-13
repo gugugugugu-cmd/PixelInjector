@@ -434,7 +434,7 @@ private fun FieldGroup(
 private fun ExactText(preview: ReportPreview) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            pluralStringResource(R.plurals.report_exact_body, preview.hidden, preview.hidden),
+            stringResource(R.string.report_exact_body),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
