@@ -33,6 +33,12 @@ data class SupportState(
     val framework: String?,
 ) {
     val available: Release? get() = release.known?.takeIf { it.newer }
+    val conversations: List<SentReport> get() =
+        reports.filter { report ->
+            report.replyTo == null ||
+                reports.none { it.id == report.replyTo }
+        }
+
     val needsReply: Boolean get() = reports.any { it.status == ReportStatus.NEED_INFO && !it.noteSeen }
     val showUpdateCard: Boolean get() = available?.let { it.versionCode > postponedVersion } == true
 
@@ -53,9 +59,15 @@ class StatusStyle(
 )
 
 @Composable
-fun statusStyle(report: SentReport): StatusStyle {
+fun statusStyle(report: SentReport): StatusStyle = statusStyle(report.status, report.fixedIn)
+
+@Composable
+fun statusStyle(
+    status: ReportStatus,
+    fixedIn: String?,
+): StatusStyle {
     val scheme = MaterialTheme.colorScheme
-    return when (report.status) {
+    return when (status) {
         ReportStatus.WAITING -> {
             StatusStyle(
                 stringResource(R.string.status_waiting),
@@ -94,7 +106,7 @@ fun statusStyle(report: SentReport): StatusStyle {
 
         ReportStatus.FIXED -> {
             StatusStyle(
-                report.fixedIn?.let { stringResource(R.string.status_fixed, it) } ?: stringResource(R.string.status_fixed_plain),
+                fixedIn?.let { stringResource(R.string.status_fixed, it) } ?: stringResource(R.string.status_fixed_plain),
                 Icons.Outlined.CheckCircle,
                 scheme.primaryContainer,
                 scheme.onPrimaryContainer,
