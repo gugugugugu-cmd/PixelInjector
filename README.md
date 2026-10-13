@@ -73,13 +73,17 @@ Needs Android 14 or newer, arm64 and an Xposed framework with libxposed API 102 
 
 ## Report a problem
 
+Report from the app itself, end-to-end encrypted with [HPKE](https://www.rfc-editor.org/rfc/rfc9180) ([X25519](https://www.rfc-editor.org/rfc/rfc7748) and [AES-256-GCM](https://csrc.nist.gov/pubs/sp/800/38/d/final)). Opt-in: nothing leaves the phone until you tap Send encrypted report.
+
 1. Open Settings and tap Send a report.
 2. Say what happened and pick the tweak if it is about one. Tap Send encrypted report.
 3. Follow it in Settings, Your reports. A question from the developer shows there with a Reply button, and the GitHub issue once there is one.
 
+<details>
+<summary>Full specs</summary>
+
 | | |
 | --- | --- |
-| Consent | Opt-in. Nothing leaves the phone until you tap Send encrypted report |
 | Scheme | [HPKE](https://www.rfc-editor.org/rfc/rfc9180) RFC 9180 base mode |
 | Key exchange | DHKEM [X25519](https://www.rfc-editor.org/rfc/rfc7748) HKDF-SHA256 |
 | Cipher | [AES-256-GCM](https://csrc.nist.gov/pubs/sp/800/38/d/final) |
@@ -91,6 +95,8 @@ Needs Android 14 or newer, arm64 and an Xposed framework with libxposed API 102 
 | Hidden in the log | Emails, IP and MAC addresses, Wi-Fi names, device IDs, storage paths, URL and header tokens ([Redactor](app/src/main/kotlin/eu/hxreborn/pixelinjector/support/Redactor.kt)) |
 | Retention | 90 days |
 | Hook status | Opt-in in Settings. Sends which tweaks load per Android build, once per version |
+
+</details>
 
 Known bugs: [open bug issues](https://github.com/hxreborn/PixelInjector/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug). Without the app, [open an issue](https://github.com/hxreborn/PixelInjector/issues/new) and attach the module log from your Xposed manager.
 
