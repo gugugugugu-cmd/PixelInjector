@@ -79,7 +79,7 @@ Report from the app itself, end-to-end encrypted with [HPKE](https://www.rfc-edi
 2. Say what happened and pick the tweak if it is about one. Tap Send encrypted report.
 3. Follow it in Settings, Your reports. A question from me shows there with a Reply button, and the GitHub issue once there is one.
 
-Prefer not to use the app? [Open an issue](https://github.com/hxreborn/PixelInjector/issues/new) with the module log from your Xposed manager, or reach me at [hxreborn@duck.com](mailto:hxreborn@duck.com) or on [Telegram](https://t.me/hxreb0rn). [Open bugs](https://github.com/hxreborn/PixelInjector/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) are tracked on GitHub.
+You can also [open an issue](https://github.com/hxreborn/PixelInjector/issues/new) with the module log from your Xposed manager, or reach me at [hxreborn@duck.com](mailto:hxreborn@duck.com) or on [Telegram](https://t.me/hxreb0rn). [Open bugs](https://github.com/hxreborn/PixelInjector/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) are tracked on GitHub.
 
 <details>
 <summary>Full specs</summary>
