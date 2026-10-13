@@ -45,17 +45,30 @@ Needs Android 14 or newer and an Xposed framework with libxposed API 102.
 
 - GH FastPass: closes the Verification request approved dialog of the GitHub app as soon as a 2FA push is approved. Same hook as [gh-fast-pass](https://github.com/hxreborn/gh-fast-pass).
 
-## Reports and updates
+## Report a problem
 
-- Send a report from Settings. Your message and module log are end-to-end encrypted on the phone with HPKE (X25519 and AES-256-GCM), with personal details replaced before encryption. Only the developer's key opens them. Phone model, build and framework travel unencrypted so a fix can be matched to your build.
-- Your reports shows each report's status, the developer's latest note and the GitHub issue once there is one. The update that fixes it marks the release note line that closed the issue.
-- Updates install in the app after the checksum and the signing certificate match.
+1. Open Settings and tap Send a report.
+2. Say what happened and pick the tweak if it is about one. Tap Send encrypted report.
+3. Follow it in Settings, Your reports. A question from the developer shows there with a Reply button, and the GitHub issue once there is one.
+
+Your message and module log are end-to-end encrypted on the phone with HPKE (X25519 and AES-256-GCM), with personal details replaced before encryption. Only the developer's key opens them. Phone model, build and framework travel unencrypted so a fix can be matched to your build. No account is needed and the report site deletes reports after 90 days. The update that fixes your report marks the release note line that closed it, and updates install in the app after the checksum and the signing certificate match.
+
+Without the app, [open an issue](https://github.com/hxreborn/PixelInjector/issues/new) and attach the module log from your Xposed manager.
 
 ## Screenshots
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/dashboard.png" width="300" alt="Dashboard">
-</p>
+<table>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/dashboard.webp" width="240" alt="Dashboard"></td>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/settings.webp" width="240" alt="Settings"></td>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/reports.webp" width="240" alt="Your reports"></td>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/report.webp" width="240" alt="Send a report"></td>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/log.webp" width="240" alt="Module log"></td>
+    <td><img src="https://raw.githubusercontent.com/hxreborn/PixelInjector/main/assets/screenshots/reload.webp" width="240" alt="Hot reload"></td>
+  </tr>
+</table>
 
 ## Credits
 
