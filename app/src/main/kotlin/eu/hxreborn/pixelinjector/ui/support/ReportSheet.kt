@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.ManageSearch
@@ -74,7 +75,14 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.BuildConfig
 import eu.hxreborn.pixelinjector.R
@@ -406,7 +414,29 @@ private fun Disclosure(
                                     ),
                             ),
                         )
+                        FieldGroup(
+                            Icons.Outlined.Key,
+                            stringResource(R.string.report_crypto_group),
+                            links = CryptoDocs,
+                            fields =
+                                listOf(
+                                    stringResource(R.string.report_crypto_scheme) to stringResource(R.string.report_crypto_scheme_value),
+                                    stringResource(R.string.report_crypto_kem) to stringResource(R.string.report_crypto_kem_value),
+                                    stringResource(R.string.report_crypto_aead) to stringResource(R.string.report_crypto_aead_value),
+                                    stringResource(R.string.report_crypto_key) to ReportConfig.keyId,
+                                    stringResource(R.string.report_crypto_device) to stringResource(R.string.report_crypto_device_value),
+                                    stringResource(R.string.report_crypto_replies) to stringResource(R.string.report_crypto_replies_value),
+                                    stringResource(R.string.report_crypto_server) to
+                                        stringResource(R.string.report_crypto_server_value, ReportConfig.host),
+                                    stringResource(R.string.report_crypto_hidden) to stringResource(R.string.report_crypto_hidden_value),
+                                ),
+                        )
                     }
+                    Text(
+                        stringResource(R.string.report_opt_in),
+                        style = AppText.tileSupporting,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     Text(
                         stringResource(R.string.report_retention),
                         style = AppText.tileSupporting,
@@ -428,13 +458,15 @@ private fun FieldGroup(
     icon: ImageVector,
     title: String,
     fields: List<Pair<String, String>>,
+    links: Map<Int, Pair<String, String>> = emptyMap(),
 ) {
+    val linkStyles = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline))
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
             Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
-        fields.forEach { (label, value) ->
+        fields.forEachIndexed { index, (label, value) ->
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     label,
@@ -442,13 +474,42 @@ private fun FieldGroup(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(FIELD_LABEL_WEIGHT),
                 )
-                Text(value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f - FIELD_LABEL_WEIGHT))
+                Text(
+                    linked(value, links[index], linkStyles),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f - FIELD_LABEL_WEIGHT),
+                )
             }
         }
     }
 }
 
 private const val FIELD_LABEL_WEIGHT = 0.4f
+
+private val CryptoDocs =
+    mapOf(
+        0 to ("RFC 9180" to "https://www.rfc-editor.org/rfc/rfc9180"),
+        1 to ("X25519" to "https://www.rfc-editor.org/rfc/rfc7748"),
+        2 to ("AES-256-GCM" to "https://csrc.nist.gov/pubs/sp/800/38/d/final"),
+        4 to ("associated data" to "https://www.rfc-editor.org/rfc/rfc9180#section-5.2"),
+        5 to ("Android Keystore" to "https://developer.android.com/privacy-and-security/keystore"),
+    )
+
+private fun linked(
+    value: String,
+    link: Pair<String, String>?,
+    styles: TextLinkStyles,
+): AnnotatedString =
+    buildAnnotatedString {
+        val at = link?.let { value.indexOf(it.first) } ?: -1
+        if (link == null || at < 0) {
+            append(value)
+            return@buildAnnotatedString
+        }
+        append(value.substring(0, at))
+        withLink(LinkAnnotation.Url(link.second, styles)) { append(link.first) }
+        append(value.substring(at + link.first.length))
+    }
 
 @Composable
 private fun ExactText(preview: ReportPreview) {

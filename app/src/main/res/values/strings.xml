@@ -192,6 +192,22 @@
     <string name="report_no_log">No module log: root was denied. Grant root to PixelInjector and reopen this sheet to attach it.</string>
     <string name="report_private_group">End-to-end encrypted</string>
     <string name="report_public_group">Not encrypted</string>
+    <string name="report_crypto_group">Encryption</string>
+    <string name="report_crypto_scheme">Scheme</string>
+    <string name="report_crypto_scheme_value">HPKE RFC 9180 base mode</string>
+    <string name="report_crypto_kem">Key exchange</string>
+    <string name="report_crypto_kem_value">DHKEM X25519 HKDF-SHA256</string>
+    <string name="report_crypto_aead">Cipher</string>
+    <string name="report_crypto_aead_value">AES-256-GCM</string>
+    <string name="report_crypto_key">Developer key</string>
+    <string name="report_crypto_device">Device details</string>
+    <string name="report_crypto_device_value">Bound to the ciphertext as associated data</string>
+    <string name="report_crypto_replies">Reply key</string>
+    <string name="report_crypto_replies_value">X25519 per report wrapped by Android Keystore</string>
+    <string name="report_crypto_server">Server</string>
+    <string name="report_crypto_server_value">%1$s holds no private key</string>
+    <string name="report_crypto_hidden">Hidden in the log</string>
+    <string name="report_crypto_hidden_value">Emails\nIP and MAC addresses\nWi-Fi names\nDevice IDs\nStorage paths\nTokens in URLs and headers</string>
     <string name="report_field_log">Module log</string>
     <string name="report_field_message">Your message</string>
     <string name="report_field_versions">App versions</string>
@@ -240,6 +256,7 @@
     <string name="report_delete_confirm">Delete report</string>
     <string name="undo">Undo</string>
     <string name="report_general">General report</string>
+    <string name="report_opt_in">Reports are opt-in. Nothing leaves the phone until you tap Send encrypted report</string>
     <string name="report_retention">The site deletes reports after 90 days</string>
 
     <string name="update_sheet_title">Version %1$s</string>
