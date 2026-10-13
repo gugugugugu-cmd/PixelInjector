@@ -1,5 +1,6 @@
 package eu.hxreborn.pixelinjector.ui.reload
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,12 +27,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -49,7 +54,11 @@ import eu.hxreborn.pixelinjector.ui.component.processNameForDisplay
 import eu.hxreborn.pixelinjector.ui.component.tileGroup
 import eu.hxreborn.pixelinjector.ui.component.versionLabel
 import eu.hxreborn.pixelinjector.ui.theme.AppText
+import eu.hxreborn.pixelinjector.ui.util.AppIconSize
+import eu.hxreborn.pixelinjector.ui.util.rememberAppIcon
 import io.github.libxposed.service.HookedTarget
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private val TargetRowPadding = 12.dp
 private val CheckboxSlot = 40.dp
@@ -164,12 +173,47 @@ private fun TargetTile(
         Box(Modifier.size(CheckboxSlot), contentAlignment = Alignment.Center) {
             Checkbox(checked = checked, onCheckedChange = null)
         }
-        TileText(processNameForDisplay(target.processName), "pid=${target.pid} uid=${target.uid}", supportingStyle = AppText.meta)
-        val stale = target.loadedVersionCode < BuildConfig.VERSION_CODE || target.state == HookedTarget.State.STALE
-        StateChip(
-            versionLabel(target.loadedVersionCode),
-            container = if (stale) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
-            content = if (stale) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+        ProcessIcon(target.processName)
+        val label = rememberProcessLabel(target.processName)
+        val identity = "pid=${target.pid} uid=${target.uid}"
+        TileText(
+            title = label ?: processNameForDisplay(target.processName),
+            supporting = if (label == null) identity else "${processNameForDisplay(target.processName)}\n$identity",
+            supportingStyle = AppText.meta,
         )
+        val stale = target.loadedVersionCode < BuildConfig.VERSION_CODE || target.state == HookedTarget.State.STALE
+        if (stale) {
+            StateChip(
+                versionLabel(target.loadedVersionCode),
+                container = MaterialTheme.colorScheme.primaryContainer,
+                content = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+        }
+    }
+}
+
+@Composable
+private fun rememberProcessLabel(processName: String): String? {
+    val context = LocalContext.current
+    val label by produceState<String?>(null, processName) {
+        value =
+            withContext(Dispatchers.IO) {
+                val pm = context.packageManager
+                runCatching { pm.getApplicationInfo(processName.substringBefore(':'), 0).loadLabel(pm).toString() }.getOrNull()
+            }
+    }
+    return label
+}
+
+@Composable
+private fun ProcessIcon(processName: String) {
+    val packageName = processName.substringBefore(':')
+    val icon = rememberAppIcon(packageName, with(LocalDensity.current) { AppIconSize.roundToPx() })
+    Box(Modifier.size(AppIconSize), contentAlignment = Alignment.Center) {
+        if (icon != null) {
+            Image(icon, contentDescription = null, modifier = Modifier.size(AppIconSize))
+        } else {
+            Icon(Icons.Outlined.Android, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
