@@ -45,6 +45,12 @@ Needs Android 14 or newer and an Xposed framework with libxposed API 102.
 
 - GH FastPass: closes the Verification request approved dialog of the GitHub app as soon as a 2FA push is approved. Same hook as [gh-fast-pass](https://github.com/hxreborn/gh-fast-pass).
 
+## Reports and updates
+
+- Send a report from Settings. Your message and module log are end-to-end encrypted on the phone with HPKE (X25519 and AES-256-GCM), with personal details replaced before encryption. Only the developer's key opens them. Phone model, build and framework travel unencrypted so a fix can be matched to your build.
+- Your reports shows each report's status, the developer's latest note and the GitHub issue once there is one. The update that fixes it marks the release note line that closed the issue.
+- Updates install in the app after the checksum and the signing certificate match.
+
 ## Screenshots
 
 <p align="center">
