@@ -31,10 +31,8 @@ import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.support.Release
 import eu.hxreborn.pixelinjector.support.SentReport
-import eu.hxreborn.pixelinjector.ui.component.compactHeight
 import eu.hxreborn.pixelinjector.ui.theme.AppText
 
-private const val LINES_PER_GROUP = 2
 private val FixMarkIndent = 14.dp
 private const val SHORT_ID_LENGTH = 8
 private val FixMarkIconSize = 16.dp
@@ -47,11 +45,11 @@ fun UpdateCard(
     onUpdate: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val compact = compactHeight()
-    val newLines = shownLines(release.notesNew, fixes, compact)
-    val fixedLines = shownLines(release.notesFixed, fixes, compact)
+    val newLines = release.notesNew.filter { it in fixes }
+    val fixedLines = release.notesFixed.filter { it in fixes }
     val otherLines = release.notesOther.filter { it in fixes }
-    val more = release.notesNew.size + release.notesFixed.size + release.notesOther.size - newLines.size - fixedLines.size - otherLines.size
+    val total = release.notesNew.size + release.notesFixed.size + release.notesOther.size
+    val more = total - newLines.size - fixedLines.size - otherLines.size
     Surface(
         shape = MaterialTheme.shapes.largeIncreased,
         color = scheme.primaryContainer,
@@ -63,13 +61,16 @@ fun UpdateCard(
                 Icon(Icons.Outlined.SystemUpdate, contentDescription = null)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        stringResource(R.string.update_card_title, stringResource(R.string.app_name), release.versionName),
+                        stringResource(R.string.update_card_title, release.versionName),
                         style = MaterialTheme.typography.titleMediumEmphasized,
                     )
                     NoteGroup(stringResource(R.string.notes_new), newLines, fixes)
                     NoteGroup(stringResource(R.string.notes_fixed), fixedLines, fixes)
                     NoteGroup(stringResource(R.string.notes_other), otherLines, fixes)
-                    if (more > 0) Text(pluralStringResource(R.plurals.notes_more, more, more), style = MaterialTheme.typography.bodySmall)
+                    if (more > 0) {
+                        val plural = if (more == total) R.plurals.notes_count else R.plurals.notes_more
+                        Text(pluralStringResource(plural, more, more), style = MaterialTheme.typography.bodyMedium)
+                    }
                 }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
@@ -93,15 +94,6 @@ fun UpdateCard(
             }
         }
     }
-}
-
-private fun shownLines(
-    lines: List<String>,
-    fixes: Map<String, List<SentReport>>,
-    compact: Boolean,
-): List<String> {
-    val head = if (compact) 0 else LINES_PER_GROUP
-    return lines.take(head) + lines.drop(head).filter { it in fixes }
 }
 
 @Composable

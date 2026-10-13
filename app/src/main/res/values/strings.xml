@@ -116,8 +116,7 @@
     <string name="settings_support">Support</string>
     <string name="settings_dashboard">Dashboard</string>
     <string name="hide_unavailable">Hide unavailable tweaks</string>
-    <string name="hide_unavailable_summary">Hides tweaks that failed to hook or whose app is missing</string>
-    <string name="settings_privacy">Privacy</string>
+    <string name="hide_unavailable_summary">Hides failed and missing tweaks</string>
     <string name="settings_about">About</string>
     <string name="settings_framework">Framework</string>
     <string name="settings_update_badge">Settings. An update is available</string>
@@ -133,7 +132,7 @@
     <string name="update">Update</string>
     <string name="later">Later</string>
     <string name="send_report">Send a report</string>
-    <string name="send_report_summary">Your message and log are end-to-end encrypted</string>
+    <string name="send_report_summary">End-to-end encrypted to the developer</string>
     <string name="your_reports">Your reports</string>
     <plurals name="reports_need_reply">
         <item quantity="one">%1$d needs your reply</item>
@@ -145,17 +144,21 @@
     </plurals>
     <string name="reports_none">No reports</string>
     <string name="share_hook_status">Share hook status</string>
-    <string name="share_hook_status_summary">Sends which tweaks load on each Android build without your log or messages</string>
+    <string name="share_hook_status_summary">Sends which tweaks load per Android build</string>
     <string name="source_on_github">Source on GitHub</string>
     <string name="module_log_summary">Shows what each tweak logged since boot</string>
 
-    <string name="update_card_title">%1$s %2$s is available</string>
+    <string name="update_card_title">Version %1$s is available</string>
     <string name="notes_new">New</string>
     <string name="notes_fixed">Fixed</string>
     <string name="notes_other">Other</string>
     <plurals name="notes_more">
-        <item quantity="one">%1$d more in the release notes</item>
-        <item quantity="other">%1$d more in the release notes</item>
+        <item quantity="one">%1$d more change</item>
+        <item quantity="other">%1$d more changes</item>
+    </plurals>
+    <plurals name="notes_count">
+        <item quantity="one">%1$d change</item>
+        <item quantity="other">%1$d changes</item>
     </plurals>
     <string name="fixes_your_report">Fixes your report %1$s</string>
     <plurals name="updated_reloaded">
@@ -172,7 +175,7 @@
     <string name="status_received">Received</string>
     <string name="status_investigating">Looking into it</string>
     <string name="status_tracked">Tracked in #%1$d</string>
-    <string name="status_need_info">Need more info</string>
+    <string name="status_need_info">Reply needed</string>
     <string name="status_fixed">Fixed in %1$s</string>
     <string name="status_fixed_plain">Fixed</string>
     <string name="status_rejected">Not sent</string>
@@ -181,12 +184,11 @@
     <string name="report_your_answer">Your answer</string>
     <string name="report_tweak">Tweak</string>
     <string name="report_tweak_none">General report</string>
-    <string name="report_tweak_help">The status of every tweak is attached</string>
     <string name="report_target_not_found">Target not found</string>
     <string name="report_what_gets_sent">What gets sent</string>
     <string name="state_expanded">Expanded</string>
     <string name="state_collapsed">Collapsed</string>
-    <string name="report_sent_summary">Your message and log are end-to-end encrypted. Device details are not</string>
+    <string name="report_sent_summary">Message and log end-to-end encrypted. Device details are not</string>
     <string name="report_no_log">No module log: root was denied. Grant root to PixelInjector and reopen this sheet to attach it.</string>
     <string name="report_private_group">End-to-end encrypted</string>
     <string name="report_public_group">Not encrypted</string>
@@ -219,7 +221,6 @@
     <string name="report_hide_exact">Hide the exact text</string>
     <string name="report_exact_tail">Showing the last %1$d of %2$d characters that get encrypted. Personal details are replaced with ‹hidden› first</string>
     <string name="report_exact_body">This is the exact text that gets encrypted. Personal details are replaced with ‹hidden› first</string>
-    <string name="report_consent">Nothing leaves this phone until you tap Send encrypted report. Only the developer can decrypt your message and log</string>
     <string name="report_send">Send encrypted report</string>
     <string name="report_sending">Sending</string>
     <string name="report_waiting">%1$s didn\'t answer. The encrypted report is saved and retried on every app start</string>
@@ -227,19 +228,13 @@
     <string name="report_try_now">Try now</string>
     <string name="report_sent">Report sent</string>
     <string name="report_sent_body">Track it in Settings › Your reports</string>
-    <string name="report_now">Now</string>
-    <string name="report_next">Next</string>
-    <string name="report_next_looking">The developer checks your report</string>
-    <string name="report_next_info">Reply from Your reports</string>
-    <string name="report_next_fixed">Fixed in a listed version</string>
-    <string name="report_view">View report</string>
     <string name="done">Done</string>
     <string name="report_reply_title">Reply to the developer</string>
+    <string name="report_developer_asks">Developer asks</string>
     <string name="report_reply">Reply</string>
     <string name="report_delete">Delete report %1$s</string>
     <string name="report_deleted">Report deleted</string>
-    <string name="report_follow_issue">Follow #%1$d on GitHub</string>
-    <string name="report_code">Report %1$s</string>
+    <string name="report_follow_issue">#%1$d on GitHub</string>
     <string name="report_delete_title">Delete report %1$s?</string>
     <string name="report_delete_body">Removes the report and its replies from this phone and the report site</string>
     <string name="report_delete_confirm">Delete report</string>
@@ -248,7 +243,7 @@
     <string name="report_retention">The site deletes reports after 90 days</string>
 
     <string name="update_sheet_title">Version %1$s</string>
-    <string name="update_from_github">%1$s from GitHub</string>
+    <string name="update_from_github">%1$s download</string>
     <string name="update_install">Install</string>
     <string name="update_no_asset">No APK for this phone in this release</string>
     <string name="update_view_github">View on GitHub</string>
@@ -256,7 +251,7 @@
     <string name="update_allow_body">Turn on Allow from this source and come back to install.</string>
     <string name="update_open_settings">Open settings</string>
     <string name="update_progress">%1$s of %2$s</string>
-    <string name="update_installer_note">Installs only when the checksum and signing key both match</string>
+    <string name="update_installer_note">Checksum and signing key are checked first</string>
     <string name="update_download_failed">Download stopped at %1$s</string>
     <string name="update_download_failed_body">Check the connection and try again</string>
     <string name="update_verifying">Checking the checksum and the signing key</string>

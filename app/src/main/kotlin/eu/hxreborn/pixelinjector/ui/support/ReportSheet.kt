@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Schedule
@@ -168,9 +169,12 @@ fun ReportSheet(
                     minLines = 3,
                     enabled = phase == ReportPhase.Compose || phase is ReportPhase.Rejected,
                     modifier = Modifier.fillMaxWidth(),
-                    supportingText = {
-                        Text("${message.length}/$MESSAGE_MAX", Modifier.fillMaxWidth(), textAlign = TextAlign.End)
-                    },
+                    supportingText =
+                        if (message.isEmpty()) {
+                            null
+                        } else {
+                            { Text("${message.length}/$MESSAGE_MAX", Modifier.fillMaxWidth(), textAlign = TextAlign.End) }
+                        },
                 )
             }
             if (replyTo == null) TweakField(tweak, preview, onSelect = { tweak = it })
@@ -240,7 +244,6 @@ private fun TweakField(
             readOnly = true,
             label = { Text(stringResource(R.string.report_tweak)) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = open) },
-            supportingText = { Text(stringResource(R.string.report_tweak_help)) },
             modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
         )
         DropdownMenu(expanded = open, onDismissRequest = { open = false }, modifier = Modifier.exposedDropdownSize()) {
@@ -351,6 +354,7 @@ private fun Disclosure(
                         ExactText(preview)
                     } else {
                         FieldGroup(
+                            Icons.Outlined.Lock,
                             stringResource(R.string.report_private_group),
                             listOf(
                                 stringResource(R.string.report_field_log) to
@@ -368,6 +372,7 @@ private fun Disclosure(
                         )
                         val facts = preview?.facts
                         FieldGroup(
+                            Icons.Outlined.LockOpen,
                             stringResource(R.string.report_public_group),
                             listOf(
                                 stringResource(R.string.report_field_app) to BuildConfig.VERSION_NAME,
@@ -402,6 +407,11 @@ private fun Disclosure(
                             ),
                         )
                     }
+                    Text(
+                        stringResource(R.string.report_retention),
+                        style = AppText.tileSupporting,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     if (preview != null && preview.logLineCount > 0) {
                         TextButton(onClick = onExact, modifier = Modifier.offset(x = (-12).dp)) {
                             Text(stringResource(if (exact) R.string.report_hide_exact else R.string.report_show_exact))
@@ -415,24 +425,30 @@ private fun Disclosure(
 
 @Composable
 private fun FieldGroup(
+    icon: ImageVector,
     title: String,
     fields: List<Pair<String, String>>,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+            Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        }
         fields.forEach { (label, value) ->
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     label,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.width(112.dp),
+                    modifier = Modifier.weight(FIELD_LABEL_WEIGHT),
                 )
-                Text(value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                Text(value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f - FIELD_LABEL_WEIGHT))
             }
         }
     }
 }
+
+private const val FIELD_LABEL_WEIGHT = 0.4f
 
 @Composable
 private fun ExactText(preview: ReportPreview) {
@@ -471,21 +487,7 @@ private fun Footer(
     onTryNow: () -> Unit,
     onClose: () -> Unit,
 ) {
-    HorizontalDivider(Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
-    Column(Modifier.padding(top = 12.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Icon(
-                Icons.Outlined.Lock,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
-            )
-            Text(
-                stringResource(R.string.report_consent),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    Column(Modifier.padding(top = 16.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         when (phase) {
             ReportPhase.Compose, ReportPhase.Sending, is ReportPhase.Rejected -> {
                 val sending = phase == ReportPhase.Sending
@@ -559,57 +561,11 @@ private fun SentContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Surface(shape = RoundedCornerShape(DisclosureRadius), color = MaterialTheme.colorScheme.surfaceContainer) {
-            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                NextStep(
-                    Icons.Outlined.Inbox,
-                    stringResource(R.string.status_received),
-                    stringResource(R.string.report_now),
-                    current = true,
-                )
-                Text(
-                    stringResource(R.string.report_next),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                NextStep(
-                    Icons.Outlined.ManageSearch,
-                    stringResource(R.string.status_investigating),
-                    stringResource(R.string.report_next_looking),
-                )
-                NextStep(Icons.Outlined.HelpOutline, stringResource(R.string.status_need_info), stringResource(R.string.report_next_info))
-                NextStep(
-                    Icons.Outlined.CheckCircle,
-                    stringResource(R.string.status_fixed_plain),
-                    stringResource(R.string.report_next_fixed),
-                )
-            }
-        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TextButton(onClick = onViewReports, shapes = ButtonDefaults.shapes(), modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.your_reports))
             }
             Button(onClick = onClose, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.done)) }
-        }
-    }
-}
-
-@Composable
-private fun NextStep(
-    icon: ImageVector,
-    title: String,
-    body: String,
-    current: Boolean = false,
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = if (current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Column {
-            Text(title, style = AppText.tileTitle)
-            Text(body, style = AppText.tileSupporting, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

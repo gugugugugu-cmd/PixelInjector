@@ -6,14 +6,20 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +54,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -62,6 +69,10 @@ import eu.hxreborn.pixelinjector.ui.theme.AppText
 import kotlinx.coroutines.launch
 
 private const val SHORT_ID = 8
+private const val META_ALPHA = 0.7f
+private val StatusRadius = 8.dp
+private val StatusIconSize = 16.dp
+private val QuestionStripe = 3.dp
 
 @Composable
 fun ReportsSheet(
@@ -124,12 +135,6 @@ fun ReportsSheet(
                     )
                 }
             }
-            Text(
-                stringResource(R.string.report_retention),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 8.dp, top = 12.dp),
-            )
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(16.dp)) { Snackbar(it) }
     }
@@ -145,38 +150,25 @@ private fun ReportTile(
     onOpenIssue: (Int) -> Unit,
     onDelete: () -> Unit,
 ) {
+    val scheme = MaterialTheme.colorScheme
     Tile(shape = shape, verticalPadding = 12.dp) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(reportTitle(report), style = AppText.tileTitle)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                StatusChip(latest)
-                Text(shortTime(latest.lastActivity), style = AppText.tileSupporting, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(reportTitle(report), style = AppText.tileTitle, modifier = Modifier.weight(1f, fill = false))
+                Text(shortDate(latest.lastActivity), style = AppText.meta, color = scheme.onSurfaceVariant)
             }
+            StatusLine(latest)
             latest.note?.let { note ->
-                Text(note, style = MaterialTheme.typography.bodyMedium)
+                if (latest.status == ReportStatus.NEED_INFO) {
+                    Question(note)
+                } else {
+                    Text(note, style = AppText.tileSupporting, color = scheme.onSurfaceVariant)
+                }
             }
             latest.error?.takeIf { latest.status == ReportStatus.REJECTED }?.let {
-                Text(it, style = AppText.tileSupporting, color = MaterialTheme.colorScheme.error)
+                Text(it, style = AppText.tileSupporting, color = scheme.error)
             }
-            Text(
-                listOfNotNull(report.short?.let { stringResource(R.string.report_code, it) }, report.build).joinToString("  "),
-                style = AppText.meta,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                report.issue?.let { issue ->
-                    OutlinedButton(onClick = { onOpenIssue(issue) }, shapes = ButtonDefaults.shapes()) {
-                        Icon(
-                            ImageVector.vectorResource(R.drawable.ic_github),
-                            contentDescription = null,
-                            modifier = Modifier.size(ButtonDefaults.IconSize),
-                        )
-                        Text(
-                            stringResource(R.string.report_follow_issue, issue),
-                            modifier = Modifier.padding(start = ButtonDefaults.IconSpacing),
-                        )
-                    }
-                }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 when (latest.status) {
                     ReportStatus.NEED_INFO -> {
                         FilledTonalButton(onClick = onReply, shapes = ButtonDefaults.shapes()) {
@@ -198,15 +190,66 @@ private fun ReportTile(
 
                     else -> {}
                 }
+                report.issue?.let { issue ->
+                    TextButton(onClick = { onOpenIssue(issue) }, shapes = ButtonDefaults.shapes()) {
+                        Icon(
+                            ImageVector.vectorResource(R.drawable.ic_github),
+                            contentDescription = null,
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                        )
+                        Text(
+                            stringResource(R.string.report_follow_issue, issue),
+                            modifier = Modifier.padding(start = ButtonDefaults.IconSpacing),
+                        )
+                    }
+                }
             }
+            report.short?.let { Text(it, style = AppText.meta, color = scheme.onSurfaceVariant.copy(alpha = META_ALPHA)) }
         }
         IconButton(
             onClick = onDelete,
             shapes = IconButtonDefaults.shapes(),
-            colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+            colors = IconButtonDefaults.iconButtonColors(contentColor = scheme.onSurfaceVariant),
             modifier = Modifier.align(Alignment.Top),
         ) {
             Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.report_delete, report.short ?: ""))
+        }
+    }
+}
+
+@Composable
+private fun StatusLine(report: SentReport) {
+    val style = statusStyle(report)
+    val act = report.status == ReportStatus.NEED_INFO || report.status == ReportStatus.REJECTED
+    val content = if (act) style.content else MaterialTheme.colorScheme.onSurfaceVariant
+    Surface(
+        shape = RoundedCornerShape(StatusRadius),
+        color = if (act) style.container else Color.Transparent,
+        contentColor = content,
+    ) {
+        Row(
+            Modifier.padding(horizontal = if (act) 8.dp else 0.dp, vertical = if (act) 4.dp else 0.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(style.icon, contentDescription = null, modifier = Modifier.size(StatusIconSize))
+            Text(style.label, style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@Composable
+private fun Question(text: String) {
+    val scheme = MaterialTheme.colorScheme
+    Row(Modifier.height(IntrinsicSize.Min)) {
+        Box(Modifier.width(QuestionStripe).fillMaxHeight().background(scheme.tertiary, RoundedCornerShape(QuestionStripe)))
+        Column(Modifier.padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                stringResource(R.string.report_developer_asks),
+                style = MaterialTheme.typography.labelMedium,
+                color = scheme.onSurfaceVariant,
+            )
+            Text(text, style = MaterialTheme.typography.bodyLarge)
         }
     }
 }

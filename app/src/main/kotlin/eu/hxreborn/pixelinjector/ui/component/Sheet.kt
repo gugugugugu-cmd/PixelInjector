@@ -21,7 +21,7 @@ fun SheetHeader(
     subtitle: String? = null,
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
-    Column(Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 14.dp)) {
+    Column(Modifier.padding(top = 4.dp, bottom = 12.dp)) {
         Text(title, style = AppText.sheetTitle)
         if (subtitle != null) {
             Text(subtitle, style = AppText.sheetSubtitle, color = MaterialTheme.colorScheme.onSurfaceVariant)

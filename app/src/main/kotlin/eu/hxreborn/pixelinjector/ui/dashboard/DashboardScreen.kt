@@ -100,7 +100,6 @@ import eu.hxreborn.pixelinjector.ui.component.Tile
 import eu.hxreborn.pixelinjector.ui.component.TileLeading
 import eu.hxreborn.pixelinjector.ui.component.TileText
 import eu.hxreborn.pixelinjector.ui.component.compactHeight
-import eu.hxreborn.pixelinjector.ui.component.installedVersionLabel
 import eu.hxreborn.pixelinjector.ui.component.readableGutter
 import eu.hxreborn.pixelinjector.ui.component.sectionHeader
 import eu.hxreborn.pixelinjector.ui.component.tileGroup
@@ -114,6 +113,7 @@ import kotlin.math.roundToInt
 private val TopBarExpandedHeight = 152.dp
 private val TitleBottomPadding = 28.dp
 private val ToolbarOverlap = (-20).dp
+private val HeaderGlyphSlot = 24.dp
 private val ToolbarClearance = 96.dp
 private val ToolbarButtonSize = 48.dp
 private val ToolbarGap = 4.dp
@@ -277,7 +277,7 @@ fun DashboardScreen(
                 subtitle = { expanded ->
                     if (expanded) {
                         Text(
-                            "v$installedVersionLabel",
+                            "v${BuildConfig.VERSION_NAME}",
                             style = AppText.appBarVersion,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 8.dp, bottom = TitleBottomPadding),
@@ -383,7 +383,10 @@ private fun LazyListScope.scope(
 ) {
     val iconPackageName = if (group == TweakGroup.SYSTEM) "android" else packages.firstOrNull()
     val groupSymbol = groupSymbols[group]
-    sectionHeader(title, packages) { AppGlyph(iconPackageName, groupSymbol) }
+    sectionHeader(title, packages) {
+        Box(Modifier.size(HeaderGlyphSlot), contentAlignment = Alignment.Center) { AppGlyph(iconPackageName, groupSymbol) }
+        Spacer(Modifier.width(0.dp))
+    }
     tileGroup(tiles, key = { it.title }) { tile, shape ->
         when (tile) {
             is DashTile.Toggle -> ToggleTile(tile, shape, errors[tile.tweak.key], tweakSymbol(tile.tweak.key), onToggle, onReport)

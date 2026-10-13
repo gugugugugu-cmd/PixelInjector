@@ -217,7 +217,10 @@ class MainViewModel(
         )
 
     private fun frameworkLabel(): String? =
-        app.service.value?.let { "${it.frameworkName} ${it.frameworkVersion}  API ${it.apiVersion}  ${android.os.Build.ID}" }
+        app.service.value?.let { service ->
+            val version = Regex("""^\S+(?: \(\d+\))?""").find(service.frameworkVersion)?.value ?: service.frameworkVersion
+            "${service.frameworkName} $version\nAPI ${service.apiVersion}"
+        }
 
     val supportState: StateFlow<SupportState> =
         combine(

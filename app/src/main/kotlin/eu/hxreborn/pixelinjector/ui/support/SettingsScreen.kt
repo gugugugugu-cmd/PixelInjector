@@ -31,9 +31,11 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.Forum
+import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -58,6 +60,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.BuildConfig
 import eu.hxreborn.pixelinjector.R
@@ -77,8 +83,6 @@ import eu.hxreborn.pixelinjector.ui.component.tileShape
 import eu.hxreborn.pixelinjector.ui.theme.AppText
 
 private val ChevronSlot = 40.dp
-private val DotSize = 8.dp
-private val ChipHeight = 28.dp
 
 class SettingsActions(
     val onCheck: () -> Unit,
@@ -110,7 +114,7 @@ fun SettingsScreen(
                 .padding(padding)
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)),
         ) {
-            Group(stringResource(R.string.settings_support), 3) { index, shape ->
+            Group(stringResource(R.string.settings_support), 4) { index, shape ->
                 when (index) {
                     0 -> {
                         VersionTile(state, shape, actions)
@@ -124,8 +128,19 @@ fun SettingsScreen(
                         }
                     }
 
-                    else -> {
+                    2 -> {
                         ReportsTile(state, shape, actions.onReports)
+                    }
+
+                    else -> {
+                        SwitchTile(
+                            shape,
+                            Icons.Outlined.Insights,
+                            stringResource(R.string.share_hook_status),
+                            stringResource(R.string.share_hook_status_summary),
+                            state.shareHookStatus,
+                            actions.onShareHookStatus,
+                        )
                     }
                 }
             }
@@ -138,17 +153,6 @@ fun SettingsScreen(
                     stringResource(R.string.hide_unavailable_summary),
                     hideUnavailable,
                     actions.onHideUnavailable,
-                )
-            }
-            Spacer(Modifier.height(SectionGap))
-            Group(stringResource(R.string.settings_privacy), 1) { _, shape ->
-                SwitchTile(
-                    shape,
-                    Icons.Outlined.Insights,
-                    stringResource(R.string.share_hook_status),
-                    stringResource(R.string.share_hook_status_summary),
-                    state.shareHookStatus,
-                    actions.onShareHookStatus,
                 )
             }
             Spacer(Modifier.height(SectionGap))
@@ -167,7 +171,7 @@ fun SettingsScreen(
                     }
                 } else {
                     Tile(shape = shape, onClick = actions.onGitHub) {
-                        TileLeading(ImageVector.vectorResource(R.drawable.ic_github))
+                        TileLeading(ImageVector.vectorResource(R.drawable.ic_github_inset))
                         TileText(stringResource(R.string.source_on_github), ReportConfig.repo, supportingStyle = AppText.meta)
                         Box(Modifier.width(ChevronSlot), contentAlignment = Alignment.Center) {
                             Icon(
@@ -249,7 +253,7 @@ private fun VersionTile(
             else -> actions.onCheck
         }
     Tile(shape = shape, onClick = onClick) {
-        TileLeading(Icons.Outlined.Info)
+        TileLeading(Icons.Outlined.SystemUpdate)
         val supporting =
             when {
                 available != null -> {
@@ -277,7 +281,12 @@ private fun VersionTile(
         TileText(
             stringResource(R.string.settings_version, BuildConfig.VERSION_NAME),
             supporting,
-            supportingColor = if (failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            supportingColor =
+                when {
+                    failed -> MaterialTheme.colorScheme.error
+                    available != null -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                },
         )
         when {
             available != null -> {
@@ -312,50 +321,30 @@ private fun ReportsTile(
     onClick: () -> Unit,
 ) {
     Tile(shape = shape, onClick = onClick) {
-        TileLeading(Icons.Outlined.Forum)
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.your_reports), style = AppText.tileTitle)
-                if (state.needsReply) {
-                    Spacer(Modifier.width(8.dp))
-                    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.error, modifier = Modifier.size(DotSize)) {}
-                }
+        TileLeading(Icons.Outlined.Inbox)
+        val count =
+            if (state.conversations.isEmpty()) {
+                stringResource(R.string.reports_none)
+            } else {
+                pluralStringResource(R.plurals.reports_count, state.conversations.size, state.conversations.size)
             }
+        val waiting = state.conversations.count { it.status == ReportStatus.NEED_INFO && !it.noteSeen }
+        val reply = if (waiting > 0) pluralStringResource(R.plurals.reports_need_reply, waiting, waiting) else null
+        val tertiary = MaterialTheme.colorScheme.tertiary
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.your_reports), style = AppText.tileTitle)
             Text(
-                if (state.conversations.isEmpty()) {
-                    stringResource(
-                        R.string.reports_none,
-                    )
-                } else {
-                    pluralStringResource(R.plurals.reports_count, state.conversations.size, state.conversations.size)
+                buildAnnotatedString {
+                    append(count)
+                    reply?.let {
+                        append("  ")
+                        withStyle(SpanStyle(color = tertiary, fontWeight = FontWeight.Medium)) { append(it) }
+                    }
                 },
                 style = AppText.tileSupporting,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            val waiting = state.conversations.count { it.status == ReportStatus.NEED_INFO && !it.noteSeen }
-            if (waiting > 0) {
-                Text(
-                    pluralStringResource(R.plurals.reports_need_reply, waiting, waiting),
-                    style = AppText.tileSupporting,
-                    color = MaterialTheme.colorScheme.tertiary,
-                )
-            }
         }
         Chevron()
-    }
-}
-
-@Composable
-fun StatusChip(report: SentReport) {
-    val style = statusStyle(report)
-    Surface(shape = RoundedCornerShape(8.dp), color = style.container, contentColor = style.content) {
-        Row(
-            Modifier.heightIn(min = ChipHeight).padding(start = 8.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(style.icon, contentDescription = null, modifier = Modifier.size(16.dp))
-            Text(style.label, style = MaterialTheme.typography.labelMedium)
-        }
     }
 }
