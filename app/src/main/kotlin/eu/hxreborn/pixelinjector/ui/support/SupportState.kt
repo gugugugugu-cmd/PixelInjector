@@ -1,10 +1,10 @@
 package eu.hxreborn.pixelinjector.ui.support
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Inbox
-import androidx.compose.material.icons.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.ReportGmailerrorred
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.MaterialTheme
@@ -90,7 +90,7 @@ fun statusStyle(
         ReportStatus.INVESTIGATING -> {
             StatusStyle(
                 issue?.let { stringResource(R.string.status_tracked, it) } ?: stringResource(R.string.status_investigating),
-                Icons.Outlined.ManageSearch,
+                Icons.AutoMirrored.Outlined.ManageSearch,
                 scheme.secondaryContainer,
                 scheme.onSecondaryContainer,
             )
@@ -99,7 +99,7 @@ fun statusStyle(
         ReportStatus.NEED_INFO -> {
             StatusStyle(
                 stringResource(R.string.status_need_info),
-                Icons.Outlined.HelpOutline,
+                Icons.AutoMirrored.Outlined.HelpOutline,
                 scheme.tertiaryContainer,
                 scheme.onTertiaryContainer,
             )

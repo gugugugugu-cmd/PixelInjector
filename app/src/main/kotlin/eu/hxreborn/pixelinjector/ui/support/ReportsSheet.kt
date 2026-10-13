@@ -5,6 +5,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -46,7 +48,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.support.ReportStatus
@@ -57,10 +61,6 @@ import eu.hxreborn.pixelinjector.ui.component.tileGroup
 import eu.hxreborn.pixelinjector.ui.theme.AppText
 import kotlinx.coroutines.launch
 
-private val LeadSize = 40.dp
-private val BubbleRadius = 16.dp
-private const val BUBBLE_WIDTH = 0.9f
-private val ThreadToggleInset = (-12).dp
 private const val SHORT_ID = 8
 
 @Composable
@@ -69,6 +69,7 @@ fun ReportsSheet(
     onOpened: () -> Unit,
     onReply: (SentReport) -> Unit,
     onTryNow: () -> Unit,
+    onOpenIssue: (Int) -> Unit,
     onDelete: (SentReport) -> Unit,
     onUndo: (SentReport) -> Unit,
 ) {
@@ -114,10 +115,11 @@ fun ReportsSheet(
                 tileGroup(reports.filterNot { it.replyTo in ids }, key = { it.id }) { report, shape ->
                     ReportTile(
                         report = report,
-                        replies = replies[report.id].orEmpty(),
+                        latest = (replies[report.id].orEmpty() + report).maxBy { it.lastActivity },
                         shape = shape,
                         onReply = { onReply(report) },
                         onTryNow = onTryNow,
+                        onOpenIssue = onOpenIssue,
                         onDelete = { confirming = report },
                     )
                 }
@@ -136,137 +138,75 @@ fun ReportsSheet(
 @Composable
 private fun ReportTile(
     report: SentReport,
-    replies: List<SentReport>,
+    latest: SentReport,
     shape: RoundedCornerShape,
     onReply: () -> Unit,
     onTryNow: () -> Unit,
+    onOpenIssue: (Int) -> Unit,
     onDelete: () -> Unit,
 ) {
-    val style = statusStyle(report)
     Tile(shape = shape, verticalPadding = 12.dp) {
-        Surface(
-            shape = CircleShape,
-            color = style.container,
-            contentColor = style.content,
-            modifier = Modifier.size(LeadSize).align(Alignment.Top),
-        ) {
-            Box(contentAlignment = Alignment.Center) { Icon(style.icon, contentDescription = null) }
-        }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(reportTitle(report), style = AppText.tileTitle)
-            Text(
-                "${style.label}  ${shortTime(report.sentAt)}",
-                style = AppText.tileSupporting,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            report.note?.let { note ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 4.dp)) {
-                    Icon(
-                        Icons.AutoMirrored.Outlined.Chat,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(note, style = MaterialTheme.typography.bodyMedium)
-                }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                StatusChip(latest)
+                Text(shortTime(latest.lastActivity), style = AppText.tileSupporting, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            report.error?.takeIf { report.status == ReportStatus.REJECTED }?.let {
+            latest.note?.let { note ->
+                Text(note, style = MaterialTheme.typography.bodyMedium)
+            }
+            latest.error?.takeIf { latest.status == ReportStatus.REJECTED }?.let {
                 Text(it, style = AppText.tileSupporting, color = MaterialTheme.colorScheme.error)
             }
             Text(
-                listOfNotNull(report.short, report.build).joinToString("  "),
+                listOfNotNull(report.short?.let { stringResource(R.string.report_code, it) }, report.build).joinToString("  "),
                 style = AppText.meta,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            var open by rememberSaveable(report.id, report.status) { mutableStateOf(report.status == ReportStatus.NEED_INFO) }
-            TextButton(onClick = { open = !open }, modifier = Modifier.offset(x = ThreadToggleInset)) {
-                Text(stringResource(if (open) R.string.report_thread_hide else R.string.report_thread_show))
-            }
-            AnimatedVisibility(
-                open,
-                enter =
-                    expandVertically(MaterialTheme.motionScheme.defaultSpatialSpec()) +
-                        fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()),
-                exit =
-                    shrinkVertically(MaterialTheme.motionScheme.defaultSpatialSpec()) +
-                        fadeOut(MaterialTheme.motionScheme.defaultEffectsSpec()),
-            ) {
-                Thread(report, replies)
-            }
-            when (report.status) {
-                ReportStatus.NEED_INFO -> {
-                    FilledTonalButton(onClick = onReply, shapes = ButtonDefaults.shapes(), modifier = Modifier.padding(top = 4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                report.issue?.let { issue ->
+                    OutlinedButton(onClick = { onOpenIssue(issue) }, shapes = ButtonDefaults.shapes()) {
                         Icon(
-                            Icons.AutoMirrored.Outlined.Reply,
+                            ImageVector.vectorResource(R.drawable.ic_github),
                             contentDescription = null,
                             modifier = Modifier.size(ButtonDefaults.IconSize),
                         )
-                        Text(stringResource(R.string.report_reply), modifier = Modifier.padding(start = ButtonDefaults.IconSpacing))
+                        Text(
+                            stringResource(R.string.report_follow_issue, issue),
+                            modifier = Modifier.padding(start = ButtonDefaults.IconSpacing),
+                        )
                     }
                 }
-
-                ReportStatus.WAITING -> {
-                    FilledTonalButton(onClick = onTryNow, shapes = ButtonDefaults.shapes(), modifier = Modifier.padding(top = 4.dp)) {
-                        Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                        Text(stringResource(R.string.report_try_now), modifier = Modifier.padding(start = ButtonDefaults.IconSpacing))
-                    }
-                }
-
-                else -> {}
-            }
-        }
-        IconButton(onClick = onDelete, shapes = IconButtonDefaults.shapes(), modifier = Modifier.align(Alignment.Top)) {
-            Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.report_delete, report.short ?: ""))
-        }
-    }
-}
-
-private data class ThreadEntry(
-    val at: Long,
-    val fromYou: Boolean,
-    val label: String,
-    val text: String?,
-)
-
-@Composable
-private fun Thread(
-    report: SentReport,
-    replies: List<SentReport>,
-) {
-    val you = stringResource(R.string.report_from_you)
-    val entries =
-        buildList {
-            add(ThreadEntry(report.sentAt, fromYou = true, you, report.message))
-            report.events.forEach { add(ThreadEntry(it.at, fromYou = false, statusStyle(it.status, it.fixedIn, it.issue).label, it.note)) }
-            replies.forEach { add(ThreadEntry(it.sentAt, fromYou = true, you, it.message)) }
-        }.sortedBy { it.at }
-    Column(Modifier.fillMaxWidth().padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        entries.forEach { entry ->
-            val scheme = MaterialTheme.colorScheme
-            Surface(
-                shape = RoundedCornerShape(BubbleRadius),
-                color = if (entry.fromYou) scheme.secondaryContainer else scheme.surfaceContainerHighest,
-                contentColor = if (entry.fromYou) scheme.onSecondaryContainer else scheme.onSurface,
-                modifier = Modifier.fillMaxWidth(BUBBLE_WIDTH).align(if (entry.fromYou) Alignment.End else Alignment.Start),
-            ) {
-                Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        "${entry.label}  ${shortTime(entry.at)}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (entry.fromYou) scheme.onSecondaryContainer else scheme.onSurfaceVariant,
-                    )
-                    entry.text?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                        ?: if (entry.fromYou) {
-                            Text(
-                                stringResource(R.string.report_no_message),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = scheme.onSurfaceVariant,
+                when (latest.status) {
+                    ReportStatus.NEED_INFO -> {
+                        FilledTonalButton(onClick = onReply, shapes = ButtonDefaults.shapes()) {
+                            Icon(
+                                Icons.AutoMirrored.Outlined.Reply,
+                                contentDescription = null,
+                                modifier = Modifier.size(ButtonDefaults.IconSize),
                             )
-                        } else {
-                            Unit
+                            Text(stringResource(R.string.report_reply), modifier = Modifier.padding(start = ButtonDefaults.IconSpacing))
                         }
+                    }
+
+                    ReportStatus.WAITING -> {
+                        FilledTonalButton(onClick = onTryNow, shapes = ButtonDefaults.shapes()) {
+                            Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                            Text(stringResource(R.string.report_try_now), modifier = Modifier.padding(start = ButtonDefaults.IconSpacing))
+                        }
+                    }
+
+                    else -> {}
                 }
             }
+        }
+        IconButton(
+            onClick = onDelete,
+            shapes = IconButtonDefaults.shapes(),
+            colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+            modifier = Modifier.align(Alignment.Top),
+        ) {
+            Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.report_delete, report.short ?: ""))
         }
     }
 }

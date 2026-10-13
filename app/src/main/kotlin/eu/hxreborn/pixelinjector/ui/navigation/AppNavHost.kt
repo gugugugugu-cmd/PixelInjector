@@ -254,6 +254,7 @@ fun AppNavHost(
                             openReport(Destination.Report(tweak = it.tweak, replyTo = it.id))
                         },
                         onTryNow = { viewModel.support.retryWaiting() },
+                        onOpenIssue = { uriHandler.openUri("https://github.com/${ReportConfig.repo}/issues/$it") },
                         onDelete = viewModel.support::delete,
                         onUndo = viewModel.support::restore,
                     )

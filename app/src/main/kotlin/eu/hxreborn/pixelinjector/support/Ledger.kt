@@ -97,6 +97,8 @@ data class SentReport(
         }
     }
 
+    val lastActivity: Long get() = maxOf(sentAt, events.maxOfOrNull { it.at } ?: 0L)
+
     fun noteOf(json: JSONObject): String? {
         val sealed = json.optStringOrNull("noteSealed") ?: return json.optStringOrNull("note")
         val key = noteKey ?: return null

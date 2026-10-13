@@ -119,6 +119,7 @@
     <string name="hide_unavailable_summary">Hides tweaks that failed to hook or whose app is missing</string>
     <string name="settings_privacy">Privacy</string>
     <string name="settings_about">About</string>
+    <string name="settings_framework">Framework</string>
     <string name="settings_update_badge">Settings. An update is available</string>
     <string name="settings_reply_badge">Settings. Reply needed</string>
     <string name="settings_version">Version %1$s</string>
@@ -132,8 +133,12 @@
     <string name="update">Update</string>
     <string name="later">Later</string>
     <string name="send_report">Send a report</string>
-    <string name="send_report_summary">End-to-end encrypted to the developer</string>
+    <string name="send_report_summary">Your message and log are end-to-end encrypted</string>
     <string name="your_reports">Your reports</string>
+    <plurals name="reports_need_reply">
+        <item quantity="one">%1$d needs your reply</item>
+        <item quantity="other">%1$d need your reply</item>
+    </plurals>
     <plurals name="reports_count">
         <item quantity="one">%1$d report</item>
         <item quantity="other">%1$d reports</item>
@@ -172,9 +177,8 @@
     <string name="status_fixed_plain">Fixed</string>
     <string name="status_rejected">Not sent</string>
 
-    <string name="report_what_happened">What happened</string>
+    <string name="report_what_happened">What happened (optional)</string>
     <string name="report_your_answer">Your answer</string>
-    <string name="report_optional">Optional</string>
     <string name="report_tweak">Tweak</string>
     <string name="report_tweak_none">General report</string>
     <string name="report_tweak_help">The status of every tweak is attached</string>
@@ -213,9 +217,10 @@
     <string name="report_none">None</string>
     <string name="report_show_exact">Show the exact text</string>
     <string name="report_hide_exact">Hide the exact text</string>
+    <string name="report_exact_tail">Showing the last %1$d of %2$d characters that get encrypted. Personal details are replaced with ‹hidden› first</string>
     <string name="report_exact_body">This is the exact text that gets encrypted. Personal details are replaced with ‹hidden› first</string>
-    <string name="report_consent">Nothing leaves this phone until you tap Send. Only the developer can decrypt your message and log. The site deletes reports after 90 days</string>
-    <string name="report_send">Send encrypted</string>
+    <string name="report_consent">Nothing leaves this phone until you tap Send encrypted report. Only the developer can decrypt your message and log</string>
+    <string name="report_send">Send encrypted report</string>
     <string name="report_sending">Sending</string>
     <string name="report_waiting">%1$s didn\'t answer. The encrypted report is saved and retried on every app start</string>
     <string name="report_rejected">The site refused the report: %1$s</string>
@@ -233,10 +238,8 @@
     <string name="report_reply">Reply</string>
     <string name="report_delete">Delete report %1$s</string>
     <string name="report_deleted">Report deleted</string>
-    <string name="report_thread_show">Show conversation</string>
-    <string name="report_thread_hide">Hide conversation</string>
-    <string name="report_from_you">You</string>
-    <string name="report_no_message">No message</string>
+    <string name="report_follow_issue">Follow #%1$d on GitHub</string>
+    <string name="report_code">Report %1$s</string>
     <string name="report_delete_title">Delete report %1$s?</string>
     <string name="report_delete_body">Removes the report and its replies from this phone and the report site</string>
     <string name="report_delete_confirm">Delete report</string>
