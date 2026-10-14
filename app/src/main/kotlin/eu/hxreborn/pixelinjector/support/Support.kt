@@ -96,6 +96,9 @@ class Support(
     private val _shareHookStatus = MutableStateFlow(prefs.getBoolean(SHARE_HOOK_STATUS, false))
     val shareHookStatus: StateFlow<Boolean> = _shareHookStatus.asStateFlow()
 
+    private val _autoCheckUpdates = MutableStateFlow(prefs.getBoolean(AUTO_CHECK_UPDATES, true))
+    val autoCheckUpdates: StateFlow<Boolean> = _autoCheckUpdates.asStateFlow()
+
     private val _postponedVersion = MutableStateFlow(prefs.getInt(POSTPONED_VERSION, 0))
     val postponedVersion: StateFlow<Int> = _postponedVersion.asStateFlow()
 
@@ -127,6 +130,11 @@ class Support(
                 }
             }
         }
+
+    fun setAutoCheckUpdates(enabled: Boolean) {
+        prefs.edit { putBoolean(AUTO_CHECK_UPDATES, enabled) }
+        _autoCheckUpdates.value = enabled
+    }
 
     fun setShareHookStatus(enabled: Boolean) {
         prefs.edit { putBoolean(SHARE_HOOK_STATUS, enabled) }
@@ -324,6 +332,7 @@ class Support(
     }
 
     fun checkRelease(force: Boolean) {
+        if (!force && !_autoCheckUpdates.value) return
         val last = prefs.getLong(RELEASE_CHECKED_AT, 0)
         if (!force && System.currentTimeMillis() - last < CHECK_INTERVAL_MS) return
         if (_release.value is ReleaseCheck.Checking) return
@@ -529,6 +538,7 @@ class Support(
 
     companion object {
         private const val SHARE_HOOK_STATUS = "shareHookStatus"
+        private const val AUTO_CHECK_UPDATES = "autoCheckUpdates"
         private const val HOOK_STATUS_SENT = "hookStatusSent"
         private const val RELEASE_BODY = "releaseBody"
         private const val RELEASE_CHECKED_AT = "releaseCheckedAt"

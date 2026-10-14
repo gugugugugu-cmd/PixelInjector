@@ -147,6 +147,8 @@
         <item quantity="other">%1$d reports</item>
     </plurals>
     <string name="reports_none">No reports</string>
+    <string name="auto_check_updates">Check for updates automatically</string>
+    <string name="auto_check_updates_summary">Asks the release site every 6 hours. Sends no device data</string>
     <string name="share_hook_status">Share hook status</string>
     <string name="share_hook_status_summary">Sends which tweaks load per Android build</string>
     <string name="source_on_github">Source on GitHub</string>

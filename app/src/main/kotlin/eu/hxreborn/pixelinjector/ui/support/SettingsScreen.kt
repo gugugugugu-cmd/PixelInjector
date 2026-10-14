@@ -26,6 +26,7 @@ import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Download
@@ -91,6 +92,7 @@ class SettingsActions(
     val onSendReport: () -> Unit,
     val onReports: () -> Unit,
     val onShareHookStatus: (Boolean) -> Unit,
+    val onAutoCheckUpdates: (Boolean) -> Unit,
     val onHideUnavailable: (Boolean) -> Unit,
     val onShowPackages: (Boolean) -> Unit,
     val onModuleLog: () -> Unit,
@@ -117,8 +119,19 @@ fun SettingsScreen(
                 .padding(padding)
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)),
         ) {
-            Group(stringResource(R.string.settings_updates), 1) { _, shape ->
-                VersionTile(state, shape, actions)
+            Group(stringResource(R.string.settings_updates), 2) { index, shape ->
+                if (index == 0) {
+                    VersionTile(state, shape, actions)
+                } else {
+                    SwitchTile(
+                        shape,
+                        Icons.Outlined.Autorenew,
+                        stringResource(R.string.auto_check_updates),
+                        stringResource(R.string.auto_check_updates_summary),
+                        state.autoCheckUpdates,
+                        actions.onAutoCheckUpdates,
+                    )
+                }
             }
             Spacer(Modifier.height(SectionGap))
             Group(stringResource(R.string.settings_support), 3) { index, shape ->

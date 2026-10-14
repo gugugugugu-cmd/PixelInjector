@@ -233,11 +233,12 @@ class MainViewModel(
                 support.reports,
                 support.shareHookStatus,
             ) { release, reports, share -> Triple(release, reports, share) },
+            support.autoCheckUpdates,
             support.postponedVersion,
             support.install,
             bound,
-        ) { (release, reports, share), postponed, install, _ ->
-            SupportState(release, reports, share, postponed, install, frameworkLabel())
+        ) { (release, reports, share), autoCheck, postponed, install, _ ->
+            SupportState(release, reports, share, autoCheck, postponed, install, frameworkLabel())
         }.stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
@@ -245,6 +246,7 @@ class MainViewModel(
                 support.release.value,
                 support.reports.value,
                 support.shareHookStatus.value,
+                support.autoCheckUpdates.value,
                 support.postponedVersion.value,
                 support.install.value,
                 null,
