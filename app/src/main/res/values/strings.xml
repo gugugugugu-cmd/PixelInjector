@@ -114,7 +114,9 @@
 
     <string name="settings">Settings</string>
     <string name="settings_support">Support</string>
+    <string name="settings_updates">Updates</string>
     <string name="settings_dashboard">Dashboard</string>
+    <string name="settings_privacy">Privacy</string>
     <string name="hide_unavailable">Hide unavailable tweaks</string>
     <string name="hide_unavailable_summary">Hides failed and missing tweaks</string>
     <string name="show_packages">Show package names</string>

@@ -117,13 +117,13 @@ fun SettingsScreen(
                 .padding(padding)
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)),
         ) {
-            Group(stringResource(R.string.settings_support), 4) { index, shape ->
+            Group(stringResource(R.string.settings_updates), 1) { _, shape ->
+                VersionTile(state, shape, actions)
+            }
+            Spacer(Modifier.height(SectionGap))
+            Group(stringResource(R.string.settings_support), 3) { index, shape ->
                 when (index) {
                     0 -> {
-                        VersionTile(state, shape, actions)
-                    }
-
-                    1 -> {
                         Tile(shape = shape, onClick = actions.onSendReport) {
                             TileLeading(Icons.Outlined.BugReport)
                             TileText(stringResource(R.string.send_report), stringResource(R.string.send_report_summary))
@@ -131,19 +131,16 @@ fun SettingsScreen(
                         }
                     }
 
-                    2 -> {
+                    1 -> {
                         ReportsTile(state, shape, actions.onReports)
                     }
 
                     else -> {
-                        SwitchTile(
-                            shape,
-                            Icons.Outlined.Insights,
-                            stringResource(R.string.share_hook_status),
-                            stringResource(R.string.share_hook_status_summary),
-                            state.shareHookStatus,
-                            actions.onShareHookStatus,
-                        )
+                        Tile(shape = shape, onClick = actions.onModuleLog) {
+                            TileLeading(Icons.AutoMirrored.Outlined.Notes)
+                            TileText(stringResource(R.string.module_log), stringResource(R.string.module_log_summary))
+                            Chevron()
+                        }
                     }
                 }
             }
@@ -170,20 +167,20 @@ fun SettingsScreen(
                 }
             }
             Spacer(Modifier.height(SectionGap))
+            Group(stringResource(R.string.settings_privacy), 1) { _, shape ->
+                SwitchTile(
+                    shape,
+                    Icons.Outlined.Insights,
+                    stringResource(R.string.share_hook_status),
+                    stringResource(R.string.share_hook_status_summary),
+                    state.shareHookStatus,
+                    actions.onShareHookStatus,
+                )
+            }
+            Spacer(Modifier.height(SectionGap))
             val framework = state.framework
-            Group(stringResource(R.string.settings_about), if (framework != null) 3 else 2) { index, shape ->
-                if (index == 2 && framework != null) {
-                    Tile(shape = shape) {
-                        TileLeading(Icons.Outlined.Extension)
-                        TileText(stringResource(R.string.settings_framework), framework, supportingStyle = AppText.meta)
-                    }
-                } else if (index == 0) {
-                    Tile(shape = shape, onClick = actions.onModuleLog) {
-                        TileLeading(Icons.AutoMirrored.Outlined.Notes)
-                        TileText(stringResource(R.string.module_log), stringResource(R.string.module_log_summary))
-                        Chevron()
-                    }
-                } else {
+            Group(stringResource(R.string.settings_about), if (framework != null) 2 else 1) { index, shape ->
+                if (index == 0) {
                     Tile(shape = shape, onClick = actions.onGitHub) {
                         TileLeading(ImageVector.vectorResource(R.drawable.ic_github_inset))
                         TileText(stringResource(R.string.source_on_github), ReportConfig.repo, supportingStyle = AppText.meta)
@@ -194,6 +191,11 @@ fun SettingsScreen(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+                    }
+                } else if (framework != null) {
+                    Tile(shape = shape) {
+                        TileLeading(Icons.Outlined.Extension)
+                        TileText(stringResource(R.string.settings_framework), framework, supportingStyle = AppText.meta)
                     }
                 }
             }
