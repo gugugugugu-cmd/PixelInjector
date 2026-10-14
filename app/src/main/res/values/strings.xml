@@ -133,7 +133,7 @@
     <string name="update_check">Check for updates</string>
     <string name="update">Update</string>
     <string name="later">Later</string>
-    <string name="send_report">Send a report</string>
+    <string name="send_report">Report a bug</string>
     <string name="send_report_summary">End-to-end encrypted to the developer</string>
     <string name="your_reports">Your reports</string>
     <plurals name="reports_need_reply">
