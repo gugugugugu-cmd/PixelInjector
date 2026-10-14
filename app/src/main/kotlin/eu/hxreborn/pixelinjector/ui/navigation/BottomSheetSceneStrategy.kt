@@ -1,5 +1,6 @@
 package eu.hxreborn.pixelinjector.ui.navigation
 
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -7,6 +8,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.rememberLifecycleOwner
 import androidx.navigation3.runtime.NavEntry
@@ -42,6 +44,7 @@ private data class BottomSheetScene<T : Any>(
         ModalBottomSheet(
             onDismissRequest = onBack,
             sheetState = state,
+            modifier = Modifier.statusBarsPadding(),
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ) {
             CompositionLocalProvider(LocalLifecycleOwner provides lifecycleOwner) {
