@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.ui.reload
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -34,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -62,6 +65,7 @@ import kotlinx.coroutines.withContext
 
 private val TargetRowPadding = 12.dp
 private val CheckboxSlot = 40.dp
+private val SheetBottomPadding = 20.dp
 private const val FILTER_FROM = 8
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,7 +98,9 @@ fun TargetsSheet(
         return if (on) pids + pid else pids - pid
     }
 
-    Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 20.dp)) {
+    var actionsHeight by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    Column(Modifier.padding(horizontal = 16.dp)) {
         SheetHeader(stringResource(R.string.targets_title), stringResource(R.string.targets_subtitle))
         if (targets.size >= FILTER_FROM) {
             SearchBar(
@@ -115,40 +121,49 @@ fun TargetsSheet(
             ) {}
             Spacer(Modifier.height(SectionGap))
         }
-        LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
-            if (visible.isNotEmpty()) {
-                tileGroup(visible, key = { it.pid }) { target, shape ->
-                    TargetTile(
-                        target = target,
-                        shape = shape,
-                        checked = target.pid in reloadPids,
-                        onCheckedChange = { reloadPids = toggle(reloadPids, target.pid, it) },
-                    )
+        Box(Modifier.weight(1f, fill = false)) {
+            LazyColumn(contentPadding = PaddingValues(bottom = with(density) { actionsHeight.toDp() })) {
+                if (visible.isNotEmpty()) {
+                    tileGroup(visible, key = { it.pid }) { target, shape ->
+                        TargetTile(
+                            target = target,
+                            shape = shape,
+                            checked = target.pid in reloadPids,
+                            onCheckedChange = { reloadPids = toggle(reloadPids, target.pid, it) },
+                        )
+                    }
+                }
+                if (visible.isEmpty()) {
+                    item(key = "empty") {
+                        Text(
+                            stringResource(R.string.targets_empty),
+                            style = AppText.meta,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
                 }
             }
-            if (visible.isEmpty()) {
-                item(key = "empty") {
-                    Text(
-                        stringResource(R.string.targets_empty),
-                        style = AppText.meta,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(16.dp),
-                    )
-                }
-            }
-        }
-        val reload = targets.filter { it.pid in reloadPids }
-        SheetActions {
-            TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
-            Button(
-                shapes = ButtonDefaults.shapes(),
-                enabled = reload.isNotEmpty(),
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.Confirm)
-                    onHotReload(reload)
-                },
+            val reload = targets.filter { it.pid in reloadPids }
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .onSizeChanged { actionsHeight = it.height }
+                    .padding(bottom = SheetBottomPadding),
             ) {
-                Text(stringResource(R.string.targets_apply_reload, reload.size), style = AppText.button)
+                SheetActions {
+                    TextButton(onClick = onDismiss, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
+                    Button(
+                        shapes = ButtonDefaults.shapes(),
+                        enabled = reload.isNotEmpty(),
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                            onHotReload(reload)
+                        },
+                    ) {
+                        Text(stringResource(R.string.targets_apply_reload, reload.size), style = AppText.button)
+                    }
+                }
             }
         }
     }
