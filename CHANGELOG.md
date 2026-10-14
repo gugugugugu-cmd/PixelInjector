@@ -1,3 +1,35 @@
+## [1.9.0](https://github.com/hxreborn/PixelInjector/compare/v1.8.0...v1.9.0) (2026-10-14)
+
+### Features
+
+* **app:** add a switch for automatic update checks ([657ba68](https://github.com/hxreborn/PixelInjector/commit/657ba68fd28bfcca86cfc1e15b07f75c9e0c10f0))
+* **app:** add an option to hide unavailable tweaks ([6a635c3](https://github.com/hxreborn/PixelInjector/commit/6a635c3f2ab5d96621665b06052bd586fc33fa93))
+* **app:** encrypt developer notes end to end ([af18fce](https://github.com/hxreborn/PixelInjector/commit/af18fce386eb9118ea46649c4325975e97973a59))
+* **app:** group settings into updates support privacy and about ([018ef42](https://github.com/hxreborn/PixelInjector/commit/018ef42941cac5395cd6a82e99b5c44af8d6296b))
+* **app:** hide package names in section headers unless enabled ([0839355](https://github.com/hxreborn/PixelInjector/commit/083935557c03e752444a76f10cf0ca252e2f45e0))
+* **app:** list encryption specs with spec links in the report sheet ([5c08175](https://github.com/hxreborn/PixelInjector/commit/5c08175303d6a9f9a2fb1dd2d54a4a6e0ac76cc9))
+* **app:** mark the release note line that fixes your report ([8a872d4](https://github.com/hxreborn/PixelInjector/commit/8a872d4148639f9a76ce3e3e45dbd39fe70f44cf))
+* **app:** nest option rows inside their tweak card ([86eda61](https://github.com/hxreborn/PixelInjector/commit/86eda61b2cef26745a1806e68f059ab622609937))
+* **app:** show app and tweak icons on dashboard and settings rows ([5559248](https://github.com/hxreborn/PixelInjector/commit/5559248b6eb9c7e39dff92f4be95d6397dfa2fbd))
+* **app:** show app icon and label on hot reload rows ([23e5c1b](https://github.com/hxreborn/PixelInjector/commit/23e5c1b97d80895dbe938f8b79d5c06e476b3a67))
+* **app:** show each report as status, latest note and issue link ([9e95a8e](https://github.com/hxreborn/PixelInjector/commit/9e95a8e4ea76447bfc589ddbf1b026a7f4c37d4a))
+* **app:** stack screens with shared axis and scaled predictive back ([ca20e8c](https://github.com/hxreborn/PixelInjector/commit/ca20e8c57ae72acc44586e7405c931871a56a999))
+
+### Bug Fixes
+
+* **app:** fit settings and report sheets to landscape ([7deb381](https://github.com/hxreborn/PixelInjector/commit/7deb3812bea3f47b12402922191ee7f64ef5bab4))
+* **app:** keep sheets below the status bar ([766c617](https://github.com/hxreborn/PixelInjector/commit/766c61746369bad5546ce3c963f0ef6d0022a29a))
+* **app:** make sharing hook status opt-in ([77e8b3a](https://github.com/hxreborn/PixelInjector/commit/77e8b3a889f1e71cd7386f17fa03bb9a33208000))
+* **app:** open the update from anywhere on the version row ([aed24d4](https://github.com/hxreborn/PixelInjector/commit/aed24d4acda00e9b6d49b1bcfb2bcd2c3263ee4f))
+* **app:** rename Send a report to Report a bug ([9174801](https://github.com/hxreborn/PixelInjector/commit/9174801969da38b620c687a174842b708e8e12aa))
+* **app:** rewrite report and update copy to say what each screen does ([58abd1b](https://github.com/hxreborn/PixelInjector/commit/58abd1b9f3d8d1591ab53f30a303b3835e54bbe9))
+* **app:** scroll the targets list under a transparent action bar ([cc22240](https://github.com/hxreborn/PixelInjector/commit/cc22240589192a4f5ac80b050b7439b5d015f87b))
+* **app:** tighten hierarchy of settings reports and update sheets ([8d08017](https://github.com/hxreborn/PixelInjector/commit/8d08017fbe498cae927ca91a8d7eee42ab0255c0))
+
+### Refactor
+
+* **app:** remove the module log button from the toolbar ([58b0aaf](https://github.com/hxreborn/PixelInjector/commit/58b0aaf014df2807a38ff35c63c3e65507e1bc7d))
+
 ## [1.8.0](https://github.com/hxreborn/PixelInjector/compare/v1.7.1...v1.8.0) (2026-10-13)
 
 ### Features
