@@ -96,9 +96,22 @@ fun AppGlyph(
     val tint = MaterialTheme.colorScheme.primary
     val bitmap = loaded?.bitmap
     when {
-        bitmap != null -> Icon(bitmap, contentDescription = null, modifier = modifier, tint = tint)
-        loaded != null && fallback != null -> Icon(fallback, contentDescription = null, modifier = modifier, tint = tint)
-        else -> Spacer(modifier)
+        bitmap != null -> {
+            Icon(bitmap, contentDescription = null, modifier = modifier, tint = tint)
+        }
+
+        (loaded != null || packageName == null) && fallback != null -> {
+            Icon(
+                fallback,
+                contentDescription = null,
+                modifier = modifier,
+                tint = tint,
+            )
+        }
+
+        else -> {
+            Spacer(modifier)
+        }
     }
 }
 
