@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.UnfoldMore
 import androidx.compose.material.icons.outlined.VolumeOff
@@ -57,10 +58,15 @@ class TweakEditor(
     val summary: (AppPrefs) -> String,
 )
 
+private const val PERCENT_MAX = 100
+private const val PERCENT_STEP = 10
+
 class TweakSlider(
     val title: Int,
     val description: Int,
     val pref: IntPref,
+    val range: IntRange = 0..PERCENT_MAX,
+    val step: Int = PERCENT_STEP,
 )
 
 class TweakSound(
@@ -133,6 +139,21 @@ val tweakUis: List<TweakUi> =
             R.string.tweak_charging_details,
             R.string.tweak_charging_details_desc,
             TweakGroup.SYSTEM_UI,
+        ),
+        TweakUi(
+            "HeadsUpDuration",
+            Prefs.HEADS_UP_DURATION,
+            R.string.tweak_heads_up_duration,
+            R.string.tweak_heads_up_duration_desc,
+            TweakGroup.SYSTEM_UI,
+            slider =
+                TweakSlider(
+                    R.string.tweak_heads_up_seconds,
+                    R.string.tweak_heads_up_seconds_desc,
+                    Prefs.HEADS_UP_SECONDS,
+                    range = Prefs.HEADS_UP_SECONDS_MIN..Prefs.HEADS_UP_SECONDS_MAX,
+                    step = 1,
+                ),
         ),
         TweakUi(
             "StatusBarDoubleTap",
@@ -233,6 +254,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "EmptyShade" to Icons.Outlined.EditNotifications,
         "ExpandNotifications" to Icons.Outlined.UnfoldMore,
         "OngoingNoDismiss" to Icons.Outlined.PushPin,
+        "HeadsUpDuration" to Icons.Outlined.Timer,
         "ChargingDetails" to Icons.Outlined.BatteryChargingFull,
         "StatusBarDoubleTap" to Icons.Outlined.TouchApp,
         "ForceNewTask" to Icons.Outlined.Layers,

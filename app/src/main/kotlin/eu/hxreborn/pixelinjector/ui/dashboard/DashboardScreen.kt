@@ -143,9 +143,6 @@ private val LeadingButtonPadding = PaddingValues(start = 16.dp, end = 20.dp)
 private val ReportButtonInset = (-12).dp
 private const val CHEVRON_OPEN_ROTATION = 180f
 private const val RELOAD_COUNT_ALPHA = 0.85f
-private const val PERCENT_MAX = 100
-private const val PERCENT_STEP = 10
-private const val SLIDER_STEPS = PERCENT_MAX / PERCENT_STEP - 1
 
 private class TweakRow(
     val toggle: DashTile.Toggle,
@@ -513,6 +510,9 @@ private fun SlideTile(
     onSlide: (IntPref, Int) -> Unit,
 ) {
     var value by remember(tile.value) { mutableIntStateOf(tile.value) }
+    val range = tile.slider.range
+    val start = range.first.toFloat()
+    val end = range.last.toFloat()
     ChildTile {
         Column(Modifier.weight(1f)) {
             Row(Modifier.padding(end = SliderLabelEndPadding), verticalAlignment = Alignment.CenterVertically) {
@@ -523,8 +523,8 @@ private fun SlideTile(
                 value = value.toFloat(),
                 onValueChange = { value = it.roundToInt() },
                 onValueChangeFinished = { onSlide(tile.slider.pref, value) },
-                valueRange = 0f..PERCENT_MAX.toFloat(),
-                steps = SLIDER_STEPS,
+                valueRange = start..end,
+                steps = (range.last - range.first) / tile.slider.step - 1,
             )
         }
     }

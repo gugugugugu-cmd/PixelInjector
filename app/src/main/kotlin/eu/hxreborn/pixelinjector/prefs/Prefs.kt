@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.prefs
 import eu.hxreborn.pixelinjector.ModuleConstants
 
 private const val NAV_SPACE_FULL = 100
+private const val HEADS_UP_SECONDS_DEFAULT = 5
 
 object Prefs {
     const val GROUP: String = ModuleConstants.PREFS_GROUP
@@ -23,6 +24,14 @@ object Prefs {
     val EXPAND_NOTIFICATIONS = BoolPref("systemui.expandNotifications", false).register()
     val ONGOING_NO_DISMISS = BoolPref("systemui.ongoingNoDismiss", false).register()
     val CHARGING_DETAILS = BoolPref("systemui.chargingDetails", false).register()
+    val HEADS_UP_DURATION = BoolPref("systemui.headsUpDuration", false).register()
+    const val HEADS_UP_SECONDS_MIN = 1
+    const val HEADS_UP_SECONDS_MAX = 15
+    val HEADS_UP_SECONDS =
+        IntPref(
+            "systemui.headsUpDuration.seconds",
+            HEADS_UP_SECONDS_DEFAULT,
+        ).register()
     val STATUS_BAR_DOUBLE_TAP = BoolPref("systemui.statusBarDoubleTap", false).register()
     val NEW_TASK = BoolPref("system.newTask", false).register()
     val NEW_TASK_RULES = StringPref("system.newTask.rules", "").register()
