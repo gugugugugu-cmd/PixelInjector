@@ -29,7 +29,6 @@ import java.util.Locale
 data class SupportState(
     val release: ReleaseCheck,
     val reports: List<SentReport>,
-    val shareHookStatus: Boolean,
     val autoCheckUpdates: Boolean,
     val postponedVersion: Int,
     val install: InstallStep,

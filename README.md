@@ -113,7 +113,6 @@ Or reach me at [hxreborn@duck.com](mailto:hxreborn@duck.com) or on [Telegram](ht
 | Server | `reports.hxreborn.eu` holds no private key |
 | Redacted log data | Emails, phone numbers, IP and MAC addresses, Wi-Fi names, device and advertising IDs, storage paths, URL and header tokens ([Redactor](app/src/main/kotlin/eu/hxreborn/pixelinjector/support/Redactor.kt)) |
 | Retention | 90 days |
-| Hook status | Opt-in in Settings. Sends which tweaks load per Android build, once per version |
 | Update check | On by default in Settings. A plain request every 6 hours with no device data |
 
 </details>

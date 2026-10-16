@@ -238,21 +238,19 @@ class MainViewModel(
             combine(
                 support.release,
                 support.reports,
-                support.shareHookStatus,
-            ) { release, reports, share -> Triple(release, reports, share) },
+            ) { release, reports -> release to reports },
             support.autoCheckUpdates,
             support.postponedVersion,
             support.install,
             bound,
-        ) { (release, reports, share), autoCheck, postponed, install, _ ->
-            SupportState(release, reports, share, autoCheck, postponed, install, frameworkLabel())
+        ) { (release, reports), autoCheck, postponed, install, _ ->
+            SupportState(release, reports, autoCheck, postponed, install, frameworkLabel())
         }.stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
             SupportState(
                 support.release.value,
                 support.reports.value,
-                support.shareHookStatus.value,
                 support.autoCheckUpdates.value,
                 support.postponedVersion.value,
                 support.install.value,
@@ -319,11 +317,6 @@ class MainViewModel(
         body: String,
         key: String,
     ): String? = Regex("""\b$key=("[^"]*"|\S+)""").find(body)?.groupValues?.get(1)
-
-    private fun postHookStatus() {
-        if (_moduleLog.value.loading) return
-        support.postHookStatus { ReportBuilder.meta(getApplication(), reportFacts(), null, forReport = false) }
-    }
 
     private val _reportPreview = MutableStateFlow<ReportPreview?>(null)
     val reportPreview: StateFlow<ReportPreview?> = _reportPreview.asStateFlow()
@@ -398,7 +391,6 @@ class MainViewModel(
         support.checkRelease(force = false)
         support.refreshStatuses()
         support.retryWaiting()
-        postHookStatus()
     }
 
     init {
@@ -455,7 +447,6 @@ class MainViewModel(
                 errorLines.value = deriveErrorLines(current, read.processes.keys)
             }
         }
-        postHookStatus()
     }
 
     fun hotReload(selected: List<HookedTarget>) {

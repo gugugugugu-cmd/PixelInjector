@@ -35,7 +35,6 @@ import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -91,7 +90,6 @@ class SettingsActions(
     val onUpdate: () -> Unit,
     val onSendReport: () -> Unit,
     val onReports: () -> Unit,
-    val onShareHookStatus: (Boolean) -> Unit,
     val onAutoCheckUpdates: (Boolean) -> Unit,
     val onHideUnavailable: (Boolean) -> Unit,
     val onShowPackages: (Boolean) -> Unit,
@@ -178,17 +176,6 @@ fun SettingsScreen(
                         actions.onShowPackages,
                     )
                 }
-            }
-            Spacer(Modifier.height(SectionGap))
-            Group(stringResource(R.string.settings_privacy), 1) { _, shape ->
-                SwitchTile(
-                    shape,
-                    Icons.Outlined.Insights,
-                    stringResource(R.string.share_hook_status),
-                    stringResource(R.string.share_hook_status_summary),
-                    state.shareHookStatus,
-                    actions.onShareHookStatus,
-                )
             }
             Spacer(Modifier.height(SectionGap))
             val framework = state.framework

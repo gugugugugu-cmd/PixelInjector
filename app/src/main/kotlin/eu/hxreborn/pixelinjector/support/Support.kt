@@ -93,9 +93,6 @@ class Support(
     private val _install = MutableStateFlow<InstallStep>(InstallStep.Idle)
     val install: StateFlow<InstallStep> = _install.asStateFlow()
 
-    private val _shareHookStatus = MutableStateFlow(prefs.getBoolean(SHARE_HOOK_STATUS, false))
-    val shareHookStatus: StateFlow<Boolean> = _shareHookStatus.asStateFlow()
-
     private val _autoCheckUpdates = MutableStateFlow(prefs.getBoolean(AUTO_CHECK_UPDATES, true))
     val autoCheckUpdates: StateFlow<Boolean> = _autoCheckUpdates.asStateFlow()
 
@@ -134,11 +131,6 @@ class Support(
     fun setAutoCheckUpdates(enabled: Boolean) {
         prefs.edit { putBoolean(AUTO_CHECK_UPDATES, enabled) }
         _autoCheckUpdates.value = enabled
-    }
-
-    fun setShareHookStatus(enabled: Boolean) {
-        prefs.edit { putBoolean(SHARE_HOOK_STATUS, enabled) }
-        _shareHookStatus.value = enabled
     }
 
     fun postponeUpdate(versionCode: Int) {
@@ -414,20 +406,6 @@ class Support(
         }
     }
 
-    fun postHookStatus(meta: () -> JSONObject?) {
-        if (!_shareHookStatus.value) return
-        val stamp = "${BuildConfig.VERSION_CODE}:${Build.ID}"
-        if (prefs.getString(HOOK_STATUS_SENT, null) == stamp) return
-        scope.launch {
-            val body = meta() ?: return@launch
-            if (ReportClient.postStatus(body.toString().toByteArray()) is ApiResponse.Ok) {
-                prefs.edit {
-                    putString(HOOK_STATUS_SENT, stamp)
-                }
-            }
-        }
-    }
-
     fun startInstall(release: Release) {
         val asset = release.asset ?: return
         installJob?.cancel()
@@ -579,9 +557,7 @@ class Support(
     }
 
     companion object {
-        private const val SHARE_HOOK_STATUS = "shareHookStatus"
         private const val AUTO_CHECK_UPDATES = "autoCheckUpdates"
-        private const val HOOK_STATUS_SENT = "hookStatusSent"
         private const val RELEASE_BODY = "releaseBody"
         private const val GITHUB_ETAG = "githubEtag"
         private const val RELEASE_CHECKED_AT = "releaseCheckedAt"

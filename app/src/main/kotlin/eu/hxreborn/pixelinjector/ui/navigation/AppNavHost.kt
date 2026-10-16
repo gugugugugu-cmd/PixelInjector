@@ -225,7 +225,6 @@ fun AppNavHost(
                                     push(Destination.Reports)
                                 },
                                 onAutoCheckUpdates = viewModel.support::setAutoCheckUpdates,
-                                onShareHookStatus = viewModel.support::setShareHookStatus,
                                 onHideUnavailable = viewModel::setHideUnavailable,
                                 onShowPackages = viewModel::setShowPackages,
                                 onModuleLog = {

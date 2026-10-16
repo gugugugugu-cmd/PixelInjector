@@ -118,7 +118,6 @@
     <string name="settings_support">Support</string>
     <string name="settings_updates">Updates</string>
     <string name="settings_dashboard">Dashboard</string>
-    <string name="settings_privacy">Privacy</string>
     <string name="hide_unavailable">Hide unavailable tweaks</string>
     <string name="hide_unavailable_summary">Hides failed and missing tweaks</string>
     <string name="show_packages">Show package names</string>
@@ -150,8 +149,6 @@
     </plurals>
     <string name="reports_none">No reports</string>
     <string name="auto_check_updates">Check for updates automatically</string>
-    <string name="share_hook_status">Share hook status</string>
-    <string name="share_hook_status_summary">Sends which tweaks load per Android build</string>
     <string name="source_on_github">Source on GitHub</string>
 
     <string name="update_card_title">Version %1$s is available</string>

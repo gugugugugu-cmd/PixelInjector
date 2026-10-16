@@ -85,7 +85,6 @@ object ReportBuilder {
         context: Context,
         facts: ReportFacts,
         tweak: String?,
-        forReport: Boolean,
         notePublicKey: ByteArray? = null,
     ): JSONObject {
         val missing =
@@ -135,17 +134,15 @@ object ReportBuilder {
                     Base64.getUrlEncoder().withoutPadding().encodeToString(it),
                 )
             }
-            if (forReport) {
-                put("log", if (facts.logLines.isNullOrEmpty()) "unavailable" else "attached")
-                tweak?.let { put("tweak", it) }
-                missing?.let {
-                    put(
-                        "fingerprintKey",
-                        listOfNotNull(it.tweak, it.member, Build.ID).joinToString(":"),
-                    )
-                }
-                    ?: tweak?.let { put("fingerprintKey", "$it:${Build.ID}") }
+            put("log", if (facts.logLines.isNullOrEmpty()) "unavailable" else "attached")
+            tweak?.let { put("tweak", it) }
+            missing?.let {
+                put(
+                    "fingerprintKey",
+                    listOfNotNull(it.tweak, it.member, Build.ID).joinToString(":"),
+                )
             }
+                ?: tweak?.let { put("fingerprintKey", "$it:${Build.ID}") }
         }
     }
 
@@ -162,7 +159,6 @@ object ReportBuilder {
                 context,
                 preview.facts,
                 tweak,
-                forReport = true,
                 notePublicKey = noteKey.publicRaw,
             ).toString().toByteArray()
         val versions = JSONObject()

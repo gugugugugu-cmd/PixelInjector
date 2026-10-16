@@ -153,9 +153,6 @@ object ReportClient {
         deleteToken: String,
     ): ApiResponse = request("DELETE", "/reports/$id", mapOf("X-Delete-Token" to deleteToken))
 
-    fun postStatus(meta: ByteArray): ApiResponse =
-        request("POST", "/status", body = meta, contentType = "application/json")
-
     fun release(): ApiResponse = request("GET", "/release")
 
     fun gitHubRelease(etag: String?): ApiResponse =
