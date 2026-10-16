@@ -43,6 +43,7 @@ object Prefs {
     val HIDE_PILL = BoolPref("launcher.hidePill", false).register()
     val NAV_SPACE = IntPref("launcher.navSpace", NAV_SPACE_FULL).register()
     val HIDE_SEARCH_BAR = BoolPref("launcher.hideSearchBar", false).register()
+    val HIDE_APP_SHORTCUTS = BoolPref("launcher.hideAppShortcuts", false).register()
     val GBOARD_BLACK = BoolPref("gboard.black", false).register()
     val DIALER_DECHIP = BoolPref("dialer.dechip", false).register()
     val FILES_SORT_BY_DATE = BoolPref("files.sortByDate", false).register()

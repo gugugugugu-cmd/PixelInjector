@@ -7,6 +7,7 @@ import eu.hxreborn.pixelinjector.xposed.hook.gboard.gboardBlack
 import eu.hxreborn.pixelinjector.xposed.hook.github.ghFastPass
 import eu.hxreborn.pixelinjector.xposed.hook.kdeconnect.kdeConnectQuiet
 import eu.hxreborn.pixelinjector.xposed.hook.launcher.doubleTapToSleep
+import eu.hxreborn.pixelinjector.xposed.hook.launcher.hideAppShortcuts
 import eu.hxreborn.pixelinjector.xposed.hook.launcher.hideSearchBar
 import eu.hxreborn.pixelinjector.xposed.hook.launcher.taskbarHandle
 import eu.hxreborn.pixelinjector.xposed.hook.system.clipboardAllowlist
@@ -39,6 +40,7 @@ internal val tweaks: List<Tweak> =
         biometricBypass,
         taskbarHandle,
         hideSearchBar,
+        hideAppShortcuts,
         gboardBlack,
         dialerDechip,
         filesSortByDate,

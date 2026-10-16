@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.ui.dashboard
 import android.os.Build
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BatteryChargingFull
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Call
@@ -211,6 +212,13 @@ val tweakUis: List<TweakUi> =
             R.string.tweak_hide_search_bar_desc,
             TweakGroup.LAUNCHER,
         ),
+        TweakUi(
+            "HideAppShortcuts",
+            Prefs.HIDE_APP_SHORTCUTS,
+            R.string.tweak_hide_app_shortcuts,
+            R.string.tweak_hide_app_shortcuts_desc,
+            TweakGroup.LAUNCHER,
+        ),
         TweakUi("GboardBlack", Prefs.GBOARD_BLACK, R.string.tweak_gboard_black, R.string.tweak_gboard_black_desc, TweakGroup.GBOARD),
         TweakUi("DialerDechip", Prefs.DIALER_DECHIP, R.string.tweak_dialer_dechip, R.string.tweak_dialer_dechip_desc, TweakGroup.DIALER),
         TweakUi(
@@ -262,6 +270,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "DoubleTapToSleep" to Icons.Outlined.Bedtime,
         "TaskbarHandle" to Icons.Outlined.HorizontalRule,
         "HideSearchBar" to Icons.Outlined.SearchOff,
+        "HideAppShortcuts" to Icons.Outlined.AppShortcut,
         "GboardBlack" to Icons.Outlined.DarkMode,
         "KdeConnectQuiet" to Icons.Outlined.WifiOff,
     )
