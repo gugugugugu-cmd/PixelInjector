@@ -15,8 +15,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import kotlin.coroutines.resume
+
+private const val RELOAD_TIMEOUT_MS = 10_000L
 
 class HotReloadRunner(
     private val scope: CoroutineScope,
@@ -72,8 +75,10 @@ class HotReloadRunner(
         service: XposedService,
         target: HookedTarget,
     ): HotReloadResult =
-        suspendCancellableCoroutine { cont ->
-            service.hotReloadModule(target, null) { _, result -> if (cont.isActive) cont.resume(result) }
+        withTimeout(RELOAD_TIMEOUT_MS) {
+            suspendCancellableCoroutine { cont ->
+                service.hotReloadModule(target, null) { _, result -> if (cont.isActive) cont.resume(result) }
+            }
         }
 
     fun cancel() {
