@@ -448,7 +448,7 @@ class MainViewModel(
                 _moduleLog.value = ModuleLogState(loading = false, entries = parseModuleLog(lines, read.processes))
                 val current = parseModuleLog(read.lines, read.processes)
                 _errors.value = deriveErrors(current)
-                errorLines.value = deriveErrorLines(current)
+                errorLines.value = deriveErrorLines(current, read.processes.keys)
             }
         }
         postHookStatus()
