@@ -212,8 +212,8 @@
     <string name="report_crypto_replies_value">X25519 per report wrapped by Android Keystore</string>
     <string name="report_crypto_server">Server</string>
     <string name="report_crypto_server_value">%1$s holds no private key</string>
-    <string name="report_crypto_hidden">Hidden in the log</string>
-    <string name="report_crypto_hidden_value">Emails\nIP and MAC addresses\nWi-Fi names\nDevice IDs\nStorage paths\nTokens in URLs and headers</string>
+    <string name="report_crypto_redacted">Redacted data</string>
+    <string name="report_crypto_redacted_value">Emails\nIP and MAC addresses\nWi-Fi names\nDevice IDs\nStorage paths\nTokens in URLs and headers</string>
     <string name="report_field_log">Module log</string>
     <string name="report_field_message">Your message</string>
     <string name="report_field_versions">App versions</string>
@@ -241,8 +241,8 @@
     <string name="report_none">None</string>
     <string name="report_show_exact">Show the exact text</string>
     <string name="report_hide_exact">Hide the exact text</string>
-    <string name="report_exact_tail">Showing the last %1$d of %2$d characters that get encrypted. Personal details are replaced with ‹hidden› first</string>
-    <string name="report_exact_body">This is the exact text that gets encrypted. Personal details are replaced with ‹hidden› first</string>
+    <string name="report_exact_tail">Showing the last %1$d of %2$d characters that get encrypted. Personal details are replaced with ‹redacted› first</string>
+    <string name="report_exact_body">This is the exact text that gets encrypted. Personal details are replaced with ‹redacted› first</string>
     <string name="report_send">Send encrypted report</string>
     <string name="report_sending">Sending</string>
     <string name="report_waiting">%1$s didn\'t answer. The encrypted report is saved and retried on every app start</string>
