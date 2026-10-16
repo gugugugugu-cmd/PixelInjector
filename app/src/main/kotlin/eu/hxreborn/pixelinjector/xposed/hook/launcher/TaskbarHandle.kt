@@ -11,6 +11,7 @@ import eu.hxreborn.pixelinjector.util.optionalField
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
+import eu.hxreborn.pixelinjector.util.requiredMethods
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -175,7 +176,8 @@ private class TaskbarBindings(
                 lightColor = handle.requiredField("mStashedHandleLightColor"),
                 darkColor = handle.requiredField("mStashedHandleDarkColor"),
                 regionDark = handle.requiredField("mIsRegionDark"),
-                notifyUpdateLayoutParams = context.requiredMethod("notifyUpdateLayoutParams"),
+                notifyUpdateLayoutParams =
+                    context.requiredMethods("notifyUpdateLayoutParams").minBy { it.parameterCount },
                 windowParams = context.requiredField("mWindowLayoutParams"),
                 providedInsets = params.requiredField("providedInsets"),
                 paramsForRotation = params.optionalField("paramsForRotation"),
