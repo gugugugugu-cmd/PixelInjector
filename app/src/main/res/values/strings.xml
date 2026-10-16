@@ -40,7 +40,7 @@
     <string name="tweak_clipboard_desc">Allows selected apps to read the clipboard in the background</string>
     <string name="tweak_clipboard_apps">Allowed apps</string>
     <string name="tweak_double_tap_sleep">Double tap to sleep</string>
-    <string name="tweak_double_tap_sleep_desc">Sleeps the phone on a double tap of empty home screen space</string>
+    <string name="tweak_double_tap_sleep_desc">Sleeps the phone on a double tap of empty home screen space. Needs root for the home app</string>
     <string name="tweak_biometric_bypass">Biometric Bypass</string>
     <string name="tweak_biometric_bypass_desc">Automatically taps confirm on the biometric prompt after a successful face unlock</string>
     <string name="tweak_biometric_sound">Confirm sound</string>
