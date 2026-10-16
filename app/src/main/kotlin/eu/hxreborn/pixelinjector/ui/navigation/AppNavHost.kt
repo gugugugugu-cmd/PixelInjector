@@ -40,7 +40,11 @@ import eu.hxreborn.pixelinjector.ui.editor.SoundSheet
 import eu.hxreborn.pixelinjector.ui.log.ModuleLogScreen
 import eu.hxreborn.pixelinjector.ui.reload.ProgressSheet
 import eu.hxreborn.pixelinjector.ui.reload.TargetsSheet
+import eu.hxreborn.pixelinjector.ui.support.AboutActions
+import eu.hxreborn.pixelinjector.ui.support.AboutScreen
+import eu.hxreborn.pixelinjector.ui.support.ChangelogScreen
 import eu.hxreborn.pixelinjector.ui.support.DateFormatSheet
+import eu.hxreborn.pixelinjector.ui.support.LicensesScreen
 import eu.hxreborn.pixelinjector.ui.support.ReportPhase
 import eu.hxreborn.pixelinjector.ui.support.ReportSheet
 import eu.hxreborn.pixelinjector.ui.support.ReportsSheet
@@ -48,6 +52,7 @@ import eu.hxreborn.pixelinjector.ui.support.SettingsActions
 import eu.hxreborn.pixelinjector.ui.support.SettingsScreen
 import eu.hxreborn.pixelinjector.ui.support.UpdateActions
 import eu.hxreborn.pixelinjector.ui.support.UpdateSheet
+import eu.hxreborn.pixelinjector.ui.support.WhatsNewSheet
 import eu.hxreborn.pixelinjector.ui.viewmodel.MainViewModel
 
 private val SlideDistance = 30.dp
@@ -234,9 +239,22 @@ fun AppNavHost(
                                     push(Destination.ModuleLog)
                                 },
                                 onDateFormat = { push(Destination.DateFormat) },
-                                onGitHub = { uriHandler.openUri("https://github.com/${ReportConfig.repo}") },
+                                onAbout = { push(Destination.About) },
                             ),
                         onBack = { if (backStack.lastOrNull() == Destination.Settings) backStack.removeLastOrNull() },
+                    )
+                }
+                entry<Destination.About> {
+                    AboutScreen(
+                        framework = support.framework,
+                        actions =
+                            AboutActions(
+                                onWhatsNew = { push(Destination.WhatsNew) },
+                                onChangelog = { push(Destination.Changelog) },
+                                onLicenses = { push(Destination.Licenses) },
+                                onOpenUrl = uriHandler::openUri,
+                            ),
+                        onBack = { if (backStack.lastOrNull() == Destination.About) backStack.removeLastOrNull() },
                     )
                 }
                 entry<Destination.Report>(metadata = BottomSheetSceneStrategy.bottomSheet()) { destination ->
@@ -304,6 +322,21 @@ fun AppNavHost(
                                 ),
                         )
                     }
+                }
+                entry<Destination.WhatsNew>(metadata = BottomSheetSceneStrategy.bottomSheet()) {
+                    WhatsNewSheet(
+                        onFullChangelog = {
+                            backStack.remove(Destination.WhatsNew)
+                            push(Destination.Changelog)
+                        },
+                        onClose = { backStack.remove(Destination.WhatsNew) },
+                    )
+                }
+                entry<Destination.Changelog> {
+                    ChangelogScreen(onBack = { if (backStack.size > 1) backStack.removeLastOrNull() })
+                }
+                entry<Destination.Licenses> {
+                    LicensesScreen(onBack = { if (backStack.size > 1) backStack.removeLastOrNull() })
                 }
                 entry<Destination.DateFormat>(metadata = BottomSheetSceneStrategy.bottomSheet()) {
                     DateFormatSheet(selected = dateStyle, onSelect = viewModel::setDateStyle)

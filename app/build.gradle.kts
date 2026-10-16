@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.aboutlibraries)
 }
 
 val versionNameProvider = providers.gradleProperty("version.name")
@@ -104,6 +105,30 @@ kotlin {
     jvmToolchain(21)
 }
 
+abstract class ChangelogAsset : DefaultTask() {
+    @get:InputFile
+    abstract val source: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun copy() {
+        source.get().asFile.copyTo(outputDir.file("CHANGELOG.md").get().asFile, overwrite = true)
+    }
+}
+
+val changelogAsset =
+    tasks.register<ChangelogAsset>("changelogAsset") {
+        source.set(rootProject.layout.projectDirectory.file("CHANGELOG.md"))
+    }
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(changelogAsset, ChangelogAsset::outputDir)
+    }
+}
+
 val ktlintCli: Configuration by configurations.creating
 
 dependencies {
@@ -124,6 +149,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.libsu.core)
     implementation(libs.dexkit)
+    implementation(libs.aboutlibraries.compose.m3)
 }
 
 tasks.register<JavaExec>("ktlintCheck") {

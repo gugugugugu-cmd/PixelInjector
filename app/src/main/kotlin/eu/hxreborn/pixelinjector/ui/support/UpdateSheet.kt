@@ -233,7 +233,7 @@ fun UpdateSheet(
 }
 
 @Composable
-private fun Notes(
+fun Notes(
     title: String,
     lines: List<String>,
     fixes: Map<String, List<SentReport>>,

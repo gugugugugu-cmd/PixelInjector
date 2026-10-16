@@ -149,7 +149,7 @@
     </plurals>
     <string name="reports_none">No reports</string>
     <string name="auto_check_updates">Check for updates automatically</string>
-    <string name="source_on_github">Source on GitHub</string>
+    <string name="star_on_github">Star on GitHub</string>
 
     <string name="update_card_title">Version %1$s is available</string>
     <string name="notes_new">New</string>
@@ -297,6 +297,29 @@
     <string name="vlog_checking">checking</string>
     <string name="vlog_waiting">waiting for download</string>
     <string name="report">Report</string>
+    <string name="about_tagline">Always-on Pixel fixes in one Xposed module</string>
+    <string name="kofi">Donate on Ko-fi</string>
+    <string name="whats_new">What\'s new</string>
+    <string name="whats_new_summary">Changes in %1$s</string>
+    <string name="whats_new_title">What\'s new in %1$s</string>
+    <string name="whats_new_released">Released %1$s</string>
+    <string name="whats_new_missing">This version is not in the changelog</string>
+    <string name="changelog">Changelog</string>
+    <string name="changelog_summary">Every release</string>
+    <string name="changelog_see_full">See full changelog</string>
+    <string name="changelog_installed">installed</string>
+    <plurals name="changelog_count">
+        <item quantity="one">%1$d release</item>
+        <item quantity="other">%1$d releases</item>
+    </plurals>
+    <string name="source_code">Source code</string>
+    <string name="suggest_feature">Suggest a feature</string>
+    <string name="suggest_feature_summary">Opens a feature request on GitHub</string>
+    <string name="settings_this_device">This device</string>
+    <string name="android_build">Android build</string>
+    <string name="signing_key">Signing key</string>
+    <string name="signing_key_release">Release</string>
+    <string name="signing_key_other">Unofficial</string>
     <string name="date_format">Date format</string>
     <string name="date_style_system">Follow the language</string>
     <string name="date_style_long">Long</string>
@@ -307,4 +330,6 @@
     <string name="date_style_dotted">Dotted</string>
     <string name="date_style_iso">ISO 8601</string>
     <string name="date_style_relative">Relative</string>
+    <string name="licenses">Open source licenses</string>
+    <string name="licenses_summary">Libraries this app is built with</string>
 </resources>

@@ -44,5 +44,17 @@ sealed interface Destination : NavKey {
     data object Update : Destination
 
     @Serializable
+    data object WhatsNew : Destination
+
+    @Serializable
+    data object Changelog : Destination
+
+    @Serializable
     data object DateFormat : Destination
+
+    @Serializable
+    data object Licenses : Destination
+
+    @Serializable
+    data object About : Destination
 }

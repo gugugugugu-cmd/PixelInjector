@@ -29,7 +29,7 @@ reviews:
         Each key and default is defined once in Prefs.kt and read through its spec, never respelled at a read site. Never write emptySet() to a remote pref: Kotlin's EmptySet throws BadParcelableException on the next read, so write null to clear.
     - path: "app/src/main/kotlin/eu/hxreborn/pixelinjector/ui/**/*.kt"
       instructions: |
-        ui/ must not import xposed/. Dimensions are Material 3 tokens first and a named file-private Dp second, never a shared dimens object. Animations use MaterialTheme.motionScheme. List rows go through the card Tile in ui/component/Tile.kt. Scaffolds take only the top and horizontal safeDrawing insets.
+        ui/ must not import xposed/. Dimensions are Material 3 tokens first and a named file-private Dp second, never a shared dimens object. Animations use MaterialTheme.motionScheme, except a continuous linear rotation, which has no motion scheme spec. List rows go through the card Tile in ui/component/Tile.kt. Scaffolds take only the top and horizontal safeDrawing insets.
     - path: "app/src/main/res/values/strings.xml"
       instructions: |
         UI copy is a plain verb plus the real thing it changes. No commas in UI strings. Framework constants appear verbatim in mono. Never use "LSPosed" as the generic framework name.

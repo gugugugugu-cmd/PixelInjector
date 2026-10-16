@@ -140,6 +140,31 @@ data class Release(
                 ).toString()
         }
 
+        private val changelogHeading =
+            Regex(
+                """^#{1,2} \[?(\d+\.\d+\.\d+)]?\S*\s*\((\d{4}-\d{2}-\d{2})\)""",
+                RegexOption.MULTILINE,
+            )
+
+        fun changelog(markdown: String): List<Release> {
+            val headings = changelogHeading.findAll(markdown).toList()
+            return headings.mapIndexed { index, heading ->
+                val (versionName, date) = heading.destructured
+                val end = headings.getOrNull(index + 1)?.range?.first ?: markdown.length
+                val notes = notes(markdown.substring(heading.range.last + 1, end))
+                Release(
+                    versionName = versionName,
+                    versionCode = code(versionName),
+                    publishedAt = date,
+                    url = "https://github.com/${ReportConfig.repo}/releases/tag/v$versionName",
+                    notesNew = notes.strings("new"),
+                    notesFixed = notes.strings("fixed"),
+                    notesOther = notes.strings("other"),
+                    asset = null,
+                )
+            }
+        }
+
         fun parse(body: String): Release {
             val json = JSONObject(body)
             val versionName = json.getString("versionName")
