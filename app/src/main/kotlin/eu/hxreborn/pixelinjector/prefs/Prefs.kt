@@ -22,6 +22,7 @@ object Prefs {
     val EMPTY_SHADE_ICON_PATH = StringPref("systemui.emptyShade.iconPath", "").register()
     val EXPAND_NOTIFICATIONS = BoolPref("systemui.expandNotifications", false).register()
     val ONGOING_NO_DISMISS = BoolPref("systemui.ongoingNoDismiss", false).register()
+    val CHARGING_DETAILS = BoolPref("systemui.chargingDetails", false).register()
     val STATUS_BAR_DOUBLE_TAP = BoolPref("systemui.statusBarDoubleTap", false).register()
     val NEW_TASK = BoolPref("system.newTask", false).register()
     val NEW_TASK_RULES = StringPref("system.newTask.rules", "").register()

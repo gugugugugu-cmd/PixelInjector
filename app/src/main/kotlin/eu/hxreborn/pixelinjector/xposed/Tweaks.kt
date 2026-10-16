@@ -12,6 +12,7 @@ import eu.hxreborn.pixelinjector.xposed.hook.launcher.taskbarHandle
 import eu.hxreborn.pixelinjector.xposed.hook.system.clipboardAllowlist
 import eu.hxreborn.pixelinjector.xposed.hook.system.forceNewTask
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.biometricBypass
+import eu.hxreborn.pixelinjector.xposed.hook.systemui.chargingDetails
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.emptyShade
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.expandNotifications
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.ongoingNoDismiss
@@ -28,6 +29,7 @@ internal val tweaks: List<Tweak> =
         emptyShade,
         expandNotifications,
         ongoingNoDismiss,
+        chargingDetails,
         statusBarDoubleTap,
         forceNewTask,
         clipboardAllowlist,

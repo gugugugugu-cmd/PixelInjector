@@ -52,6 +52,7 @@ Needs Android 14 or newer, arm64, root and an Xposed framework with libxposed AP
 - **Empty shade message**: replaces the empty shade's trophy and text with your own text and one of 141 icons. Android 17 only.
 - **Always expand notifications**: opens notifications expanded unless you collapsed one by hand.
 - **Pin ongoing notifications**: stops swiping away ongoing notifications like media and VPN.
+- **Charging details**: adds watts, volts, amps and battery temperature under the lock screen charging text.
 - **Double tap status bar to sleep**: double tap empty status bar space and the phone sleeps.
 - **Biometric Bypass**: taps confirm on the biometric prompt after a face unlock and plays a system sound of your choice. Same hook as <img src="assets/modules/biometric-bypass.png" width="16" alt=""> [biometric-bypass](https://github.com/hxreborn/biometric-bypass).
 

@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.ui.dashboard
 import android.os.Build
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.BatteryChargingFull
 import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Code
@@ -127,6 +128,13 @@ val tweakUis: List<TweakUi> =
             TweakGroup.SYSTEM_UI,
         ),
         TweakUi(
+            "ChargingDetails",
+            Prefs.CHARGING_DETAILS,
+            R.string.tweak_charging_details,
+            R.string.tweak_charging_details_desc,
+            TweakGroup.SYSTEM_UI,
+        ),
+        TweakUi(
             "StatusBarDoubleTap",
             Prefs.STATUS_BAR_DOUBLE_TAP,
             R.string.tweak_status_bar_double_tap,
@@ -225,6 +233,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "EmptyShade" to Icons.Outlined.EditNotifications,
         "ExpandNotifications" to Icons.Outlined.UnfoldMore,
         "OngoingNoDismiss" to Icons.Outlined.PushPin,
+        "ChargingDetails" to Icons.Outlined.BatteryChargingFull,
         "StatusBarDoubleTap" to Icons.Outlined.TouchApp,
         "ForceNewTask" to Icons.Outlined.Layers,
         "ClipboardAllowlist" to Icons.Outlined.ContentPaste,
