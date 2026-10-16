@@ -7,10 +7,10 @@ import android.os.PowerManager
 import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
 import android.view.KeyEvent
 import eu.hxreborn.pixelinjector.xposed.Logger
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.concurrent.thread
 
 private const val KEYCODE_LOCK = 324
@@ -29,9 +29,14 @@ internal class SleepTrigger(
     }
 
     private fun lockAndSleepWithRoot() {
-        val code = runCatching { su(LOCK_THEN_SLEEP) }.getOrDefault(-1)
-        val level = if (code == 0) Log.INFO else Log.ERROR
-        Logger.log(level, "sleep path=root tweak=$tweak exit=$code")
+        runCatching { su(LOCK_THEN_SLEEP) }
+            .onSuccess { (code, output) ->
+                if (code == 0) {
+                    Logger.info("sleep path=root tweak=$tweak exit=0")
+                } else {
+                    Logger.error("sleep path=root tweak=$tweak exit=$code output=$output")
+                }
+            }.onFailure { Logger.error("sleep failed path=root tweak=$tweak reason=${it.message}") }
     }
 
     private fun lockAndSleepInProcess(context: Context) {
@@ -60,12 +65,18 @@ internal class SleepTrigger(
     }
 }
 
-private fun su(cmd: String): Int {
+private fun su(cmd: String): Pair<Int, String> {
     val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
     p.outputStream.close()
     if (!p.waitFor(5, TimeUnit.SECONDS)) {
         p.destroyForcibly()
-        return -1
+        throw TimeoutException("su timeout")
     }
-    return p.exitValue()
+    val output =
+        p.inputStream
+            .bufferedReader()
+            .readText()
+            .trim()
+            .replace('\n', ' ')
+    return p.exitValue() to output
 }
