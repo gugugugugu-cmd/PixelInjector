@@ -5,7 +5,6 @@
 }
 
 -keep class io.github.libxposed.service.XposedProvider { *; }
--keep class org.luckypray.dexkit.** { *; }
 
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
