@@ -172,7 +172,12 @@ fun ReportSheet(
             Column {
                 OutlinedTextField(
                     value = message,
-                    onValueChange = { if (it.length <= MESSAGE_MAX) onMessageChange(it) },
+                    onValueChange = {
+                        when {
+                            it.length <= MESSAGE_MAX -> onMessageChange(it)
+                            message.length < MESSAGE_MAX -> onMessageChange(it.take(MESSAGE_MAX))
+                        }
+                    },
                     label = { Text(stringResource(if (replyTo != null) R.string.report_your_answer else R.string.report_what_happened)) },
                     minLines = 3,
                     enabled = phase == ReportPhase.Compose || phase is ReportPhase.Rejected,
