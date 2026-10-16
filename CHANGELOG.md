@@ -1,3 +1,22 @@
+## [1.9.1](https://github.com/hxreborn/PixelInjector/compare/v1.9.0...v1.9.1) (2026-10-16)
+
+### Bug Fixes
+
+* **app:** ask for root only when su was denied ([61ee5d6](https://github.com/hxreborn/PixelInjector/commit/61ee5d6dedbd9f93a48c355d1a972a76a7d83a31))
+* **app:** ignore error lines from processes that died ([a213289](https://github.com/hxreborn/PixelInjector/commit/a213289c9a87ab6bb4f8cb1e83b69b1001ade1d4))
+* **app:** label scrubbed log data as redacted ([c1ffced](https://github.com/hxreborn/PixelInjector/commit/c1ffcedc55ad4164da0b6043dfc4015b68064214))
+* **app:** note that double tap to sleep needs root for the home app ([ce6f74a](https://github.com/hxreborn/PixelInjector/commit/ce6f74ab4514890a5a0ea8dfdd749531429db5b5))
+* **app:** redact phone numbers and advertising IDs from reports ([d9efeeb](https://github.com/hxreborn/PixelInjector/commit/d9efeebf2ffee726cee4c24663966e794d88b471))
+* **app:** redact phone numbers without a plus prefix ([e6b8ce9](https://github.com/hxreborn/PixelInjector/commit/e6b8ce96b4542cb78b898e34055e36346c9bbb1e))
+* **app:** remove the update check and module log row summaries ([c1d765a](https://github.com/hxreborn/PixelInjector/commit/c1d765a0d128e553fd944e2144623bc5f994820e))
+* **app:** report tweaks that log runtime errors as error ([bd73690](https://github.com/hxreborn/PixelInjector/commit/bd73690be9a2ed21cef9c282a036761243d1c583))
+* **app:** scope the redaction disclosure to the module log ([c80f698](https://github.com/hxreborn/PixelInjector/commit/c80f698d321635b90209a27f88dbabff1aab6620))
+* **app:** show a tweak's runtime error on its tile ([b8a18de](https://github.com/hxreborn/PixelInjector/commit/b8a18de37104383b594e31742aecfd741b186e87))
+* **app:** show the update snackbar once ([dfc2801](https://github.com/hxreborn/PixelInjector/commit/dfc2801172da97f0d41595838ed9b867af2d7af2))
+* **app:** time out a hot reload that never answers ([0fd14c7](https://github.com/hxreborn/PixelInjector/commit/0fd14c73b552641238f0f905df8d5e2b8c37c5e8))
+* **hook:** log why a root sleep failed ([9ea6b4f](https://github.com/hxreborn/PixelInjector/commit/9ea6b4f125e018cdb48ef7e2b613889d866f66ac))
+* **hook:** resolve the notifyUpdateLayoutParams overload ([c016d3e](https://github.com/hxreborn/PixelInjector/commit/c016d3eed213c0f59ebbfdf1af578915757da071)), closes [#21](https://github.com/hxreborn/PixelInjector/issues/21)
+
 ## [1.9.0](https://github.com/hxreborn/PixelInjector/compare/v1.8.0...v1.9.0) (2026-10-14)
 
 ### Features
