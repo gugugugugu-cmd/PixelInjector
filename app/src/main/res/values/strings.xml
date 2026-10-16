@@ -297,4 +297,14 @@
     <string name="vlog_checking">checking</string>
     <string name="vlog_waiting">waiting for download</string>
     <string name="report">Report</string>
+    <string name="date_format">Date format</string>
+    <string name="date_style_system">Follow the language</string>
+    <string name="date_style_long">Long</string>
+    <string name="date_style_full">With weekday</string>
+    <string name="date_style_numeric">Numeric</string>
+    <string name="date_style_day_first">Day first</string>
+    <string name="date_style_month_first">Month first</string>
+    <string name="date_style_dotted">Dotted</string>
+    <string name="date_style_iso">ISO 8601</string>
+    <string name="date_style_relative">Relative</string>
 </resources>

@@ -66,6 +66,7 @@ import eu.hxreborn.pixelinjector.ui.component.SheetHeader
 import eu.hxreborn.pixelinjector.ui.component.Tile
 import eu.hxreborn.pixelinjector.ui.component.tileGroup
 import eu.hxreborn.pixelinjector.ui.theme.AppText
+import eu.hxreborn.pixelinjector.ui.util.LocalDateStyle
 import kotlinx.coroutines.launch
 
 private const val SHORT_ID = 8
@@ -160,7 +161,7 @@ private fun ReportTile(
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(reportTitle(report), style = AppText.tileTitle, modifier = Modifier.weight(1f, fill = false))
-                Text(shortDate(latest.lastActivity), style = AppText.meta, color = scheme.onSurfaceVariant)
+                Text(LocalDateStyle.current.format(latest.lastActivity), style = AppText.meta, color = scheme.onSurfaceVariant)
             }
             StatusLine(latest)
             latest.note?.let { note ->

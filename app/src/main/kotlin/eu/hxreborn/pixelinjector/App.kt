@@ -8,6 +8,7 @@ import com.topjohnwu.superuser.Shell
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.prefs.PrefsRepository
 import eu.hxreborn.pixelinjector.support.Support
+import eu.hxreborn.pixelinjector.ui.util.DateStyle
 import io.github.libxposed.service.XposedService
 import io.github.libxposed.service.XposedServiceHelper
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,9 @@ class App :
 
     private val _showPackages = MutableStateFlow(false)
     val showPackages: StateFlow<Boolean> = _showPackages.asStateFlow()
+
+    private val _dateStyle = MutableStateFlow(DateStyle.SYSTEM)
+    val dateStyle: StateFlow<DateStyle> = _dateStyle.asStateFlow()
 
     lateinit var prefs: PrefsRepository
         private set
@@ -52,6 +56,9 @@ class App :
         _everBound.value = state.getBoolean(EVER_BOUND, false)
         _hideUnavailable.value = state.getBoolean(HIDE_UNAVAILABLE, false)
         _showPackages.value = state.getBoolean(SHOW_PACKAGES, false)
+        _dateStyle.value =
+            DateStyle.entries.firstOrNull { it.name == state.getString(DATE_STYLE, null) }
+                ?: DateStyle.SYSTEM
         XposedServiceHelper.registerListener(this)
     }
 
@@ -78,6 +85,11 @@ class App :
         _showPackages.value = show
     }
 
+    fun setDateStyle(style: DateStyle) {
+        state.edit { putString(DATE_STYLE, style.name) }
+        _dateStyle.value = style
+    }
+
     override fun onServiceDied(service: XposedService) {
         Log.w(ModuleConstants.LOG_TAG, "service died")
         _service.value = null
@@ -88,6 +100,7 @@ class App :
         private const val EVER_BOUND = "everBound"
         private const val HIDE_UNAVAILABLE = "hideUnavailable"
         private const val SHOW_PACKAGES = "showPackages"
+        private const val DATE_STYLE = "dateStyle"
         private const val SHELL_TIMEOUT_SECONDS = 10L
 
         fun from(context: Context): App = context.applicationContext as App

@@ -42,4 +42,7 @@ sealed interface Destination : NavKey {
 
     @Serializable
     data object Update : Destination
+
+    @Serializable
+    data object DateFormat : Destination
 }

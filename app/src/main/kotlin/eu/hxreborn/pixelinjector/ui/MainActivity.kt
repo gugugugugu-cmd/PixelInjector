@@ -9,8 +9,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material3.ComposeMaterial3Flags
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.hxreborn.pixelinjector.ui.navigation.AppNavHost
 import eu.hxreborn.pixelinjector.ui.theme.AppTheme
+import eu.hxreborn.pixelinjector.ui.util.LocalDateStyle
 import eu.hxreborn.pixelinjector.ui.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -27,7 +31,8 @@ class MainActivity : ComponentActivity() {
         ComposeMaterial3Flags.isCheckboxStylingFixEnabled = true
         setContent {
             AppTheme {
-                AppNavHost(viewModel)
+                val dateStyle by viewModel.dateStyle.collectAsStateWithLifecycle()
+                CompositionLocalProvider(LocalDateStyle provides dateStyle) { AppNavHost(viewModel) }
             }
         }
     }

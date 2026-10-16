@@ -41,6 +41,7 @@ import eu.hxreborn.pixelinjector.ui.reload.HotReloadRunner
 import eu.hxreborn.pixelinjector.ui.reload.ReloadRun
 import eu.hxreborn.pixelinjector.ui.support.ReportPhase
 import eu.hxreborn.pixelinjector.ui.support.SupportState
+import eu.hxreborn.pixelinjector.ui.util.DateStyle
 import eu.hxreborn.pixelinjector.ui.util.LauncherApp
 import eu.hxreborn.pixelinjector.ui.util.Root
 import eu.hxreborn.pixelinjector.ui.util.loadLauncherApps
@@ -106,6 +107,10 @@ class MainViewModel(
     val showPackages: StateFlow<Boolean> = app.showPackages
 
     fun setShowPackages(show: Boolean) = app.setShowPackages(show)
+
+    val dateStyle: StateFlow<DateStyle> = app.dateStyle
+
+    fun setDateStyle(style: DateStyle) = app.setDateStyle(style)
 
     private val targets = MutableStateFlow<List<HookedTarget>>(emptyList())
     private val scope = MutableStateFlow<Set<String>?>(null)

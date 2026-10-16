@@ -20,10 +20,6 @@ import eu.hxreborn.pixelinjector.support.ReleaseCheck
 import eu.hxreborn.pixelinjector.support.ReportStatus
 import eu.hxreborn.pixelinjector.support.SentReport
 import eu.hxreborn.pixelinjector.ui.dashboard.tweakUis
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Immutable
 data class SupportState(
@@ -132,11 +128,7 @@ fun reportTitle(report: SentReport): String =
     report.tweak?.let { key -> tweakUis.firstOrNull { it.key == key }?.let { stringResource(it.title) } ?: key }
         ?: stringResource(R.string.report_general)
 
-fun shortTime(epochMs: Long): String = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(epochMs))
-
 fun bytesLabel(bytes: Long): String {
     val mb = bytes / 1_048_576.0
     return if (mb >= 1) "%.1f MB".format(mb) else "%d KB".format(bytes / 1024)
 }
-
-fun shortDate(epochMs: Long): String = SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(epochMs))

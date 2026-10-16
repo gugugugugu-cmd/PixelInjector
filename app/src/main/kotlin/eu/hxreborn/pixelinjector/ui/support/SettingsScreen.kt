@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -82,6 +83,9 @@ import eu.hxreborn.pixelinjector.ui.component.TileText
 import eu.hxreborn.pixelinjector.ui.component.readableGutter
 import eu.hxreborn.pixelinjector.ui.component.tileShape
 import eu.hxreborn.pixelinjector.ui.theme.AppText
+import eu.hxreborn.pixelinjector.ui.util.DateStyle
+import eu.hxreborn.pixelinjector.ui.util.LocalDateStyle
+import java.time.LocalDate
 
 private val ChevronSlot = 40.dp
 
@@ -94,6 +98,7 @@ class SettingsActions(
     val onHideUnavailable: (Boolean) -> Unit,
     val onShowPackages: (Boolean) -> Unit,
     val onModuleLog: () -> Unit,
+    val onDateFormat: () -> Unit,
     val onGitHub: () -> Unit,
 )
 
@@ -103,6 +108,7 @@ fun SettingsScreen(
     state: SupportState,
     hideUnavailable: Boolean,
     showPackages: Boolean,
+    dateStyle: DateStyle,
     actions: SettingsActions,
     onBack: () -> Unit,
 ) {
@@ -156,25 +162,41 @@ fun SettingsScreen(
                 }
             }
             Spacer(Modifier.height(SectionGap))
-            Group(stringResource(R.string.settings_dashboard), 2) { index, shape ->
-                if (index == 0) {
-                    SwitchTile(
-                        shape,
-                        Icons.Outlined.VisibilityOff,
-                        stringResource(R.string.hide_unavailable),
-                        stringResource(R.string.hide_unavailable_summary),
-                        hideUnavailable,
-                        actions.onHideUnavailable,
-                    )
-                } else {
-                    SwitchTile(
-                        shape,
-                        Icons.Outlined.Code,
-                        stringResource(R.string.show_packages),
-                        stringResource(R.string.show_packages_summary),
-                        showPackages,
-                        actions.onShowPackages,
-                    )
+            Group(stringResource(R.string.settings_dashboard), 3) { index, shape ->
+                when (index) {
+                    0 -> {
+                        SwitchTile(
+                            shape,
+                            Icons.Outlined.VisibilityOff,
+                            stringResource(R.string.hide_unavailable),
+                            stringResource(R.string.hide_unavailable_summary),
+                            hideUnavailable,
+                            actions.onHideUnavailable,
+                        )
+                    }
+
+                    1 -> {
+                        SwitchTile(
+                            shape,
+                            Icons.Outlined.Code,
+                            stringResource(R.string.show_packages),
+                            stringResource(R.string.show_packages_summary),
+                            showPackages,
+                            actions.onShowPackages,
+                        )
+                    }
+
+                    else -> {
+                        Tile(shape = shape, onClick = actions.onDateFormat) {
+                            TileLeading(Icons.Outlined.CalendarMonth)
+                            TileText(
+                                stringResource(R.string.date_format),
+                                dateStyle.format(LocalDate.now()),
+                                supportingStyle = AppText.meta,
+                            )
+                            Chevron()
+                        }
+                    }
                 }
             }
             Spacer(Modifier.height(SectionGap))
@@ -281,12 +303,12 @@ private fun VersionTile(
                 }
 
                 release is ReleaseCheck.Failed -> {
-                    release.lastCheckedAt?.let { stringResource(R.string.update_check_failed, shortTime(it)) }
+                    release.lastCheckedAt?.let { stringResource(R.string.update_check_failed, LocalDateStyle.current.formatDateTime(it)) }
                         ?: stringResource(R.string.update_check_failed_never)
                 }
 
                 release is ReleaseCheck.Done -> {
-                    stringResource(R.string.update_up_to_date, shortTime(release.checkedAt))
+                    stringResource(R.string.update_up_to_date, LocalDateStyle.current.formatDateTime(release.checkedAt))
                 }
 
                 else -> {

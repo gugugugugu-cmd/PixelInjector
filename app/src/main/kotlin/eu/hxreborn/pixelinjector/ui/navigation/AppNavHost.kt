@@ -40,6 +40,7 @@ import eu.hxreborn.pixelinjector.ui.editor.SoundSheet
 import eu.hxreborn.pixelinjector.ui.log.ModuleLogScreen
 import eu.hxreborn.pixelinjector.ui.reload.ProgressSheet
 import eu.hxreborn.pixelinjector.ui.reload.TargetsSheet
+import eu.hxreborn.pixelinjector.ui.support.DateFormatSheet
 import eu.hxreborn.pixelinjector.ui.support.ReportPhase
 import eu.hxreborn.pixelinjector.ui.support.ReportSheet
 import eu.hxreborn.pixelinjector.ui.support.ReportsSheet
@@ -66,6 +67,7 @@ fun AppNavHost(
     val dashboard by viewModel.dashboard.collectAsStateWithLifecycle()
     val hideUnavailable by viewModel.hideUnavailable.collectAsStateWithLifecycle()
     val showPackages by viewModel.showPackages.collectAsStateWithLifecycle()
+    val dateStyle by viewModel.dateStyle.collectAsStateWithLifecycle()
     val prefs by viewModel.prefs.collectAsStateWithLifecycle()
     val targets by viewModel.reloadTargets.collectAsStateWithLifecycle()
     val run by viewModel.reload.collectAsStateWithLifecycle()
@@ -211,6 +213,7 @@ fun AppNavHost(
                         state = support,
                         hideUnavailable = hideUnavailable,
                         showPackages = showPackages,
+                        dateStyle = dateStyle,
                         actions =
                             SettingsActions(
                                 onCheck = { viewModel.support.checkRelease(force = true) },
@@ -230,6 +233,7 @@ fun AppNavHost(
                                 onModuleLog = {
                                     push(Destination.ModuleLog)
                                 },
+                                onDateFormat = { push(Destination.DateFormat) },
                                 onGitHub = { uriHandler.openUri("https://github.com/${ReportConfig.repo}") },
                             ),
                         onBack = { if (backStack.lastOrNull() == Destination.Settings) backStack.removeLastOrNull() },
@@ -300,6 +304,9 @@ fun AppNavHost(
                                 ),
                         )
                     }
+                }
+                entry<Destination.DateFormat>(metadata = BottomSheetSceneStrategy.bottomSheet()) {
+                    DateFormatSheet(selected = dateStyle, onSelect = viewModel::setDateStyle)
                 }
                 entry<Destination.ModuleLog> {
                     ModuleLogScreen(
