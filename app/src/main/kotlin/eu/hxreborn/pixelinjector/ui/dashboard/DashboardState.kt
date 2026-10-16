@@ -20,6 +20,7 @@ data class DashboardState(
     val everBound: Boolean,
     val reloadCount: Int,
     val errors: Map<String, String>,
+    val errorLines: Map<String, String>,
     val homeApp: HomeApp?,
     val packages: Map<TweakGroup, HookedPackages>,
     val rootDenied: Boolean,
