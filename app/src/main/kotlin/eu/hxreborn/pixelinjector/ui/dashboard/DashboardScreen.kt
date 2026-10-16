@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -50,6 +51,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.FloatingToolbarExitDirection
 import androidx.compose.material3.FloatingToolbarScrollBehavior
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -131,6 +133,12 @@ private val ChevronSize = 22.dp
 private val LinkChevronSlot = 40.dp
 private val ChildStartPadding = 52.dp
 private val ChildShape = RoundedCornerShape(0.dp)
+private val ChildMinHeight = 48.dp
+private val ChildVerticalPadding = 6.dp
+private val ChildValueGap = 12.dp
+private val ChildValueMaxWidth = 160.dp
+private val SliderLabelEndPadding = 8.dp
+private const val CHILD_DIVIDER_ALPHA = 0.5f
 private val LeadingButtonPadding = PaddingValues(start = 16.dp, end = 20.dp)
 private val ReportButtonInset = (-12).dp
 private const val CHEVRON_OPEN_ROTATION = 180f
@@ -433,8 +441,9 @@ private fun LazyListScope.scope(
                 exit =
                     fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) + shrinkVertically(MaterialTheme.motionScheme.fastSpatialSpec()),
             ) {
-                Column(Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh)) {
+                Column(Modifier.padding(start = ChildStartPadding)) {
                     row.children.forEach { child ->
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = CHILD_DIVIDER_ALPHA))
                         when (child) {
                             is DashTile.Link -> LinkTile(child, onOpen)
                             is DashTile.Slide -> SlideTile(child, onSlide)
@@ -458,10 +467,44 @@ private fun ChildTile(
         shape = ChildShape,
         modifier = modifier,
         color = Color.Transparent,
-        startPadding = ChildStartPadding,
+        startPadding = 0.dp,
+        verticalPadding = ChildVerticalPadding,
+        minHeight = ChildMinHeight,
         onClick = onClick,
         content = content,
     )
+}
+
+@Composable
+private fun RowScope.ChildText(
+    title: String,
+    description: String?,
+) {
+    Column(Modifier.weight(1f)) {
+        Text(title, style = AppText.tileSupporting, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (description != null) {
+            Text(description, style = AppText.tileSupporting, color = MaterialTheme.colorScheme.outline)
+        }
+    }
+}
+
+@Composable
+private fun ChildValue(text: String) {
+    Text(
+        text,
+        style = AppText.tileSupporting,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(start = ChildValueGap).widthIn(max = ChildValueMaxWidth),
+    )
+}
+
+@Composable
+private fun ChildChevron() {
+    Box(Modifier.width(LinkChevronSlot), contentAlignment = Alignment.Center) {
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 @Composable
@@ -472,14 +515,9 @@ private fun SlideTile(
     var value by remember(tile.value) { mutableIntStateOf(tile.value) }
     ChildTile {
         Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TileText(stringResource(tile.title), stringResource(tile.slider.description))
-                Text(
-                    value.toString(),
-                    style = AppText.count,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(end = 4.dp),
-                )
+            Row(Modifier.padding(end = SliderLabelEndPadding), verticalAlignment = Alignment.CenterVertically) {
+                ChildText(stringResource(tile.title), stringResource(tile.slider.description))
+                ChildValue(value.toString())
             }
             Slider(
                 value = value.toFloat(),
@@ -547,10 +585,9 @@ private fun SoundTile(
 ) {
     ChildTile(onClick = { onOpen(tile.sound.destination) }) {
         val label = if (tile.path.isEmpty()) stringResource(R.string.sound_none) else SystemSounds.label(tile.path)
-        TileText(stringResource(tile.title), label)
-        Box(Modifier.width(LinkChevronSlot), contentAlignment = Alignment.Center) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        ChildText(stringResource(tile.title), null)
+        ChildValue(label)
+        ChildChevron()
     }
 }
 
@@ -560,18 +597,9 @@ private fun LinkTile(
     onOpen: (Destination) -> Unit,
 ) {
     ChildTile(onClick = { onOpen(tile.editor.destination) }) {
-        TileText(stringResource(tile.title), tile.editor.description?.let { stringResource(it) })
-        Text(
-            tile.summary,
-            style = AppText.count,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(end = 4.dp),
-        )
-        Box(Modifier.width(LinkChevronSlot), contentAlignment = Alignment.Center) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        ChildText(stringResource(tile.title), tile.editor.description?.let { stringResource(it) })
+        ChildValue(tile.summary)
+        ChildChevron()
     }
 }
 
