@@ -5,6 +5,7 @@ import eu.hxreborn.pixelinjector.ModuleConstants
 import io.github.libxposed.service.HookedTarget
 import io.github.libxposed.service.HotReloadResult
 import io.github.libxposed.service.XposedService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -61,7 +62,8 @@ class HotReloadRunner(
                 log("done succeeded=$succeeded failed=$failed")
                 _state.update { it?.copy(done = true) }
                 _state.value?.let { run ->
-                    runCatching { writeReloadLog(filesDir, startedAt, run.lines) }.onFailure {
+                    runCatching { withContext(Dispatchers.IO) { writeReloadLog(filesDir, startedAt, run.lines) } }.onFailure {
+                        if (it is CancellationException) throw it
                         Log.w(
                             ModuleConstants.LOG_TAG,
                             "reload log write failed reason=${it.message}",
