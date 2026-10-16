@@ -213,7 +213,7 @@
     <string name="report_crypto_server">Server</string>
     <string name="report_crypto_server_value">%1$s holds no private key</string>
     <string name="report_crypto_redacted">Redacted data</string>
-    <string name="report_crypto_redacted_value">Emails\nIP and MAC addresses\nWi-Fi names\nDevice IDs\nStorage paths\nTokens in URLs and headers</string>
+    <string name="report_crypto_redacted_value">Emails\nPhone numbers\nIP and MAC addresses\nWi-Fi names\nDevice and advertising IDs\nStorage paths\nTokens in URLs and headers</string>
     <string name="report_field_log">Module log</string>
     <string name="report_field_message">Your message</string>
     <string name="report_field_versions">App versions</string>
