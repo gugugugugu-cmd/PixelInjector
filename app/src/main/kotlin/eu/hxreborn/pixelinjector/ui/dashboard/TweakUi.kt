@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.HorizontalRule
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.TouchApp
@@ -119,6 +120,13 @@ val tweakUis: List<TweakUi> =
             TweakGroup.SYSTEM_UI,
         ),
         TweakUi(
+            "OngoingNoDismiss",
+            Prefs.ONGOING_NO_DISMISS,
+            R.string.tweak_ongoing_no_dismiss,
+            R.string.tweak_ongoing_no_dismiss_desc,
+            TweakGroup.SYSTEM_UI,
+        ),
+        TweakUi(
             "StatusBarDoubleTap",
             Prefs.STATUS_BAR_DOUBLE_TAP,
             R.string.tweak_status_bar_double_tap,
@@ -216,6 +224,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "ScreenshotSound" to Icons.Outlined.VolumeOff,
         "EmptyShade" to Icons.Outlined.EditNotifications,
         "ExpandNotifications" to Icons.Outlined.UnfoldMore,
+        "OngoingNoDismiss" to Icons.Outlined.PushPin,
         "StatusBarDoubleTap" to Icons.Outlined.TouchApp,
         "ForceNewTask" to Icons.Outlined.Layers,
         "ClipboardAllowlist" to Icons.Outlined.ContentPaste,

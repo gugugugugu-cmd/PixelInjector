@@ -14,6 +14,7 @@ import eu.hxreborn.pixelinjector.xposed.hook.system.forceNewTask
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.biometricBypass
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.emptyShade
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.expandNotifications
+import eu.hxreborn.pixelinjector.xposed.hook.systemui.ongoingNoDismiss
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.pillShot
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.screenshotSound
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.statusBarDoubleTap
@@ -26,6 +27,7 @@ internal val tweaks: List<Tweak> =
         screenshotSound,
         emptyShade,
         expandNotifications,
+        ongoingNoDismiss,
         statusBarDoubleTap,
         forceNewTask,
         clipboardAllowlist,

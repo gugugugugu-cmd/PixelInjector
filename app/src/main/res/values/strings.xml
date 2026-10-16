@@ -30,6 +30,8 @@
     <string name="empty_shade_icon_label">Icon</string>
     <string name="tweak_expand_notifications">Always expand notifications</string>
     <string name="tweak_expand_notifications_desc">Opens notifications expanded</string>
+    <string name="tweak_ongoing_no_dismiss">Pin ongoing notifications</string>
+    <string name="tweak_ongoing_no_dismiss_desc">Stops swiping away ongoing notifications like media and VPN</string>
     <string name="tweak_status_bar_double_tap">Double tap status bar to sleep</string>
     <string name="tweak_status_bar_double_tap_desc">Sleeps the phone on a double tap of the status bar</string>
     <string name="tweak_new_task">Force NEW_TASK</string>
