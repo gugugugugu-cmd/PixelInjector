@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -114,8 +113,8 @@ class Support(
     }
 
     private fun mutate(change: (List<SentReport>) -> List<SentReport>) {
-        val next = _reports.updateAndGet(change)
-        scope.launch(ledgerWriter) { ledger.write(next) }
+        _reports.update(change)
+        scope.launch(ledgerWriter) { ledger.write(_reports.value) }
     }
 
     private fun replace(report: SentReport) =
