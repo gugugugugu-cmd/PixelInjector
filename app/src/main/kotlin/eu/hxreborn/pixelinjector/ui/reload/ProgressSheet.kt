@@ -8,17 +8,25 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.RemoveCircleOutline
+import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -43,6 +51,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -60,6 +69,7 @@ import eu.hxreborn.pixelinjector.ui.component.processNameForDisplay
 import eu.hxreborn.pixelinjector.ui.component.tileShape
 import eu.hxreborn.pixelinjector.ui.component.toneColor
 import eu.hxreborn.pixelinjector.ui.theme.AppText
+import eu.hxreborn.pixelinjector.ui.util.verticalScrollbar
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -67,6 +77,7 @@ import kotlin.time.Duration.Companion.seconds
 private val Tick = 1.seconds
 private val SlowAfter = 30.seconds
 private val ResultIconSize = 40.dp
+private val ConsoleHeight = 240.dp
 private val ResultIndicatorSize = 38.dp
 private val ResultStartPadding = 8.dp
 private val ResultEndPadding = 12.dp
@@ -143,22 +154,42 @@ fun ProgressSheet(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Column(verticalArrangement = Arrangement.spacedBy(TileGap)) {
-                run.rows.forEachIndexed { index, row ->
-                    ResultTile(row, tileShape(run.rows.size, index), now)
+            val scroll = rememberScrollState()
+            LaunchedEffect(run.done) { if (run.done) scroll.animateScrollTo(scroll.maxValue) }
+            Column(Modifier.weight(1f).verticalScrollbar(scroll).verticalScroll(scroll)) {
+                Column(verticalArrangement = Arrangement.spacedBy(TileGap)) {
+                    run.rows.forEachIndexed { index, row ->
+                        ResultTile(row, tileShape(run.rows.size, index), now)
+                    }
                 }
+                Console(run.lines, Modifier.height(ConsoleHeight).padding(top = SectionGap))
             }
-            Console(run.lines, Modifier.weight(1f).padding(top = SectionGap))
             SheetActions {
-                if (!run.done) TextButton(onClick = onCancel, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
-                TextButton(onClick = onClose, shapes = ButtonDefaults.shapes(), enabled = run.done) { Text(stringResource(R.string.close)) }
+                if (!run.done) {
+                    TextButton(onClick = onCancel, shapes = ButtonDefaults.shapes()) {
+                        ButtonLabel(Icons.Outlined.Stop, stringResource(R.string.cancel))
+                    }
+                }
+                TextButton(onClick = onClose, shapes = ButtonDefaults.shapes(), enabled = run.done) {
+                    ButtonLabel(Icons.Outlined.Close, stringResource(R.string.close))
+                }
                 FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = {
                     val clip = ClipData.newPlainText("PixelInjector hot reload", formatLines(run.lines))
                     context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
-                }) { Text(stringResource(R.string.copy)) }
+                }) { ButtonLabel(Icons.Outlined.ContentCopy, stringResource(R.string.copy)) }
             }
         }
     }
+}
+
+@Composable
+private fun ButtonLabel(
+    icon: ImageVector,
+    label: String,
+) {
+    Icon(icon, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+    Text(label)
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

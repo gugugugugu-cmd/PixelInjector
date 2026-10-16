@@ -19,6 +19,7 @@ import eu.hxreborn.pixelinjector.ui.reload.LogLine
 import eu.hxreborn.pixelinjector.ui.reload.Tone
 import eu.hxreborn.pixelinjector.ui.reload.logTimestamp
 import eu.hxreborn.pixelinjector.ui.theme.AppText
+import eu.hxreborn.pixelinjector.ui.util.verticalScrollbar
 import java.util.Date
 
 @Composable
@@ -47,6 +48,7 @@ fun Console(
     ) {
         LazyColumn(
             state = listState,
+            modifier = Modifier.verticalScrollbar(listState),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
