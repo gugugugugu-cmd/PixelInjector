@@ -8,6 +8,11 @@ object Redactor {
             Regex("""[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}""") to MARK,
             Regex("""\b(?:[0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}\b""") to MARK,
             Regex("""\b(?:\d{1,3}\.){3}\d{1,3}\b""") to MARK,
+            Regex(
+                """\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b""",
+            ) to
+                MARK,
+            Regex("""\+\d[\d -]{6,}\d""") to MARK,
             Regex("""\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b""") to MARK,
             Regex(
                 """\b[0-9a-fA-F]{1,4}(?::[0-9a-fA-F]{1,4})*::(?:[0-9a-fA-F]{1,4}(?::[0-9a-fA-F]{1,4})*)?(?:%\w+)?""",
