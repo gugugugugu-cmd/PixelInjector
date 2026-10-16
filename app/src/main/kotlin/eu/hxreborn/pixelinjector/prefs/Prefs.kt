@@ -32,6 +32,9 @@ object Prefs {
             "systemui.headsUpDuration.seconds",
             HEADS_UP_SECONDS_DEFAULT,
         ).register()
+    val FINGERPRINT_ICON = BoolPref("systemui.fingerprintIcon", false).register()
+    val FINGERPRINT_ICON_STYLE = StringPref("systemui.fingerprintIcon.style", "").register()
+    val FINGERPRINT_HIDE_CIRCLE = BoolPref("systemui.fingerprintIcon.hideCircle", false).register()
     val STATUS_BAR_DOUBLE_TAP = BoolPref("systemui.statusBarDoubleTap", false).register()
     val NEW_TASK = BoolPref("system.newTask", false).register()
     val NEW_TASK_RULES = StringPref("system.newTask.rules", "").register()

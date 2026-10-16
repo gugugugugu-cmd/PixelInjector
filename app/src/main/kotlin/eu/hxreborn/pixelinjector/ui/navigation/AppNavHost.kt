@@ -35,6 +35,7 @@ import eu.hxreborn.pixelinjector.ui.dashboard.DashboardActions
 import eu.hxreborn.pixelinjector.ui.dashboard.DashboardScreen
 import eu.hxreborn.pixelinjector.ui.editor.AppsSheet
 import eu.hxreborn.pixelinjector.ui.editor.EmptyShadeSheet
+import eu.hxreborn.pixelinjector.ui.editor.FingerprintIconSheet
 import eu.hxreborn.pixelinjector.ui.editor.RulesEditorScreen
 import eu.hxreborn.pixelinjector.ui.editor.SoundSheet
 import eu.hxreborn.pixelinjector.ui.log.ModuleLogScreen
@@ -211,6 +212,15 @@ fun AppNavHost(
                         iconPath = prefs[Prefs.EMPTY_SHADE_ICON_PATH],
                         onTextChange = { viewModel.save(Prefs.EMPTY_SHADE_TEXT, it) },
                         onIconPathChange = { viewModel.save(Prefs.EMPTY_SHADE_ICON_PATH, it) },
+                    )
+                }
+                entry<Destination.FingerprintIconEditor>(metadata = BottomSheetSceneStrategy.bottomSheet()) {
+                    FingerprintIconSheet(
+                        style = prefs[Prefs.FINGERPRINT_ICON_STYLE],
+                        hideCircle = prefs[Prefs.FINGERPRINT_HIDE_CIRCLE],
+                        onStyleChange = { viewModel.save(Prefs.FINGERPRINT_ICON_STYLE, it) },
+                        onHideCircleChange = { viewModel.save(Prefs.FINGERPRINT_HIDE_CIRCLE, it) },
+                        onImagePicked = viewModel::saveFingerprintImage,
                     )
                 }
                 entry<Destination.Settings> {

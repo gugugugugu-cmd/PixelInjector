@@ -34,6 +34,15 @@
     <string name="tweak_ongoing_no_dismiss_desc">Stops swiping away ongoing notifications like media and VPN</string>
     <string name="tweak_charging_details">Charging details</string>
     <string name="tweak_charging_details_desc">Adds watts volts amps and battery temperature under the lock screen charging text</string>
+    <string name="tweak_fingerprint_icon">Fingerprint icon</string>
+    <string name="tweak_fingerprint_icon_desc">Replaces the lock screen fingerprint icon and its circle</string>
+    <string name="tweak_fingerprint_icon_edit">Icon and circle</string>
+    <string name="fingerprint_hide_circle">Hide the circle</string>
+    <string name="fingerprint_style_stock">Stock</string>
+    <string name="fingerprint_style_none">None</string>
+    <string name="fingerprint_style_custom">Image</string>
+    <string name="fingerprint_pick_image">Pick an image</string>
+    <string name="fingerprint_image_failed">Image not saved</string>
     <string name="tweak_heads_up_duration">Heads-up duration</string>
     <string name="tweak_heads_up_duration_desc">Sets how long a heads-up notification stays on screen</string>
     <string name="tweak_heads_up_seconds">Seconds on screen</string>

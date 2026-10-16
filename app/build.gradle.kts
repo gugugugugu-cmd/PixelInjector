@@ -105,6 +105,12 @@ kotlin {
     jvmToolchain(21)
 }
 
+aboutLibraries {
+    collect {
+        configPath = file("config")
+    }
+}
+
 abstract class ChangelogAsset : DefaultTask() {
     @get:InputFile
     abstract val source: RegularFileProperty

@@ -1,0 +1,16 @@
+{
+  "uniqueId": "AospExtended:UdfpsResources",
+  "artifactVersion": "",
+  "name": "UdfpsResources fingerprint icons",
+  "description": "Fingerprint icons from AospExtended's UdfpsResources as shipped by Syberia, DerpFest, AfterlifeOS, Infinity-X and AlphaDroid",
+  "website": "https://github.com/syberia-project/platform_vendor_syberia/tree/93ddc9c2696eae05a94f0e04277166c0f38524b0/packages/overlays/UdfpsResources",
+  "developers": [
+    { "name": "AospExtended", "organisationUrl": "https://github.com/AospExtended" },
+    { "name": "Syberia Project", "organisationUrl": "https://github.com/syberia-project" },
+    { "name": "DerpFest", "organisationUrl": "https://github.com/DerpFest-AOSP" },
+    { "name": "AfterlifeOS", "organisationUrl": "https://github.com/AfterlifeOS" },
+    { "name": "Project Infinity X", "organisationUrl": "https://github.com/ProjectInfinity-X" },
+    { "name": "AlphaDroid", "organisationUrl": "https://github.com/AlphaDroid-Project" }
+  ],
+  "licenses": []
+}

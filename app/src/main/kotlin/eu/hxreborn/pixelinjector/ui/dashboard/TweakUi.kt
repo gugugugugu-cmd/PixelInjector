@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.EditNotifications
+import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.HorizontalRule
@@ -143,6 +144,17 @@ val tweakUis: List<TweakUi> =
             TweakGroup.SYSTEM_UI,
         ),
         TweakUi(
+            "FingerprintIcon",
+            Prefs.FINGERPRINT_ICON,
+            R.string.tweak_fingerprint_icon,
+            R.string.tweak_fingerprint_icon_desc,
+            TweakGroup.SYSTEM_UI,
+            editor =
+                TweakEditor(R.string.tweak_fingerprint_icon_edit, null, Destination.FingerprintIconEditor) {
+                    it[Prefs.FINGERPRINT_ICON_STYLE].substringBefore(':').ifEmpty { "stock" }.replaceFirstChar(Char::uppercase)
+                },
+        ),
+        TweakUi(
             "HeadsUpDuration",
             Prefs.HEADS_UP_DURATION,
             R.string.tweak_heads_up_duration,
@@ -271,6 +283,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "ExpandNotifications" to Icons.Outlined.UnfoldMore,
         "OngoingNoDismiss" to Icons.Outlined.PushPin,
         "HeadsUpDuration" to Icons.Outlined.Timer,
+        "FingerprintIcon" to Icons.Outlined.Fingerprint,
         "ChargingDetails" to Icons.Outlined.BatteryChargingFull,
         "StatusBarDoubleTap" to Icons.Outlined.TouchApp,
         "ForceNewTask" to Icons.Outlined.Layers,

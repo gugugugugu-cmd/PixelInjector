@@ -3,6 +3,9 @@ package eu.hxreborn.pixelinjector.ui.viewmodel
 import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Process
 import android.util.Log
 import android.widget.Toast
@@ -18,8 +21,10 @@ import eu.hxreborn.pixelinjector.ModuleConstants.FILES_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.GBOARD_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.LAUNCHER_PACKAGES
 import eu.hxreborn.pixelinjector.R
+import eu.hxreborn.pixelinjector.icons.FingerprintStyles
 import eu.hxreborn.pixelinjector.prefs.AppPrefs
 import eu.hxreborn.pixelinjector.prefs.PrefSpec
+import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.support.Framework
 import eu.hxreborn.pixelinjector.support.LogArchive
 import eu.hxreborn.pixelinjector.support.MissingTarget
@@ -33,6 +38,7 @@ import eu.hxreborn.pixelinjector.ui.dashboard.HookedPackages
 import eu.hxreborn.pixelinjector.ui.dashboard.TweakGroup
 import eu.hxreborn.pixelinjector.ui.dashboard.restartOnChange
 import eu.hxreborn.pixelinjector.ui.dashboard.tweakUis
+import eu.hxreborn.pixelinjector.ui.editor.fingerprintImageFile
 import eu.hxreborn.pixelinjector.ui.log.ModuleLogState
 import eu.hxreborn.pixelinjector.ui.log.deriveErrorLines
 import eu.hxreborn.pixelinjector.ui.log.deriveErrors
@@ -64,8 +70,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.FileOutputStream
 
 private const val SYSTEM_PROCESS = "system"
+private const val FINGERPRINT_IMAGE_PX = 512
 private val fixedPackages =
     mapOf(
         TweakGroup.SYSTEM_UI to HookedPackages(listOf(ModuleConstants.SYSTEMUI_PACKAGE), true),
@@ -90,6 +99,7 @@ class MainViewModel(
     val support = app.support
     private val logArchive = LogArchive(application.filesDir)
     private val logLock = Mutex()
+    private val fingerprintImageLock = Mutex()
 
     @Volatile private var rawLog: List<String>? = null
 
@@ -475,6 +485,45 @@ class MainViewModel(
     ) {
         app.prefs.save(pref, value)
         restartOnChange[pref]?.let(::restartApps)
+    }
+
+    fun saveFingerprintImage(uri: Uri) {
+        viewModelScope.launch {
+            fingerprintImageLock.withLock { writeFingerprintImage(uri) }
+        }
+    }
+
+    private suspend fun writeFingerprintImage(uri: Uri) {
+        val context = getApplication<Application>()
+        val saved =
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val service = checkNotNull(app.service.value) { "service unbound" }
+                    val source = ImageDecoder.createSource(context.contentResolver, uri)
+                    val bitmap =
+                        ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                            val scale = FINGERPRINT_IMAGE_PX.toFloat() / maxOf(info.size.width, info.size.height)
+                            if (scale < 1f) {
+                                decoder.setTargetSize((info.size.width * scale).toInt(), (info.size.height * scale).toInt())
+                            }
+                        }
+                    val png = ByteArrayOutputStream()
+                    check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, png)) { "png compress failed" }
+                    val bytes = png.toByteArray()
+                    service.openRemoteFile(FingerprintStyles.IMAGE_FILE).use { fd ->
+                        FileOutputStream(fd.fileDescriptor).use {
+                            it.channel.truncate(0)
+                            it.write(bytes)
+                        }
+                    }
+                    fingerprintImageFile(context).writeBytes(bytes)
+                }.onFailure { Log.e(ModuleConstants.LOG_TAG, "fingerprint image failed", it) }.isSuccess
+            }
+        if (saved) {
+            save(Prefs.FINGERPRINT_ICON_STYLE, FingerprintStyles.customStyle(System.currentTimeMillis()))
+        } else {
+            Toast.makeText(context, R.string.fingerprint_image_failed, Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun restartApps(packages: Set<String>) {
