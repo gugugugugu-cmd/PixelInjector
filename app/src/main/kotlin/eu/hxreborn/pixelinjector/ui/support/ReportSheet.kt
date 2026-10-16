@@ -428,7 +428,9 @@ private fun Disclosure(
                                     stringResource(R.string.report_crypto_replies) to stringResource(R.string.report_crypto_replies_value),
                                     stringResource(R.string.report_crypto_server) to
                                         stringResource(R.string.report_crypto_server_value, ReportConfig.host),
-                                    stringResource(R.string.report_crypto_hidden) to stringResource(R.string.report_crypto_hidden_value),
+                                    stringResource(
+                                        R.string.report_crypto_redacted,
+                                    ) to stringResource(R.string.report_crypto_redacted_value),
                                 ),
                         )
                     }

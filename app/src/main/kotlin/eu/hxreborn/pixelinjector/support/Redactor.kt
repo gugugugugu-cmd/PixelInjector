@@ -1,7 +1,7 @@
 package eu.hxreborn.pixelinjector.support
 
 object Redactor {
-    const val MARK = "‹hidden›"
+    const val MARK = "‹redacted›"
 
     private val rules =
         listOf(
