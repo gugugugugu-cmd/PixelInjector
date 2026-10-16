@@ -1,11 +1,13 @@
 package eu.hxreborn.pixelinjector.ui.support
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -13,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -22,10 +25,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.R
@@ -36,6 +44,7 @@ import eu.hxreborn.pixelinjector.ui.theme.AppText
 private val FixMarkIndent = 14.dp
 private const val SHORT_ID_LENGTH = 8
 private val FixMarkIconSize = 16.dp
+private val ExpandIconSize = 20.dp
 
 @Composable
 fun UpdateCard(
@@ -45,9 +54,10 @@ fun UpdateCard(
     onUpdate: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val newLines = release.notesNew.filter { it in fixes }
-    val fixedLines = release.notesFixed.filter { it in fixes }
-    val otherLines = release.notesOther.filter { it in fixes }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val newLines = release.notesNew.filter { expanded || it in fixes }
+    val fixedLines = release.notesFixed.filter { expanded || it in fixes }
+    val otherLines = release.notesOther.filter { expanded || it in fixes }
     val total = release.notesNew.size + release.notesFixed.size + release.notesOther.size
     val more = total - newLines.size - fixedLines.size - otherLines.size
     Surface(
@@ -69,7 +79,13 @@ fun UpdateCard(
                     NoteGroup(stringResource(R.string.notes_other), otherLines, fixes)
                     if (more > 0) {
                         val plural = if (more == total) R.plurals.notes_count else R.plurals.notes_more
-                        Text(pluralStringResource(plural, more, more), style = MaterialTheme.typography.bodyMedium)
+                        Row(
+                            Modifier.heightIn(min = 48.dp).clickable(role = Role.Button) { expanded = true },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(pluralStringResource(plural, more, more), style = MaterialTheme.typography.bodyMedium)
+                            Icon(Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.size(ExpandIconSize))
+                        }
                     }
                 }
             }
