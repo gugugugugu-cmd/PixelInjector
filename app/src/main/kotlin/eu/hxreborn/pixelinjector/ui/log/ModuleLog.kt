@@ -86,7 +86,10 @@ fun deriveErrors(entries: List<LogEntry>): Map<String, String> {
     return buildMap { errorsByProc.values.forEach { putAll(it) } }
 }
 
-fun deriveErrorLines(entries: List<LogEntry>): Map<String, String> {
+fun deriveErrorLines(
+    entries: List<LogEntry>,
+    livePids: Set<Int>,
+): Map<String, String> {
     val currentVersionPids = mutableSetOf<Int>()
     val errorLinesByPid = mutableMapOf<Int, MutableMap<String, String>>()
     for ((_, pid, level, tweak, _, body) in entries) {
@@ -111,5 +114,5 @@ fun deriveErrorLines(entries: List<LogEntry>): Map<String, String> {
             }
         }
     }
-    return buildMap { errorLinesByPid.values.forEach { putAll(it) } }
+    return buildMap { errorLinesByPid.filterKeys { it in livePids }.values.forEach { putAll(it) } }
 }
