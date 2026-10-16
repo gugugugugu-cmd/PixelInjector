@@ -23,6 +23,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import java.io.File
+import java.net.HttpURLConnection
 import java.util.Base64
 import java.util.concurrent.ConcurrentHashMap
 
@@ -334,6 +335,7 @@ class Support(
         if (!force && !_autoCheckUpdates.value) return
         val last = prefs.getLong(RELEASE_CHECKED_AT, 0)
         if (!force && System.currentTimeMillis() - last < CHECK_INTERVAL_MS) return
+        if (!force && System.currentTimeMillis() < prefs.getLong(RELEASE_RETRY_AT, 0)) return
         if (_release.value is ReleaseCheck.Checking) return
         val previous = _release.value
         _release.value = ReleaseCheck.Checking(previous.known)
@@ -346,6 +348,7 @@ class Support(
                         prefs.edit {
                             putString(RELEASE_BODY, reply.body)
                             putLong(RELEASE_CHECKED_AT, now)
+                            remove(RELEASE_RETRY_AT)
                         }
                         ReleaseCheck.Done(release, now)
                     }
@@ -355,6 +358,14 @@ class Support(
                             ModuleConstants.LOG_TAG,
                             "release check failed source=github reason=$reply",
                         )
+                        (reply as? ApiResponse.Retryable)?.afterSeconds?.let { seconds ->
+                            prefs.edit {
+                                putLong(
+                                    RELEASE_RETRY_AT,
+                                    System.currentTimeMillis() + seconds * MILLIS,
+                                )
+                            }
+                        }
                         if (force) {
                             ReleaseCheck.Failed(last.takeIf { it > 0 }, previous.known)
                         } else {
@@ -368,15 +379,27 @@ class Support(
 
     private fun fetchRelease(): ApiResponse {
         val worker = ReportClient.release()
-        if (worker is ApiResponse.Ok) return worker
+        if (worker is ApiResponse.Ok) {
+            prefs.edit { remove(GITHUB_ETAG) }
+            return worker
+        }
         Log.w(ModuleConstants.LOG_TAG, "release check failed source=worker reason=$worker")
-        return when (val gitHub = ReportClient.gitHubRelease()) {
+        val cached = prefs.getString(RELEASE_BODY, null)
+        val etag = prefs.getString(GITHUB_ETAG, null)?.takeIf { cached != null }
+        return when (val gitHub = ReportClient.gitHubRelease(etag)) {
+            is ApiResponse.Ok if gitHub.code == HttpURLConnection.HTTP_NOT_MODIFIED &&
+                cached != null -> {
+                ApiResponse.Ok(gitHub.code, cached)
+            }
+
             is ApiResponse.Ok -> {
                 runCatching {
                     ApiResponse.Ok(
                         gitHub.code,
                         Release.fromGitHub(gitHub.body, ReportConfig.assetPattern),
                     )
+                }.onSuccess {
+                    gitHub.etag?.let { etag -> prefs.edit { putString(GITHUB_ETAG, etag) } }
                 }.getOrElse {
                     ApiResponse.Refused(
                         gitHub.code,
@@ -540,10 +563,13 @@ class Support(
         private const val AUTO_CHECK_UPDATES = "autoCheckUpdates"
         private const val HOOK_STATUS_SENT = "hookStatusSent"
         private const val RELEASE_BODY = "releaseBody"
+        private const val GITHUB_ETAG = "githubEtag"
         private const val RELEASE_CHECKED_AT = "releaseCheckedAt"
+        private const val RELEASE_RETRY_AT = "releaseRetryAt"
         private const val POSTPONED_VERSION = "postponedVersion"
         private const val LAST_RUN_VERSION = "lastRunVersion"
         private const val CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000L
         private const val UNDO_WINDOW_MS = 6_000L
+        private const val MILLIS = 1000L
     }
 }

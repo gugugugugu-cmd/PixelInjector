@@ -11,6 +11,7 @@ sealed interface ApiResponse {
     data class Ok(
         val code: Int,
         val body: String,
+        val etag: String? = null,
     ) : ApiResponse
 
     data class Retryable(
@@ -30,6 +31,7 @@ object ReportClient {
     private const val HTTP_TIMEOUT = 408
     private const val HTTP_TOO_MANY = 429
     private const val HTTP_SERVER_ERRORS = 500
+    private const val MILLIS = 1000
 
     private fun url(path: String) =
         if (path.startsWith(
@@ -75,8 +77,19 @@ object ReportClient {
                     stream.bufferedReader().readText()
                 }.orEmpty()
             when {
-                code in HttpURLConnection.HTTP_OK until HttpURLConnection.HTTP_MULT_CHOICE -> {
-                    ApiResponse.Ok(code, text)
+                code in HttpURLConnection.HTTP_OK until HttpURLConnection.HTTP_MULT_CHOICE ||
+                    code == HttpURLConnection.HTTP_NOT_MODIFIED -> {
+                    ApiResponse.Ok(code, text, connection.getHeaderField("ETag"))
+                }
+
+                code == HttpURLConnection.HTTP_FORBIDDEN &&
+                    connection.getHeaderField("X-RateLimit-Remaining") == "0" -> {
+                    ApiResponse.Retryable(
+                        "rate limited",
+                        connection.getHeaderField("X-RateLimit-Reset")?.toLongOrNull()?.let {
+                            (it - System.currentTimeMillis() / MILLIS).coerceAtLeast(0)
+                        },
+                    )
                 }
 
                 code == HTTP_TIMEOUT || code == HTTP_TOO_MANY || code >= HTTP_SERVER_ERRORS -> {
@@ -145,11 +158,14 @@ object ReportClient {
 
     fun release(): ApiResponse = request("GET", "/release")
 
-    fun gitHubRelease(): ApiResponse =
+    fun gitHubRelease(etag: String?): ApiResponse =
         request(
             "GET",
             "https://api.github.com/repos/${ReportConfig.repo}/releases/latest",
-            mapOf("Accept" to "application/vnd.github+json"),
+            buildMap {
+                put("Accept", "application/vnd.github+json")
+                etag?.let { put("If-None-Match", it) }
+            },
         )
 
     fun parseStatuses(body: String): List<JSONObject> {
