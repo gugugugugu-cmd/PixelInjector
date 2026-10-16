@@ -196,6 +196,8 @@ sealed interface InstallStep {
         val actual: String?,
         val checksum: String? = null,
     ) : InstallStep {
+        val releaseKey: Boolean get() = cause == Cause.SIGNER && actual == BuildConfig.REPORT_SIGNER
+
         enum class Cause { CHECKSUM, SIGNER, PACKAGE, NO_CHECKSUM }
     }
 

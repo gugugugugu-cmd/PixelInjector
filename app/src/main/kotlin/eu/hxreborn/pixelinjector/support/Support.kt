@@ -451,14 +451,26 @@ class Support(
                         return@launch
                     }
                 val (file, hash) = downloaded
-                val rejection = verify(file, hash, asset.sha256)
+                val rejection =
+                    verify(file, hash, asset.sha256) {
+                        if (job.isActive) {
+                            _install.value =
+                                it
+                        }
+                    }
                 if (!job.isActive) return@launch
                 if (rejection != null) {
-                    file.delete()
+                    if (rejection.releaseKey) {
+                        verifiedApk = file
+                        verifiedVersion = release.versionCode
+                    } else {
+                        file.delete()
+                    }
                     _install.value = rejection
                     return@launch
                 }
                 verifiedApk = file
+                verifiedVersion = release.versionCode
                 installVerified(file)
             }
     }
@@ -467,22 +479,24 @@ class Support(
         file: File,
         hash: String,
         expected: String?,
+        onStep: (InstallStep) -> Unit,
     ): InstallStep.Rejected? {
         expected ?: return InstallStep.Rejected(InstallStep.Rejected.Cause.NO_CHECKSUM, null, hash)
         val installed = updater.installedSigners()
-        _install.value = InstallStep.Verifying(expected, hash, installed.firstOrNull(), null)
+        onStep(InstallStep.Verifying(expected, hash, installed.firstOrNull(), null))
         if (!expected.equals(hash, ignoreCase = true)) {
             return InstallStep.Rejected(InstallStep.Rejected.Cause.CHECKSUM, expected, hash)
         }
         val archive = updater.archiveInfo(file)
         val fileSigners = updater.signers(archive)
-        _install.value =
+        onStep(
             InstallStep.Verifying(
                 expected,
                 hash,
                 installed.firstOrNull(),
                 fileSigners.firstOrNull(),
-            )
+            ),
+        )
         return when {
             archive?.packageName != context.packageName -> {
                 InstallStep.Rejected(
@@ -508,6 +522,7 @@ class Support(
     }
 
     private var verifiedApk: File? = null
+    private var verifiedVersion: Int? = null
 
     private fun installVerified(file: File) {
         _install.value = InstallStep.Installing
@@ -532,6 +547,11 @@ class Support(
                 }
             }
         }
+    }
+
+    fun installAnyway(release: Release) {
+        val file = verifiedApk?.takeIf { verifiedVersion == release.versionCode } ?: return
+        scope.launch { installVerified(file) }
     }
 
     fun resumeAfterInstallPermission() {

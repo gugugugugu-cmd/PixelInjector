@@ -19,9 +19,9 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.GppBad
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -56,6 +56,7 @@ private const val HASH_TAIL = 4
 
 class UpdateActions(
     val onInstall: () -> Unit,
+    val onInstallAnyway: () -> Unit,
     val onOpenSettings: () -> Unit,
     val onGitHub: () -> Unit,
     val onCancel: () -> Unit,
@@ -108,7 +109,6 @@ fun UpdateSheet(
                         enabled =
                             release.asset != null,
                     )
-                    InstallerNote()
                     GitHubLink(actions.onGitHub)
                 }
             }
@@ -125,7 +125,6 @@ fun UpdateSheet(
                     Text("${(fraction * 100).toInt()}%", style = AppText.meta)
                 }
                 VerifyLog(release.asset?.sha256, step.partialHash, hashing = true, installed = null, file = null, signerChecking = false)
-                InstallerNote()
                 OutlinedButton(onClick = actions.onCancel, shapes = ButtonDefaults.shapes(), modifier = Modifier.align(Alignment.End)) {
                     Text(stringResource(R.string.cancel))
                 }
@@ -148,16 +147,27 @@ fun UpdateSheet(
             }
 
             is InstallStep.Rejected -> {
-                val body =
-                    when (step.cause) {
-                        InstallStep.Rejected.Cause.CHECKSUM -> R.string.update_bad_checksum
-                        InstallStep.Rejected.Cause.SIGNER -> R.string.update_bad_signer
-                        InstallStep.Rejected.Cause.PACKAGE -> R.string.update_bad_package
-                        InstallStep.Rejected.Cause.NO_CHECKSUM -> R.string.update_no_checksum
+                if (step.releaseKey) {
+                    Block(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurface, Icons.Outlined.Key) {
+                        Text(stringResource(R.string.update_release_signer), style = AppText.tileTitle)
+                        Text(
+                            stringResource(R.string.update_install_anyway_note),
+                            style = AppText.tileSupporting,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
-                Block(MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer, Icons.Outlined.GppBad) {
-                    Text(stringResource(R.string.update_not_installed), style = AppText.tileTitle)
-                    Text(stringResource(body), style = AppText.tileSupporting)
+                } else {
+                    val body =
+                        when (step.cause) {
+                            InstallStep.Rejected.Cause.CHECKSUM -> R.string.update_bad_checksum
+                            InstallStep.Rejected.Cause.SIGNER -> R.string.update_bad_signer
+                            InstallStep.Rejected.Cause.PACKAGE -> R.string.update_bad_package
+                            InstallStep.Rejected.Cause.NO_CHECKSUM -> R.string.update_no_checksum
+                        }
+                    Block(MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer, Icons.Outlined.GppBad) {
+                        Text(stringResource(R.string.update_not_installed), style = AppText.tileTitle)
+                        Text(stringResource(body), style = AppText.tileSupporting)
+                    }
                 }
                 when (step.cause) {
                     InstallStep.Rejected.Cause.CHECKSUM -> {
@@ -186,7 +196,11 @@ fun UpdateSheet(
 
                     else -> {}
                 }
-                Primary(stringResource(R.string.update_download_again), Icons.Outlined.Download, actions.onInstall)
+                if (step.releaseKey) {
+                    Primary(stringResource(R.string.update_install_anyway), Icons.Outlined.Download, actions.onInstallAnyway)
+                } else {
+                    Primary(stringResource(R.string.update_download_again), Icons.Outlined.Download, actions.onInstall)
+                }
                 GitHubLink(actions.onGitHub)
             }
 
@@ -215,18 +229,6 @@ fun UpdateSheet(
                 GitHubLink(actions.onGitHub)
             }
         }
-    }
-}
-
-@Composable
-private fun InstallerNote() {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Icon(Icons.Outlined.VerifiedUser, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(
-            stringResource(R.string.update_installer_note),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
@@ -289,7 +291,7 @@ private fun GitHubLink(onClick: () -> Unit) {
     }
 }
 
-private fun short(hash: String?): String =
+private fun shortHash(hash: String?): String =
     when {
         hash.isNullOrEmpty() -> "?"
         hash.length <= HASH_HEAD + HASH_TAIL -> hash
@@ -311,7 +313,7 @@ private fun VerifyLog(
         Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             if (expected != null || actual != null) {
                 Text(stringResource(R.string.vlog_checksum), style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
-                LogRow(stringResource(R.string.vlog_release), short(expected), null)
+                LogRow(stringResource(R.string.vlog_release), shortHash(expected), null)
                 val hashState =
                     when {
                         hashing -> LogState.Busy(stringResource(R.string.vlog_hashing))
@@ -320,7 +322,7 @@ private fun VerifyLog(
                     }
                 LogRow(
                     stringResource(R.string.vlog_file),
-                    if (hashing) actual.orEmpty().take(HASH_HEAD + 4) + "…" else short(actual),
+                    if (hashing) actual.orEmpty().take(HASH_HEAD + 4) + "…" else shortHash(actual),
                     hashState,
                 )
             }
@@ -336,14 +338,14 @@ private fun VerifyLog(
                     }
 
                     else -> {
-                        LogRow(stringResource(R.string.vlog_installed), short(installed), null)
+                        LogRow(stringResource(R.string.vlog_installed), shortHash(installed), null)
                         val signerState =
                             when {
                                 signerChecking -> LogState.Busy(stringResource(R.string.vlog_checking))
                                 installed != null && installed == file -> LogState.Match
                                 else -> LogState.Mismatch
                             }
-                        LogRow(stringResource(R.string.vlog_file), short(file), signerState)
+                        LogRow(stringResource(R.string.vlog_file), shortHash(file), signerState)
                     }
                 }
             }

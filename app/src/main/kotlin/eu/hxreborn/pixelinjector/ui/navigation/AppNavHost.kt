@@ -287,9 +287,13 @@ fun AppNavHost(
                             actions =
                                 UpdateActions(
                                     onInstall = { viewModel.support.startInstall(release) },
+                                    onInstallAnyway = { viewModel.support.installAnyway(release) },
                                     onOpenSettings = {
                                         context.startActivity(
-                                            Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, "package:${context.packageName}".toUri()),
+                                            Intent(
+                                                Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                                "package:${context.packageName}".toUri(),
+                                            ),
                                         )
                                     },
                                     onGitHub = { uriHandler.openUri(release.url) },

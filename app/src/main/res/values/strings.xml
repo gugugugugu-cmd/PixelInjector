@@ -274,13 +274,15 @@
     <string name="update_allow_body">Turn on Allow from this source and come back to install.</string>
     <string name="update_open_settings">Open settings</string>
     <string name="update_progress">%1$s of %2$s</string>
-    <string name="update_installer_note">Checksum and signing key are checked first</string>
     <string name="update_download_failed">Download stopped at %1$s</string>
     <string name="update_download_failed_body">Check the connection and try again</string>
     <string name="update_verifying">Checking the checksum and the signing key</string>
     <string name="update_not_installed">Not installed</string>
     <string name="update_bad_checksum">The file checksum doesn\'t match the release</string>
     <string name="update_bad_signer">A different key signed this file</string>
+    <string name="update_release_signer">Signed with the release key</string>
+    <string name="update_install_anyway">Install anyway</string>
+    <string name="update_install_anyway_note">Installs only with signature verification off</string>
     <string name="update_bad_package">The file isn\'t PixelInjector</string>
     <string name="update_no_checksum">The release has no checksum to compare</string>
     <string name="update_download_again">Download again</string>
