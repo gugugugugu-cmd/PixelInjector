@@ -68,6 +68,7 @@ Needs Android 14 or newer, arm64, root and an Xposed framework with libxposed AP
 - **Hide gesture pill**: makes the navigation handle transparent and keeps a chosen percent of the bottom inset under apps. A percent change restarts the launcher.
 - **Hide search bar**: hides the search bar above the hotseat and frees the row it reserves. Pixel Launcher and Launcher3.
 - **Hide app shortcuts**: a long press on an app shows only the system actions. Pixel Launcher and Launcher3.
+- **Home menu entry**: adds PixelInjector to the home screen long press menu. Pixel Launcher and Launcher3.
 
 > [!WARNING]
 > Double tap to sleep runs `su` from Pixel Launcher. With KernelSU and APatch, grant root to Pixel Launcher by hand in the manager, not only to PixelInjector. On KernelSU it shows up after you turn on Show system apps.

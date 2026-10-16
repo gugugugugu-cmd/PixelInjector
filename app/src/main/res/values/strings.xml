@@ -61,6 +61,8 @@
     <string name="tweak_hide_search_bar_desc">Hides the search bar above the hotseat and frees the row it reserves</string>
     <string name="tweak_hide_app_shortcuts">Hide app shortcuts</string>
     <string name="tweak_hide_app_shortcuts_desc">Long press on an app shows only system actions</string>
+    <string name="tweak_home_menu_entry">Home menu entry</string>
+    <string name="tweak_home_menu_entry_desc">Adds PixelInjector to the home screen long press menu</string>
     <string name="tweak_gboard_black">AMOLED black keyboard</string>
     <string name="tweak_gboard_black_desc">Makes the tinted grey keyboard surfaces pure black in dark mode</string>
     <string name="tweak_dialer_dechip">Remove feedback chip</string>
