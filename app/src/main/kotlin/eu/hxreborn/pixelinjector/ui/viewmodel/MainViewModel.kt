@@ -202,11 +202,11 @@ class MainViewModel(
         combine(
             combine(prefs, bound, everBound) { prefs, bound, everBound -> Triple(prefs, bound, everBound) },
             reloadCount,
-            errors,
+            combine(errors, errorLines) { errors, lines -> errors to lines },
             combine(homeApp, hookedPackages) { home, packages -> home to packages },
             moduleLog,
-        ) { (prefs, bound, everBound), reloadCount, errors, (homeApp, packages), log ->
-            DashboardState(prefs, bound, everBound, reloadCount, errors, homeApp, packages, log.denied)
+        ) { (prefs, bound, everBound), reloadCount, (errors, errorLines), (homeApp, packages), log ->
+            DashboardState(prefs, bound, everBound, reloadCount, errors, errorLines, homeApp, packages, log.denied)
         }.stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(PREFS_SUBSCRIPTION_TIMEOUT_MS),
@@ -216,6 +216,7 @@ class MainViewModel(
                 everBound.value,
                 reloadCount.value,
                 errors.value,
+                errorLines.value,
                 homeApp.value,
                 hookedPackages.value,
                 false,

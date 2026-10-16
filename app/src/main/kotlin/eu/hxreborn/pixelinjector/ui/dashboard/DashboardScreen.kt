@@ -258,6 +258,15 @@ fun DashboardScreen(
         ).filter { (group, _) -> group == TweakGroup.LAUNCHER || group in state.packages }
     val errorLines =
         buildMap {
+            state.errorLines.forEach { (tweak, line) ->
+                val text =
+                    if (line.startsWith("sleep") && "path=root" in line) {
+                        stringResource(R.string.sleep_root_failed, launcherTitle)
+                    } else {
+                        stringResource(R.string.tweak_failed)
+                    }
+                put(tweak, TileError(text, reportable = true))
+            }
             state.errors.forEach { (tweak, build) ->
                 put(tweak, TileError(stringResource(R.string.target_not_found, build), reportable = true))
             }
