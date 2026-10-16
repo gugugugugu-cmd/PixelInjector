@@ -60,6 +60,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 private const val SYSTEM_PROCESS = "system"
@@ -86,7 +88,9 @@ class MainViewModel(
     private val runner = HotReloadRunner(viewModelScope, application.filesDir)
     val support = app.support
     private val logArchive = LogArchive(application.filesDir)
-    private var rawLog: List<String>? = null
+    private val logLock = Mutex()
+
+    @Volatile private var rawLog: List<String>? = null
 
     val prefs: StateFlow<AppPrefs> =
         app.prefs.state.stateIn(viewModelScope, SharingStarted.WhileSubscribed(PREFS_SUBSCRIPTION_TIMEOUT_MS), app.prefs.snapshot())
@@ -345,7 +349,7 @@ class MainViewModel(
         _reportPreview.value = null
         reportJob =
             viewModelScope.launch(Dispatchers.IO) {
-                if (rawLog == null || _moduleLog.value.denied) loadModuleLog()
+                logLock.withLock { if (rawLog == null || _moduleLog.value.denied) loadModuleLog() }
                 _reportPreview.value = ReportBuilder.preview(reportFacts())
             }
     }
@@ -429,7 +433,7 @@ class MainViewModel(
     }
 
     fun refreshModuleLog() {
-        viewModelScope.launch(Dispatchers.IO) { loadModuleLog() }
+        viewModelScope.launch(Dispatchers.IO) { logLock.withLock { loadModuleLog() } }
     }
 
     private fun loadModuleLog() {
