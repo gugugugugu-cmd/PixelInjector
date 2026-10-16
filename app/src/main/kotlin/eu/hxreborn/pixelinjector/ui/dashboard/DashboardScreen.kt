@@ -267,7 +267,7 @@ fun DashboardScreen(
         buildMap {
             state.errorLines.forEach { (tweak, line) ->
                 val text =
-                    if (line.startsWith("sleep") && "path=root" in line) {
+                    if ("path=root" in line && ("Cannot run program \"su\"" in line || "denied" in line.lowercase())) {
                         stringResource(R.string.sleep_root_failed, launcherTitle)
                     } else {
                         stringResource(R.string.tweak_failed)
