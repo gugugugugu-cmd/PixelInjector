@@ -127,7 +127,7 @@ fun SettingsScreen(
                         shape,
                         Icons.Outlined.Autorenew,
                         stringResource(R.string.auto_check_updates),
-                        stringResource(R.string.auto_check_updates_summary),
+                        null,
                         state.autoCheckUpdates,
                         actions.onAutoCheckUpdates,
                     )
@@ -151,7 +151,7 @@ fun SettingsScreen(
                     else -> {
                         Tile(shape = shape, onClick = actions.onModuleLog) {
                             TileLeading(Icons.AutoMirrored.Outlined.Notes)
-                            TileText(stringResource(R.string.module_log), stringResource(R.string.module_log_summary))
+                            TileText(stringResource(R.string.module_log))
                             Chevron()
                         }
                     }
@@ -233,7 +233,7 @@ private fun SwitchTile(
     shape: RoundedCornerShape,
     icon: ImageVector,
     title: String,
-    summary: String,
+    summary: String?,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
