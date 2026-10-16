@@ -34,6 +34,7 @@ import eu.hxreborn.pixelinjector.ui.dashboard.TweakGroup
 import eu.hxreborn.pixelinjector.ui.dashboard.restartOnChange
 import eu.hxreborn.pixelinjector.ui.dashboard.tweakUis
 import eu.hxreborn.pixelinjector.ui.log.ModuleLogState
+import eu.hxreborn.pixelinjector.ui.log.deriveErrorLines
 import eu.hxreborn.pixelinjector.ui.log.deriveErrors
 import eu.hxreborn.pixelinjector.ui.log.parseModuleLog
 import eu.hxreborn.pixelinjector.ui.reload.HotReloadRunner
@@ -195,6 +196,7 @@ class MainViewModel(
 
     private val _errors = MutableStateFlow<Map<String, String>>(emptyMap())
     val errors: StateFlow<Map<String, String>> = _errors.asStateFlow()
+    private val errorLines = MutableStateFlow<Map<String, String>>(emptyMap())
 
     val dashboard: StateFlow<DashboardState> =
         combine(
@@ -293,6 +295,7 @@ class MainViewModel(
                         when {
                             !prefsNow[it.pref] -> "off"
                             it.key in errors -> "miss"
+                            it.key in errorLines.value -> "error"
                             else -> "ok"
                         }
                 },
@@ -435,13 +438,16 @@ class MainViewModel(
                 rawLog = null
                 _moduleLog.value = ModuleLogState(loading = false, denied = true)
                 _errors.value = deriveErrors(emptyList())
+                errorLines.value = emptyMap()
             }
 
             is Root.LogRead.Lines -> {
                 val lines = logArchive.merge(read.lines)
                 rawLog = lines
                 _moduleLog.value = ModuleLogState(loading = false, entries = parseModuleLog(lines, read.processes))
-                _errors.value = deriveErrors(parseModuleLog(read.lines, read.processes))
+                val current = parseModuleLog(read.lines, read.processes)
+                _errors.value = deriveErrors(current)
+                errorLines.value = deriveErrorLines(current)
             }
         }
         postHookStatus()

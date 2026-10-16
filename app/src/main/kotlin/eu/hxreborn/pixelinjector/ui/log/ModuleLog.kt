@@ -85,3 +85,31 @@ fun deriveErrors(entries: List<LogEntry>): Map<String, String> {
     }
     return buildMap { errorsByProc.values.forEach { putAll(it) } }
 }
+
+fun deriveErrorLines(entries: List<LogEntry>): Map<String, String> {
+    val currentVersionPids = mutableSetOf<Int>()
+    val errorLinesByPid = mutableMapOf<Int, MutableMap<String, String>>()
+    for ((_, pid, level, tweak, _, body) in entries) {
+        when {
+            body.startsWith("install proc=") -> {
+                errorLinesByPid.remove(pid)
+                if (field(body, "version") == BuildConfig.VERSION_CODE.toString()) {
+                    currentVersionPids += pid
+                } else {
+                    currentVersionPids -= pid
+                }
+            }
+
+            tweak == null || pid !in currentVersionPids -> {}
+
+            level == 'E' -> {
+                errorLinesByPid.getOrPut(pid) { mutableMapOf() }[tweak] = body
+            }
+
+            else -> {
+                errorLinesByPid[pid]?.remove(tweak)
+            }
+        }
+    }
+    return buildMap { errorLinesByPid.values.forEach { putAll(it) } }
+}
