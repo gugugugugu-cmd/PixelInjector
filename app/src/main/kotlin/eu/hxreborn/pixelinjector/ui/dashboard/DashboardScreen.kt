@@ -266,13 +266,13 @@ fun DashboardScreen(
     val errorLines =
         buildMap {
             state.errorLines.forEach { (tweak, line) ->
-                val text =
+                val error =
                     if ("path=root" in line && ("Cannot run program \"su\"" in line || "denied" in line.lowercase())) {
-                        stringResource(R.string.sleep_root_failed, launcherTitle)
+                        TileError(stringResource(R.string.sleep_root_failed, launcherTitle), reportable = false)
                     } else {
-                        stringResource(R.string.tweak_failed)
+                        TileError(stringResource(R.string.tweak_failed), reportable = true)
                     }
-                put(tweak, TileError(text, reportable = true))
+                put(tweak, error)
             }
             state.errors.forEach { (tweak, build) ->
                 put(tweak, TileError(stringResource(R.string.target_not_found, build), reportable = true))
