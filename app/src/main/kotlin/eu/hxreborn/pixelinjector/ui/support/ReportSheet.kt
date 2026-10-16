@@ -140,13 +140,9 @@ fun ReportSheet(
     var expanded by rememberSaveable { mutableStateOf(false) }
     var exact by rememberSaveable { mutableStateOf(false) }
 
-    when (phase) {
-        is ReportPhase.Sent -> {
-            SentContent(onViewReports, onClose)
-            return
-        }
-
-        else -> {}
+    if (phase is ReportPhase.Sent) {
+        SentContent(onViewReports, onClose)
+        return
     }
     val footerScrolls = compactHeight()
     val footer: @Composable () -> Unit = {
@@ -292,9 +288,7 @@ private fun TweakField(
                             }
                         },
                         leadingIcon =
-                            if (item.key in
-                                failed
-                            ) {
+                            if (item.key in failed) {
                                 ({ Icon(Icons.Outlined.ErrorOutline, null, tint = MaterialTheme.colorScheme.error) })
                             } else {
                                 null
@@ -371,9 +365,7 @@ private fun Disclosure(
                             stringResource(R.string.report_private_group),
                             listOf(
                                 stringResource(R.string.report_field_log) to
-                                    if (noLog ||
-                                        preview == null
-                                    ) {
+                                    if (noLog || preview == null) {
                                         stringResource(R.string.report_none)
                                     } else {
                                         pluralStringResource(R.plurals.report_lines, preview.logLineCount, preview.logLineCount)
@@ -396,13 +388,7 @@ private fun Disclosure(
                                     "${Build.VERSION.RELEASE} patch ${Build.VERSION.SECURITY_PATCH}",
                                 stringResource(R.string.report_field_root) to
                                     stringResource(
-                                        if (facts?.rootDenied ==
-                                            true
-                                        ) {
-                                            R.string.report_root_denied
-                                        } else {
-                                            R.string.report_root_granted
-                                        },
+                                        if (facts?.rootDenied == true) R.string.report_root_denied else R.string.report_root_granted,
                                     ),
                                 stringResource(R.string.report_field_tweaks) to stringResource(R.string.report_tweaks_value),
                                 stringResource(R.string.report_field_framework) to

@@ -53,9 +53,7 @@ object Root {
         val quoted = "'" + apk.path.replace("'", "'\\''") + "'"
         val result = Shell.cmd("cat $quoted | pm install -r -S ${apk.length()}").exec()
         val output = (result.out + result.err).joinToString(" ").trim()
-        return if (result.isSuccess &&
-            output.contains("Success")
-        ) {
+        return if (result.isSuccess && output.contains("Success")) {
             Install.Done
         } else {
             Install.Failed(output.ifEmpty { "exit ${result.code}" })

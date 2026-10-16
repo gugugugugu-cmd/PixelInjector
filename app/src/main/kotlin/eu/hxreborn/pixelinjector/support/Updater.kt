@@ -95,13 +95,9 @@ data class Release(
                     return@forEach
                 }
                 if (Regex("""^#{1,2}\s""").containsMatchIn(line)) bucket = null
-                val bullet = Regex("""^\s*[*-]\s+(.+)$""").find(line)
-                bucket?.let { key ->
-                    bullet?.let {
-                        groups.getValue(key) +=
-                            cleanBullet(it.groupValues[1])
-                    }
-                }
+                val key = bucket ?: return@forEach
+                val bullet = Regex("""^\s*[*-]\s+(.+)$""").find(line) ?: return@forEach
+                groups.getValue(key) += cleanBullet(bullet.groupValues[1])
             }
             return JSONObject().apply {
                 groups.forEach { (key, lines) ->
@@ -356,9 +352,7 @@ class Updater(
                                 intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
                                     ?: "status $status"
                             onResult(
-                                if (status ==
-                                    PackageInstaller.STATUS_FAILURE_ABORTED
-                                ) {
+                                if (status == PackageInstaller.STATUS_FAILURE_ABORTED) {
                                     InstallStep.Idle
                                 } else {
                                     InstallStep.InstallFailed(message)

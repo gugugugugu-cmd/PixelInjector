@@ -34,10 +34,7 @@ object ReportClient {
     private const val MILLIS = 1000
 
     private fun url(path: String) =
-        if (path.startsWith(
-                "https://",
-            )
-        ) {
+        if (path.startsWith("https://")) {
             URL(path)
         } else {
             URL("${ReportConfig.baseUrl}/v1/${ReportConfig.app}$path")
@@ -64,18 +61,13 @@ object ReportClient {
                 connection.outputStream.use { it.write(body) }
             }
             val code = connection.responseCode
-            val text =
-                (
-                    if (code <
-                        HttpURLConnection.HTTP_BAD_REQUEST
-                    ) {
-                        connection.inputStream
-                    } else {
-                        connection.errorStream
-                    }
-                )?.use { stream ->
-                    stream.bufferedReader().readText()
-                }.orEmpty()
+            val stream =
+                if (code < HttpURLConnection.HTTP_BAD_REQUEST) {
+                    connection.inputStream
+                } else {
+                    connection.errorStream
+                }
+            val text = stream?.use { it.bufferedReader().readText() }.orEmpty()
             when {
                 code in HttpURLConnection.HTTP_OK until HttpURLConnection.HTTP_MULT_CHOICE ||
                     code == HttpURLConnection.HTTP_NOT_MODIFIED -> {

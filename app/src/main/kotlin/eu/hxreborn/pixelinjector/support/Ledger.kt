@@ -165,13 +165,7 @@ data class SentReport(
 fun JSONObject.optIntOrNull(key: String): Int? = if (has(key) && !isNull(key)) optInt(key) else null
 
 fun JSONObject.optStringOrNull(key: String): String? =
-    if (isNull(key)) {
-        null
-    } else {
-        optString(key).ifEmpty {
-            null
-        }
-    }
+    if (isNull(key)) null else optString(key).ifEmpty { null }
 
 class Ledger(
     root: File,

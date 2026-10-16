@@ -117,15 +117,7 @@ class Support(
 
     private fun replace(report: SentReport) =
         mutate { list ->
-            list.map {
-                if (it.id ==
-                    report.id
-                ) {
-                    report
-                } else {
-                    it
-                }
-            }
+            list.map { if (it.id == report.id) report else it }
         }
 
     fun setAutoCheckUpdates(enabled: Boolean) {
@@ -182,9 +174,7 @@ class Support(
                 _reports.value.firstOrNull { it.id == report.id }
                     ?: return@withLock SendResult.Rejected("report deleted")
             if (current.status != ReportStatus.WAITING) {
-                return@withLock if (current.status ==
-                    ReportStatus.REJECTED
-                ) {
+                return@withLock if (current.status == ReportStatus.REJECTED) {
                     SendResult.Rejected(current.error ?: "rejected")
                 } else {
                     SendResult.Sent(current)
@@ -534,9 +524,7 @@ class Support(
 
     fun resumeAfterInstallPermission() {
         val file = verifiedApk ?: return
-        if (_install.value is InstallStep.NeedsPermission &&
-            updater.canRequestInstalls()
-        ) {
+        if (_install.value is InstallStep.NeedsPermission && updater.canRequestInstalls()) {
             scope.launch { installVerified(file) }
         }
     }

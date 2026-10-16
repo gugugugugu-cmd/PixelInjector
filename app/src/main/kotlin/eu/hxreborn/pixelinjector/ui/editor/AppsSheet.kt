@@ -118,9 +118,10 @@ fun AppsSheet(
             ) {
                 selectionModes.forEachIndexed { index, (value, label) ->
                     val shapes =
-                        when (index) {
-                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            else -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        if (index == 0) {
+                            ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        } else {
+                            ButtonGroupDefaults.connectedTrailingButtonShapes()
                         }
                     ToggleButton(
                         checked = onlySelected == value,
