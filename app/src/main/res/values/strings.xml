@@ -150,11 +150,9 @@
     </plurals>
     <string name="reports_none">No reports</string>
     <string name="auto_check_updates">Check for updates automatically</string>
-    <string name="auto_check_updates_summary">Asks the release site every 6 hours. Sends no device data</string>
     <string name="share_hook_status">Share hook status</string>
     <string name="share_hook_status_summary">Sends which tweaks load per Android build</string>
     <string name="source_on_github">Source on GitHub</string>
-    <string name="module_log_summary">Shows what each tweak logged since boot</string>
 
     <string name="update_card_title">Version %1$s is available</string>
     <string name="notes_new">New</string>
