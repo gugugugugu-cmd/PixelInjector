@@ -4,6 +4,7 @@ import android.os.Build
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.findFieldUpward
 import eu.hxreborn.pixelinjector.util.member
+import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
@@ -36,7 +37,7 @@ internal val expandNotifications =
 private class RowBindings(
     val isExpanded: Method,
     val shouldShowPublic: Method,
-    val isPromotedOngoing: Method,
+    val isPromotedOngoing: Method?,
     val onKeyguard: Field,
     val hasUserChangedExpansion: Field,
 ) {
@@ -48,7 +49,8 @@ private class RowBindings(
             return RowBindings(
                 isExpanded = row.requiredMethod("isExpanded", Boolean::class.javaPrimitiveType),
                 shouldShowPublic = row.requiredMethod("shouldShowPublic"),
-                isPromotedOngoing = row.requiredMethod("isPromotedOngoing"),
+                // Motorola SystemUI 16 W1UOS36H.35-39-8
+                isPromotedOngoing = row.optionalMethod("isPromotedOngoing", 0),
                 onKeyguard =
                     row.findFieldUpward("mOnKeyguard")
                         ?: throw NoSuchFieldException("ExpandableNotificationRow.mOnKeyguard"),
@@ -76,7 +78,7 @@ private class RowBindings(
     ): Boolean {
         if (hasUserChangedExpansion.getBoolean(row)) return false
         if (onKeyguard.getBoolean(row) && !allowOnKeyguard) return false
-        if (isPromotedOngoing.invoke(row) == true) return false
+        if (isPromotedOngoing?.invoke(row) == true) return false
         return shouldShowPublic.invoke(row) != true
     }
 }
