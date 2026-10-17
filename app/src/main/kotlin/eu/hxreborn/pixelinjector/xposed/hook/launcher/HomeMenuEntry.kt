@@ -45,6 +45,7 @@ private const val SETTINGS_LABEL = "settings_button_text"
 private const val ENTRY_ID = 0x7e504901
 private const val ENTRY_LABEL = "PixelInjector"
 private const val ICON_ID = 0x7e504902
+private const val LABEL_ID = 0x7e504903
 private const val ICON_DP = 24
 private const val GLYPH_SCALE = 0.5336f
 private const val GLYPH_FILL = 0.92f
@@ -86,6 +87,18 @@ private fun ignoreEvent(cl: ClassLoader): Any =
             "IGNORE"
     }
 
+private fun Constructor<*>.listWithEntry(
+    options: List<*>,
+    settings: Int,
+    entry: Any?,
+): List<*> {
+    @Suppress("UNCHECKED_CAST")
+    val list = newInstance(options.size + 1) as MutableList<Any?>
+    list.addAll(options)
+    list.add(if (settings >= 0) settings + 1 else list.size, entry)
+    return list
+}
+
 private class ComposeMenu(
     override val member: Method,
     val listConstructor: Constructor<*>,
@@ -120,11 +133,7 @@ private class ComposeMenu(
                 action,
             )
 
-        @Suppress("UNCHECKED_CAST")
-        val list = listConstructor.newInstance(options.size + 1) as MutableList<Any?>
-        list.addAll(options)
-        list.add(if (settings >= 0) settings + 1 else list.size, entry)
-        return list
+        return listConstructor.listWithEntry(options, settings, entry)
     }
 
     private fun labelRes(item: Any): Int? {
@@ -154,6 +163,70 @@ private class ComposeMenu(
                 category = popupDataClass.requiredField("category"),
                 resourceId = cl.loadClass(RESOURCE_STRING).requiredField("resId"),
                 fixedString = cl.loadClass(FIXED_STRING).getDeclaredConstructor(String::class.java),
+                ignoreEvent = ignoreEvent(cl),
+                action =
+                    Proxy.newProxyInstance(
+                        actionType.classLoader,
+                        arrayOf(actionType),
+                        ::onAction,
+                    ),
+            )
+        }
+    }
+}
+
+private class LabelResMenu(
+    override val member: Method,
+    val listConstructor: Constructor<*>,
+    val popupData: Constructor<*>,
+    val labelResId: Field,
+    val category: Field,
+    val ignoreEvent: Any,
+    val action: Any,
+) : MenuBindings {
+    override fun withEntry(
+        context: Context,
+        options: List<*>,
+    ): List<*> {
+        if (!EntryIcon.servedAsResource(context)) return options
+        val settingsLabel = settingsIds(context).label
+        val settings = options.indexOfFirst { it != null && labelResId.getInt(it) == settingsLabel }
+        val anchor = options.getOrNull(settings) ?: options.lastOrNull() ?: return options
+        val entry =
+            popupData.newInstance(
+                ICON_ID,
+                LABEL_ID,
+                category.get(anchor),
+                ignoreEvent,
+                action,
+            )
+
+        return listConstructor.listWithEntry(options, settings, entry)
+    }
+
+    companion object {
+        fun resolve(cl: ClassLoader): LabelResMenu {
+            val getAll = cl.loadClass(OPTIONS).requiredMethod("getAll", Context::class.java)
+            val popupDataClass = cl.loadClass(POPUP_DATA)
+            val constructor =
+                popupDataClass.declaredConstructors.firstOrNull {
+                    it.parameterCount == 5 &&
+                        it.parameterTypes[0] == Int::class.javaPrimitiveType &&
+                        it.parameterTypes[1] == Int::class.javaPrimitiveType
+                }
+                    ?: throw NoSuchMethodException(
+                        "PopupData.<init>(int,int,PopupCategory,EventEnum,Function3)",
+                    )
+            val actionType = constructor.parameterTypes[4]
+            return LabelResMenu(
+                member = getAll,
+                listConstructor =
+                    getAll.returnType.getDeclaredConstructor(
+                        Int::class.javaPrimitiveType,
+                    ),
+                popupData = constructor.apply { isAccessible = true },
+                labelResId = popupDataClass.requiredField("labelResId"),
+                category = popupDataClass.requiredField("category"),
                 ignoreEvent = ignoreEvent(cl),
                 action =
                     Proxy.newProxyInstance(
@@ -318,7 +391,15 @@ private object EntryIcon {
                 if (chain.getArg(0) != ICON_ID || icon == null) return@intercept chain.proceed()
                 BitmapDrawable(chain.thisObject as Resources, icon)
             }
-        Logger.info("hooked tweak=$TWEAK members=Resources#getValue,Resources#getDrawable")
+        module
+            .hook(resources.requiredMethod("getText", Int::class.javaPrimitiveType))
+            .intercept { chain ->
+                if (chain.getArg(0) != LABEL_ID) return@intercept chain.proceed()
+                ENTRY_LABEL
+            }
+        Logger.info(
+            "hooked tweak=$TWEAK members=Resources#getValue,Resources#getDrawable,Resources#getText",
+        )
     }
 }
 
@@ -362,6 +443,8 @@ private fun openCompanion(context: Context?): Any? {
 private fun XposedModule.installHomeMenuEntry(cl: ClassLoader): Boolean {
     val bindings =
         runCatching<MenuBindings> { ComposeMenu.resolve(cl) }
+            // Pixel Launcher 17 CP2A.260605.012
+            .recoverCatching { LabelResMenu.resolve(cl) }
             .recoverCatching { ViewMenu.resolve(cl) }
             .getOrElse {
                 Logger.error(
