@@ -1,3 +1,17 @@
+## [1.11.0](https://github.com/hxreborn/PixelInjector/compare/v1.10.0...v1.11.0) (2026-10-17)
+
+### Features
+
+* **log:** replace the tweak chip row with a tweak filter menu ([7693643](https://github.com/hxreborn/PixelInjector/commit/76936432bb5c22f82ba1f8725a46e0c6db70ba26))
+* **update:** collapse the release notes on the update card ([089ef66](https://github.com/hxreborn/PixelInjector/commit/089ef66e35db29596d24207fe0426301206f7b10))
+
+### Bug Fixes
+
+* **hook:** log the class name as member on a missing class ([52be9e6](https://github.com/hxreborn/PixelInjector/commit/52be9e6df6f624fbda90d616db3e26720fb00396))
+* **reload:** fade the hot reload list under the action buttons ([4cbb4da](https://github.com/hxreborn/PixelInjector/commit/4cbb4da8b0215c194bb3b492881d4f0bb175b61d))
+* **tweak:** add HideAppShortcuts support for Pixel Launcher CP2A ([5c1ddc8](https://github.com/hxreborn/PixelInjector/commit/5c1ddc894b446b3c343359767ce6378e93dc1868)), closes [#25](https://github.com/hxreborn/PixelInjector/issues/25)
+* **tweak:** add HomeMenuEntry support for Pixel Launcher CP2A ([7888087](https://github.com/hxreborn/PixelInjector/commit/7888087f1d84fa23f34ed14c6c45d6e356467064)), closes [#26](https://github.com/hxreborn/PixelInjector/issues/26)
+
 ## [1.10.0](https://github.com/hxreborn/PixelInjector/compare/v1.9.1...v1.10.0) (2026-10-17)
 
 ### Features
