@@ -1,3 +1,37 @@
+## [1.10.0](https://github.com/hxreborn/PixelInjector/compare/v1.9.1...v1.10.0) (2026-10-17)
+
+### Features
+
+* **app:** add a date format setting ([120574f](https://github.com/hxreborn/PixelInjector/commit/120574f35eefa67b6a41eaeed8364c8eb2320ab8))
+* **app:** add an about screen with changelog and licenses ([7cd2c02](https://github.com/hxreborn/PixelInjector/commit/7cd2c02519e3009d16f017f1aab2373c40120c41))
+* **app:** add button icons and a scrollable log to hot reload ([2c161b3](https://github.com/hxreborn/PixelInjector/commit/2c161b334e7def1328912826ff14d2e367c4fb64))
+* **app:** expand every release note from the update card ([bacc86a](https://github.com/hxreborn/PixelInjector/commit/bacc86afcfef472382fbccc56474ab989dcb2668))
+* **app:** offer install anyway for a release-signed update ([c53dd43](https://github.com/hxreborn/PixelInjector/commit/c53dd4381ad3f6eb811c6a5d57ae6d129c84f72f))
+* **app:** remove hook status sharing ([5364cf3](https://github.com/hxreborn/PixelInjector/commit/5364cf3ac6b37353d851aa3279461b3c6597e57f))
+* **app:** show tweak options as compact rows under a divider ([1f682f6](https://github.com/hxreborn/PixelInjector/commit/1f682f6661cfd9a9b18868e19066ddacea5b6b43))
+* **hook:** add a PixelInjector row to the home long press menu ([d2a54d6](https://github.com/hxreborn/PixelInjector/commit/d2a54d6592df364d445babcaf3134a4bf91de445))
+* **hook:** block swipe dismissal of ongoing notifications ([8a73608](https://github.com/hxreborn/PixelInjector/commit/8a736088e18136d446952b62e7460e2548dbe9c3))
+* **hook:** hide app shortcuts in the launcher long press popup ([f42c915](https://github.com/hxreborn/PixelInjector/commit/f42c91576429a42557552940ae8a7c331d917a29))
+* **hook:** replace the lock screen fingerprint icon and circle ([6764f5e](https://github.com/hxreborn/PixelInjector/commit/6764f5ec686122062a1a7fef5345263bee758329))
+* **hook:** set the heads-up notification display time ([7137782](https://github.com/hxreborn/PixelInjector/commit/713778269fc7783124e712f7b667b2d8def79eb2))
+* **hook:** show watts volts amps and temperature while charging ([ccce19c](https://github.com/hxreborn/PixelInjector/commit/ccce19c487b011bc1e814b606927a06473353611))
+
+### Bug Fixes
+
+* **app:** cut a pasted report message at the limit ([0c2c7d7](https://github.com/hxreborn/PixelInjector/commit/0c2c7d79e4363fa27a3127776fc33b382eea567d))
+* **app:** hide the report button on the root sleep error ([3fdba93](https://github.com/hxreborn/PixelInjector/commit/3fdba932baa2f3fea7d70e2e56a474531b1fdb48))
+* **app:** ignore a failed log archive write ([37cbd4b](https://github.com/hxreborn/PixelInjector/commit/37cbd4b824bbb8d2852bf43c4f97d882d86deccf))
+* **app:** read the module log under one lock ([505807a](https://github.com/hxreborn/PixelInjector/commit/505807a8b37cc88209069b4835c25e71c51390ad))
+* **app:** redact quoted SSIDs and SD card paths ([4b0a850](https://github.com/hxreborn/PixelInjector/commit/4b0a850e970a3cb0c2daffadb302824533af83c6))
+* **app:** reuse the cached GitHub release and back off on rate limits ([c2c973e](https://github.com/hxreborn/PixelInjector/commit/c2c973ecf0ac9e14cb33ed604f762f5d9621e3d6))
+* **app:** show the group symbol for a section without a package ([54ace2d](https://github.com/hxreborn/PixelInjector/commit/54ace2daa29d5315ddb84740b598ad160157edb7))
+* **app:** write the hot reload log off the main thread ([0a233e3](https://github.com/hxreborn/PixelInjector/commit/0a233e3aa581108cde6f5e86674c75e220ff87db))
+* **app:** write the newest report list to the ledger ([cc78a68](https://github.com/hxreborn/PixelInjector/commit/cc78a689ce97edda90c99976cc61eb8ffe671cbe))
+
+### Refactor
+
+* **app:** flatten wrapped conditions and single-branch whens ([5d9fbfd](https://github.com/hxreborn/PixelInjector/commit/5d9fbfd58bfd5173a69f58be13ef119280b8d586))
+
 ## [1.9.1](https://github.com/hxreborn/PixelInjector/compare/v1.9.0...v1.9.1) (2026-10-16)
 
 ### Bug Fixes
