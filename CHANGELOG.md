@@ -1,3 +1,11 @@
+## [1.11.1](https://github.com/hxreborn/PixelInjector/compare/v1.11.0...v1.11.1) (2026-10-17)
+
+### Bug Fixes
+
+* **hook:** carry DexKit results across hot reload ([efc6f26](https://github.com/hxreborn/PixelInjector/commit/efc6f2651c2b094c7a2eb9f49e099b60047c3ae4)), closes [#28](https://github.com/hxreborn/PixelInjector/issues/28)
+* **tweak:** add ExpandNotifications support for Motorola Android 16 ([26f07e4](https://github.com/hxreborn/PixelInjector/commit/26f07e45fd001fbf25cb58fe4c4f18f4babcc936)), closes [#29](https://github.com/hxreborn/PixelInjector/issues/29)
+* **tweak:** add HomeMenuEntry support for Pixel Launcher CP3A ([2241eb2](https://github.com/hxreborn/PixelInjector/commit/2241eb2010958e1376d22fdd0ca34029d7161748)), closes [#27](https://github.com/hxreborn/PixelInjector/issues/27)
+
 ## [1.11.0](https://github.com/hxreborn/PixelInjector/compare/v1.10.0...v1.11.0) (2026-10-17)
 
 ### Features
