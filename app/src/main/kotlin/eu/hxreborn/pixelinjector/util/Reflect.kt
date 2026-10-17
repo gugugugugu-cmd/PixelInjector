@@ -50,6 +50,15 @@ fun Method.signature(): String =
 
 fun Field.signature(): String = "${declaringClass.simpleName}#$name"
 
+fun Throwable.member(): String? =
+    (this as? ClassNotFoundException)
+        ?.message
+        ?.substringAfter("find class \"", "")
+        ?.substringBefore('"')
+        ?.substringAfterLast('.')
+        ?.ifEmpty { null }
+        ?: message
+
 fun Throwable.reason(): String =
     when (this) {
         is ClassNotFoundException -> "no-class"

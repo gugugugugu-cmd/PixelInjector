@@ -10,6 +10,7 @@ import android.graphics.Rect
 import android.graphics.Typeface
 import android.os.Build
 import eu.hxreborn.pixelinjector.prefs.Prefs
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
@@ -116,7 +117,7 @@ private fun XposedModule.installPillShot(cl: ClassLoader): Boolean {
                 Logger.debug { "skipped tweak=$TWEAK reason=no-class" }
             } else {
                 Logger.error(
-                    "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                    "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
                 )
             }
             return false

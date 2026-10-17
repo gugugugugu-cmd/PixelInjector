@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.SparseIntArray
 import android.view.View
 import eu.hxreborn.pixelinjector.prefs.Prefs
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
@@ -129,7 +130,7 @@ private fun XposedModule.installHideSearchBar(cl: ClassLoader): Boolean {
     val bindings =
         runCatching { HotseatBindings.resolve(cl) }.getOrElse {
             Logger.error(
-                "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )
             return false
         }

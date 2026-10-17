@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.xposed.hook.systemui
 import android.os.Build
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.findFieldUpward
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
@@ -84,7 +85,7 @@ private fun XposedModule.installExpandNotifications(cl: ClassLoader): Boolean {
     val bindings =
         runCatching { RowBindings.resolve(cl) }.getOrElse {
             Logger.error(
-                "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )
             return false
         }

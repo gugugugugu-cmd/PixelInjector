@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.IBinder
 import eu.hxreborn.pixelinjector.prefs.Prefs
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.optionalField
 import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
@@ -111,7 +112,7 @@ private fun XposedModule.installForceNewTask(cl: ClassLoader): Boolean {
     val bindings =
         runCatching { StarterBindings.resolve(cl) }.getOrElse {
             Logger.error(
-                "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )
             return false
         }

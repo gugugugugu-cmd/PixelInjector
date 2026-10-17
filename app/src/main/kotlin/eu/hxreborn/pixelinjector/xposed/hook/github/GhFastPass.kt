@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import eu.hxreborn.pixelinjector.prefs.Prefs
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredMethod
 import eu.hxreborn.pixelinjector.util.signature
@@ -64,7 +65,7 @@ private fun XposedModule.installGhFastPass(cl: ClassLoader): Boolean {
     val bindings =
         runCatching { TwoFactorBindings.resolve(cl) }.getOrElse {
             Logger.error(
-                "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )
             return false
         }

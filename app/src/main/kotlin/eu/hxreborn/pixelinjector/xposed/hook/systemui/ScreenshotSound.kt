@@ -2,6 +2,7 @@ package eu.hxreborn.pixelinjector.xposed.hook.systemui
 
 import android.os.Build
 import eu.hxreborn.pixelinjector.prefs.Prefs
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredMethod
 import eu.hxreborn.pixelinjector.xposed.Logger
@@ -55,7 +56,7 @@ private fun XposedModule.installScreenshotSound(cl: ClassLoader): Boolean {
     val bindings =
         runCatching { SoundBindings.resolve(cl) }.getOrElse {
             Logger.error(
-                "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )
             return false
         }

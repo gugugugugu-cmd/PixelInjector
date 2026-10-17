@@ -13,6 +13,7 @@ import android.view.View
 import eu.hxreborn.pixelinjector.BuildConfig
 import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.prefs.Prefs
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
@@ -364,7 +365,7 @@ private fun XposedModule.installHomeMenuEntry(cl: ClassLoader): Boolean {
             .recoverCatching { ViewMenu.resolve(cl) }
             .getOrElse {
                 Logger.error(
-                    "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                    "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
                 )
                 return false
             }

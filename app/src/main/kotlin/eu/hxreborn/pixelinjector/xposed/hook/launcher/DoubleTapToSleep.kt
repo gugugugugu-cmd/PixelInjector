@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.xposed.hook.launcher
 import android.content.Context
 import android.os.Build
 import eu.hxreborn.pixelinjector.prefs.Prefs
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
@@ -56,7 +57,7 @@ private fun XposedModule.installDoubleTapToSleep(cl: ClassLoader): Boolean {
     val bindings =
         runCatching { LauncherBindings.resolve(cl) }.getOrElse {
             Logger.error(
-                "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )
             return false
         }

@@ -12,6 +12,7 @@ import android.widget.TextView
 import eu.hxreborn.pixelinjector.ModuleConstants.SYSTEMUI_PACKAGE
 import eu.hxreborn.pixelinjector.icons.ShadeIcons
 import eu.hxreborn.pixelinjector.prefs.Prefs
+import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethods
@@ -305,7 +306,7 @@ private fun XposedModule.installViewPath(
         runCatching { ViewBindings.resolve(cl) }.getOrElse { viewMiss ->
             listOf(composeMiss, viewMiss).forEach {
                 Logger.error(
-                    "target not found tweak=$TWEAK member=${it.message} build=${Build.ID} reason=${it.reason()}",
+                    "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
                 )
             }
             return false
