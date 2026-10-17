@@ -1,6 +1,7 @@
 package eu.hxreborn.pixelinjector.ui.reload
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,6 +36,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -66,6 +69,7 @@ import kotlinx.coroutines.withContext
 private val TargetRowPadding = 12.dp
 private val CheckboxSlot = 40.dp
 private val SheetBottomPadding = 20.dp
+private const val ACTIONS_FADE_END = 0.2f
 private const val FILTER_FROM = 8
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,10 +149,12 @@ fun TargetsSheet(
                 }
             }
             val reload = targets.filter { it.pid in reloadPids }
+            val sheetColor = MaterialTheme.colorScheme.surfaceContainerLow
             Box(
                 Modifier
                     .align(Alignment.BottomCenter)
                     .onSizeChanged { actionsHeight = it.height }
+                    .background(Brush.verticalGradient(0f to Color.Transparent, ACTIONS_FADE_END to sheetColor))
                     .padding(bottom = SheetBottomPadding),
             ) {
                 SheetActions {
