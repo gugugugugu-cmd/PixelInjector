@@ -57,15 +57,15 @@ private class ChipBindings(
     ): List<Field> = cls.declaredFields.filter { typed(it.type) }.onEach { it.isAccessible = true }
 
     companion object {
-        fun resolve(cl: ClassLoader): ChipBindings =
-            DexKit.query(TWEAK, cl) { bridge ->
-                val adapters =
-                    bridge
-                        .findMethod { matcher { usingStrings(ANCHOR) } }
-                        .mapNotNull { runCatching { it.getMethodInstance(cl) }.getOrNull() }
-                if (adapters.isEmpty()) throw NoSuchMethodException("usingStrings($ANCHOR)")
-                ChipBindings(adapters)
-            }
+        fun resolve(cl: ClassLoader): ChipBindings {
+            val adapters =
+                DexKit.methods(
+                    TWEAK,
+                    cl,
+                ) { it.findMethod { matcher { usingStrings(ANCHOR) } } }
+            if (adapters.isEmpty()) throw NoSuchMethodException("usingStrings($ANCHOR)")
+            return ChipBindings(adapters)
+        }
     }
 }
 

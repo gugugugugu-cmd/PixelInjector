@@ -3,22 +3,46 @@ package eu.hxreborn.pixelinjector.xposed.hook
 import android.os.SystemClock
 import eu.hxreborn.pixelinjector.xposed.Logger
 import org.luckypray.dexkit.DexKitBridge
+import org.luckypray.dexkit.result.MethodDataList
+import java.lang.reflect.Method
 
 internal object DexKit {
     private val nativeLib: Result<Unit> by lazy { runCatching { System.loadLibrary("dexkit") } }
 
     @Volatile private var bridge: DexKitBridge? = null
 
-    fun <T> query(
+    private val found = HashMap<String, List<Method>>()
+
+    fun methods(
         tweak: String,
         cl: ClassLoader,
-        block: (DexKitBridge) -> T,
-    ): T {
+        query: (DexKitBridge) -> MethodDataList,
+    ): List<Method> {
+        found[tweak]?.let {
+            Logger.info("dexkit tweak=$tweak carried=true")
+            return it
+        }
         nativeLib.getOrThrow()
         val start = SystemClock.uptimeMillis()
         val live = bridge ?: DexKitBridge.create(cl, true).also { bridge = it }
-        return block(live).also {
-            Logger.info("dexkit tweak=$tweak durationMs=${SystemClock.uptimeMillis() - start}")
+        val methods =
+            query(
+                live,
+            ).mapNotNull { runCatching { it.getMethodInstance(cl) }.getOrNull() }
+        Logger.info("dexkit tweak=$tweak durationMs=${SystemClock.uptimeMillis() - start}")
+        if (methods.isNotEmpty()) found[tweak] = methods
+        return methods
+    }
+
+    fun save(): HashMap<String, List<Method>> = HashMap(found)
+
+    fun restore(saved: Any?) {
+        (saved as? Map<*, *>)?.forEach { (tweak, methods) ->
+            if (tweak is String &&
+                methods is List<*>
+            ) {
+                found[tweak] = methods.filterIsInstance<Method>()
+            }
         }
     }
 

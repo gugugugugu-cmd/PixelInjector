@@ -14,6 +14,7 @@ import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam
 import io.github.libxposed.api.XposedModuleInterface.SystemServerStartingParam
 
 private const val SAVED_CLASSLOADER = "classLoader"
+private const val SAVED_DEXKIT = "dexkit"
 
 @PublishedApi
 internal lateinit var module: PixelInjectorModule
@@ -73,6 +74,7 @@ class PixelInjectorModule : XposedModule() {
                 }
         }
         state[SAVED_CLASSLOADER] = cl
+        state[SAVED_DEXKIT] = DexKit.save()
         param.setSavedInstanceState(state)
         remotePrefs?.unregisterOnSharedPreferenceChangeListener(prefsListener)
         return true
@@ -93,6 +95,7 @@ class PixelInjectorModule : XposedModule() {
             Logger.error("hot reload aborted reason=no-classloader")
             return
         }
+        DexKit.restore(saved[SAVED_DEXKIT])
         installTweaks(param.processName, param.isSystemServer, cl, origin = "reload", saved = saved)
     }
 
