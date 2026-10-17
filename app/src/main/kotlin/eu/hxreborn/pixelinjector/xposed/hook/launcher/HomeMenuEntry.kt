@@ -38,7 +38,6 @@ private const val SETTINGS_ICON = "ic_setting"
 private const val SAMPLE_PX = 48
 private const val POPUP_DATA = "com.android.launcher3.popup.PopupData"
 private const val STRING_CONTAINER = "com.android.launcher3.popup.ui.StringContainer"
-private const val FIXED_STRING = "$STRING_CONTAINER\$FixedString"
 private const val RESOURCE_STRING = "$STRING_CONTAINER\$ResourceString"
 private const val LAUNCHER_EVENT = "com.android.launcher3.logging.StatsLogManager\$LauncherEvent"
 private const val SETTINGS_LABEL = "settings_button_text"
@@ -103,139 +102,104 @@ private class ComposeMenu(
     override val member: Method,
     val listConstructor: Constructor<*>,
     val popupData: Constructor<*>,
-    val label: Field,
+    val args: Array<Any?>,
+    val categoryIndex: Int,
+    val category: Field,
     val iconResId: Field,
-    val category: Field,
-    val resourceId: Field,
-    val fixedString: Constructor<*>,
-    val ignoreEvent: Any,
-    val action: Any,
-) : MenuBindings {
-    override fun withEntry(
-        context: Context,
-        options: List<*>,
-    ): List<*> {
-        val settingsLabel = settingsIds(context).label
-        val settings =
-            options.indexOfFirst { item ->
-                item != null &&
-                    labelRes(item) == settingsLabel
-            }
-        val anchor = options.getOrNull(settings) ?: options.lastOrNull() ?: return options
-        val entry =
-            popupData.newInstance(
-                ENTRY_ID,
-                if (EntryIcon.servedAsResource(context)) ICON_ID else iconResId.get(anchor),
-                fixedString.newInstance(ENTRY_LABEL),
-                category.get(anchor),
-                ignoreEvent,
-                "",
-                action,
-            )
-
-        return listConstructor.listWithEntry(options, settings, entry)
-    }
-
-    private fun labelRes(item: Any): Int? {
-        val text = label.get(item) ?: return null
-        return if (resourceId.declaringClass.isInstance(text)) resourceId.getInt(text) else null
-    }
-
-    companion object {
-        fun resolve(cl: ClassLoader): ComposeMenu {
-            val getAll = cl.loadClass(OPTIONS).requiredMethod("getAll", Context::class.java)
-            val popupDataClass = cl.loadClass(POPUP_DATA)
-            val stringContainer = cl.loadClass(STRING_CONTAINER)
-            val constructor =
-                popupDataClass.declaredConstructors.firstOrNull {
-                    it.parameterCount == 7 && it.parameterTypes[2] == stringContainer
-                } ?: throw NoSuchMethodException("PopupData.<init>(int,int,StringContainer,...)")
-            val actionType = constructor.parameterTypes[6]
-            return ComposeMenu(
-                member = getAll,
-                listConstructor =
-                    getAll.returnType.getDeclaredConstructor(
-                        Int::class.javaPrimitiveType,
-                    ),
-                popupData = constructor.apply { isAccessible = true },
-                label = popupDataClass.requiredField("label"),
-                iconResId = popupDataClass.requiredField("iconResId"),
-                category = popupDataClass.requiredField("category"),
-                resourceId = cl.loadClass(RESOURCE_STRING).requiredField("resId"),
-                fixedString = cl.loadClass(FIXED_STRING).getDeclaredConstructor(String::class.java),
-                ignoreEvent = ignoreEvent(cl),
-                action =
-                    Proxy.newProxyInstance(
-                        actionType.classLoader,
-                        arrayOf(actionType),
-                        ::onAction,
-                    ),
-            )
-        }
-    }
-}
-
-private class LabelResMenu(
-    override val member: Method,
-    val listConstructor: Constructor<*>,
-    val popupData: Constructor<*>,
-    val labelResId: Field,
-    val category: Field,
-    val ignoreEvent: Any,
-    val action: Any,
 ) : MenuBindings {
     override fun withEntry(
         context: Context,
         options: List<*>,
     ): List<*> {
         if (!EntryIcon.servedAsResource(context)) return options
-        val settingsLabel = settingsIds(context).label
-        val settings = options.indexOfFirst { it != null && labelResId.getInt(it) == settingsLabel }
+        val settingsIcon = settingsIds(context).icon
+        val settings = options.indexOfFirst { it != null && iconResId.getInt(it) == settingsIcon }
         val anchor = options.getOrNull(settings) ?: options.lastOrNull() ?: return options
-        val entry =
-            popupData.newInstance(
-                ICON_ID,
-                LABEL_ID,
-                category.get(anchor),
-                ignoreEvent,
-                action,
-            )
+        val entryArgs = args.copyOf().also { it[categoryIndex] = category.get(anchor) }
+        val entry = popupData.newInstance(*entryArgs)
 
         return listConstructor.listWithEntry(options, settings, entry)
     }
 
     companion object {
-        fun resolve(cl: ClassLoader): LabelResMenu {
+        fun resolve(cl: ClassLoader): ComposeMenu {
             val getAll = cl.loadClass(OPTIONS).requiredMethod("getAll", Context::class.java)
             val popupDataClass = cl.loadClass(POPUP_DATA)
+            val category = popupDataClass.requiredField("category")
+            val eventType = popupDataClass.requiredField("eventId").type
+            val actionType = popupDataClass.requiredField("popupAction").type
+            val int = Int::class.javaPrimitiveType
             val constructor =
-                popupDataClass.declaredConstructors.firstOrNull {
-                    it.parameterCount == 5 &&
-                        it.parameterTypes[0] == Int::class.javaPrimitiveType &&
-                        it.parameterTypes[1] == Int::class.javaPrimitiveType
-                }
-                    ?: throw NoSuchMethodException(
-                        "PopupData.<init>(int,int,PopupCategory,EventEnum,Function3)",
-                    )
-            val actionType = constructor.parameterTypes[4]
-            return LabelResMenu(
+                popupDataClass.declaredConstructors
+                    .filter { actionType in it.parameterTypes && it.parameterTypes.last() != int }
+                    .maxByOrNull { it.parameterCount }
+                    ?: throw NoSuchMethodException("PopupData.<init>(...,${actionType.name})")
+            val types = constructor.parameterTypes
+            val stringContainer = types.firstOrNull { it.name == STRING_CONTAINER }
+            val ids = ArrayDeque(listOf(ICON_ID, LABEL_ID))
+            if (stringContainer != null) ids.addFirst(ENTRY_ID)
+            val args =
+                types
+                    .map { type ->
+                        when (type) {
+                            int -> {
+                                ids.removeFirst()
+                            }
+
+                            stringContainer -> {
+                                resourceString(cl, LABEL_ID)
+                            }
+
+                            category.type -> {
+                                null
+                            }
+
+                            eventType -> {
+                                ignoreEvent(cl)
+                            }
+
+                            String::class.java -> {
+                                ""
+                            }
+
+                            actionType -> {
+                                Proxy.newProxyInstance(
+                                    actionType.classLoader,
+                                    arrayOf(actionType),
+                                    ::onAction,
+                                )
+                            }
+
+                            else -> {
+                                throw NoSuchMethodException(
+                                    "PopupData.<init>(...,${type.name})",
+                                )
+                            }
+                        }
+                    }.toTypedArray()
+            return ComposeMenu(
                 member = getAll,
-                listConstructor =
-                    getAll.returnType.getDeclaredConstructor(
-                        Int::class.javaPrimitiveType,
-                    ),
+                listConstructor = getAll.returnType.getDeclaredConstructor(int),
                 popupData = constructor.apply { isAccessible = true },
-                labelResId = popupDataClass.requiredField("labelResId"),
-                category = popupDataClass.requiredField("category"),
-                ignoreEvent = ignoreEvent(cl),
-                action =
-                    Proxy.newProxyInstance(
-                        actionType.classLoader,
-                        arrayOf(actionType),
-                        ::onAction,
-                    ),
+                args = args,
+                categoryIndex =
+                    types.indexOf(category.type).takeIf { it >= 0 }
+                        ?: throw NoSuchMethodException(
+                            "PopupData.<init>(...,${category.type.name})",
+                        ),
+                category = category,
+                iconResId = popupDataClass.requiredField("iconResId"),
             )
         }
+
+        private fun resourceString(
+            cl: ClassLoader,
+            id: Int,
+        ): Any =
+            cl
+                .loadClass(RESOURCE_STRING)
+                .getDeclaredConstructor(Int::class.javaPrimitiveType)
+                .newInstance(id)
     }
 }
 
@@ -443,10 +407,15 @@ private fun openCompanion(context: Context?): Any? {
 private fun XposedModule.installHomeMenuEntry(cl: ClassLoader): Boolean {
     val bindings =
         runCatching<MenuBindings> { ComposeMenu.resolve(cl) }
-            // Pixel Launcher 17 CP2A.260605.012
-            .recoverCatching { LabelResMenu.resolve(cl) }
-            .recoverCatching { ViewMenu.resolve(cl) }
-            .getOrElse {
+            .recoverCatching {
+                if (it is ClassNotFoundException) {
+                    ViewMenu.resolve(
+                        cl,
+                    )
+                } else {
+                    throw it
+                }
+            }.getOrElse {
                 Logger.error(
                     "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
                 )
