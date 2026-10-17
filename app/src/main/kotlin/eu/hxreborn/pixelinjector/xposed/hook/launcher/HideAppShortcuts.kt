@@ -54,14 +54,24 @@ private class PopupBindings(
                         Int::class.javaPrimitiveType,
                         List::class.java,
                     )
-                }.getOrElse {
+                }.recoverCatching {
                     popup.requiredMethod(
                         "populateAndShowRows",
                         itemInfo,
                         Int::class.javaPrimitiveType,
                         List::class.java,
                     )
-                }
+                }.getOrNull()
+            if (showRows == null) {
+                // Pixel Launcher 17 CP2A.260605.012
+                val countRows =
+                    popup.requiredMethod(
+                        "populateAndShowRows",
+                        Int::class.javaPrimitiveType,
+                        List::class.java,
+                    )
+                return PopupBindings(countRows, 0, null)
+            }
             return PopupBindings(
                 showRows = showRows,
                 countIndex = showRows.parameterTypes.indexOf(Int::class.javaPrimitiveType),
