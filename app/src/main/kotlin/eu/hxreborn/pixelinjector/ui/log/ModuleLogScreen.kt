@@ -31,6 +31,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.WrapText
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
@@ -124,6 +125,7 @@ fun ModuleLogScreen(
     var wrap by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(Unit) { onRefresh() }
     val tweaks = remember(state.entries) { state.tweaks }
+    val lineCounts = remember(state.entries) { state.entries.groupingBy { it.tweak }.eachCount() }
     val active = filter?.takeIf { it in tweaks }
     val visible =
         remember(state.entries, active, query, minLevel) {
@@ -221,18 +223,13 @@ fun ModuleLogScreen(
                     .padding(horizontal = 16.dp),
         ) {}
         Spacer(Modifier.height(8.dp))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            FilterChip(selected = active == null, onClick = { filter = null }, label = { Text(stringResource(R.string.filter_all)) })
-            tweaks.forEach { tweak ->
-                FilterChip(selected = active == tweak, onClick = { filter = tweak }, label = { Text(tweak, style = AppText.chip) })
-            }
-        }
+        TweakMenu(
+            tweaks = tweaks,
+            lineCounts = lineCounts,
+            active = active,
+            onSelect = { filter = it },
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
         Surface(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -323,6 +320,47 @@ fun ModuleLogScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TweakMenu(
+    tweaks: List<String>,
+    lineCounts: Map<String?, Int>,
+    active: String?,
+    onSelect: (String?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var open by remember { mutableStateOf(false) }
+    val options = listOf(null) + tweaks
+    Box(modifier) {
+        FilterChip(
+            selected = active != null,
+            onClick = { open = true },
+            label = { Text(active ?: stringResource(R.string.log_all_tweaks), style = AppText.chip) },
+            trailingIcon = { Icon(Icons.Outlined.ArrowDropDown, contentDescription = null) },
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            options.forEachIndexed { index, tweak ->
+                SelectableDropdownMenuItem(
+                    selected = tweak == active,
+                    onClick = {
+                        onSelect(tweak)
+                        open = false
+                    },
+                    text = { Text(tweak ?: stringResource(R.string.log_all_tweaks), style = AppText.chip) },
+                    shapes = MenuDefaults.itemShape(index, options.size),
+                    selectedLeadingIcon = {
+                        Icon(
+                            Icons.Outlined.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(MenuDefaults.LeadingIconSize),
+                        )
+                    },
+                    trailingContent = tweak?.let { { Text(lineCounts[it]?.toString().orEmpty(), style = AppText.meta) } },
+                )
             }
         }
     }

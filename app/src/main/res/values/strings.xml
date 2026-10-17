@@ -131,6 +131,7 @@
     <string name="log_jump_bottom">Jump to the newest line</string>
     <string name="refresh">Refresh</string>
     <string name="filter_all">All</string>
+    <string name="log_all_tweaks">All tweaks</string>
     <string name="clear_filter">Clear filter</string>
     <string name="clear_filters">Clear filters</string>
     <string name="log_filter_empty">No lines match</string>
