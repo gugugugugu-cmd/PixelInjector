@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.Button
@@ -59,7 +60,7 @@ fun UpdateCard(
     val fixedLines = release.notesFixed.filter { expanded || it in fixes }
     val otherLines = release.notesOther.filter { expanded || it in fixes }
     val total = release.notesNew.size + release.notesFixed.size + release.notesOther.size
-    val more = total - newLines.size - fixedLines.size - otherLines.size
+    val hiddenWhenCollapsed = total - (release.notesNew + release.notesFixed + release.notesOther).count { it in fixes }
     Surface(
         shape = MaterialTheme.shapes.largeIncreased,
         color = scheme.primaryContainer,
@@ -77,14 +78,27 @@ fun UpdateCard(
                     NoteGroup(stringResource(R.string.notes_new), newLines, fixes)
                     NoteGroup(stringResource(R.string.notes_fixed), fixedLines, fixes)
                     NoteGroup(stringResource(R.string.notes_other), otherLines, fixes)
-                    if (more > 0) {
-                        val plural = if (more == total) R.plurals.notes_count else R.plurals.notes_more
+                    if (hiddenWhenCollapsed > 0) {
+                        val plural = if (hiddenWhenCollapsed == total) R.plurals.notes_count else R.plurals.notes_more
                         Row(
-                            Modifier.heightIn(min = 48.dp).clickable(role = Role.Button) { expanded = true },
+                            Modifier.heightIn(min = 48.dp).clickable(role = Role.Button) { expanded = !expanded },
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(pluralStringResource(plural, more, more), style = MaterialTheme.typography.bodyMedium)
-                            Icon(Icons.Outlined.ExpandMore, contentDescription = null, modifier = Modifier.size(ExpandIconSize))
+                            Text(
+                                if (expanded) {
+                                    stringResource(
+                                        R.string.notes_less,
+                                    )
+                                } else {
+                                    pluralStringResource(plural, hiddenWhenCollapsed, hiddenWhenCollapsed)
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Icon(
+                                if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                                contentDescription = null,
+                                modifier = Modifier.size(ExpandIconSize),
+                            )
                         }
                     }
                 }

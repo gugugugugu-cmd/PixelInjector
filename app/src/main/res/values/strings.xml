@@ -184,6 +184,7 @@
         <item quantity="one">%1$d change</item>
         <item quantity="other">%1$d changes</item>
     </plurals>
+    <string name="notes_less">Show less</string>
     <string name="fixes_your_report">Fixes your report %1$s</string>
     <plurals name="updated_reloaded">
         <item quantity="one">Updated to %2$s. %1$d process reloaded</item>
