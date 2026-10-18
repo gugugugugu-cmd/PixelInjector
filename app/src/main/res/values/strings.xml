@@ -250,7 +250,11 @@
     <string name="report_field_message">Your message</string>
     <string name="report_field_versions">App versions</string>
     <string name="report_field_rom_code">ROM code</string>
-    <string name="report_rom_code">Also sends the code of %1$s from your ROM. PixelInjector is built for Pixel and other ROMs need their own code for a fix.</string>
+    <string name="report_rom_code">Also sends %1$s from this ROM so its missing target can be traced</string>
+    <string name="report_rom_code_unreadable">Cannot read %1$s from this ROM</string>
+    <string name="report_rom_code_queued">ROM code queued</string>
+    <string name="report_rom_code_sent">ROM code sent</string>
+    <string name="report_rom_code_failed">ROM code not sent</string>
     <string name="report_field_app">PixelInjector version</string>
     <string name="report_field_phone">Phone</string>
     <string name="report_field_fingerprint">Build fingerprint</string>

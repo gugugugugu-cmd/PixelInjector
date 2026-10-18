@@ -35,6 +35,20 @@ object Root {
             .filter { it in packages }
     }
 
+    fun copyReadable(
+        source: String,
+        target: File,
+    ): Boolean {
+        if (!Shell.getShell().isRoot) {
+            Shell.getCachedShell()?.close()
+            return false
+        }
+        target.delete()
+        val from = "'" + source.replace("'", "'\\''") + "'"
+        val to = "'" + target.path.replace("'", "'\\''") + "'"
+        return Shell.cmd("cat $from > $to && chmod 644 $to").exec().isSuccess
+    }
+
     sealed interface Install {
         data object Denied : Install
 

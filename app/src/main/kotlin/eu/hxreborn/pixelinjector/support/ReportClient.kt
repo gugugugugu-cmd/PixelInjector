@@ -25,6 +25,16 @@ sealed interface ApiResponse {
     ) : ApiResponse
 }
 
+sealed interface AttachmentState {
+    data object Present : AttachmentState
+
+    data object Absent : AttachmentState
+
+    data class Failed(
+        val reason: String,
+    ) : AttachmentState
+}
+
 object ReportClient {
     private const val CONNECT_TIMEOUT_MS = 10_000
     private const val READ_TIMEOUT_MS = 30_000
@@ -133,8 +143,24 @@ object ReportClient {
             envelope,
         )
 
-    fun hasAttachment(sha256: String): Boolean =
-        request("HEAD", "/attachments/$sha256") is ApiResponse.Ok
+    fun hasAttachment(sha256: String): AttachmentState =
+        when (val reply = request("HEAD", "/attachments/$sha256")) {
+            is ApiResponse.Ok -> {
+                AttachmentState.Present
+            }
+
+            is ApiResponse.Refused -> {
+                if (reply.code == HttpURLConnection.HTTP_NOT_FOUND) {
+                    AttachmentState.Absent
+                } else {
+                    AttachmentState.Failed(reply.reason)
+                }
+            }
+
+            is ApiResponse.Retryable -> {
+                AttachmentState.Failed(reply.reason)
+            }
+        }
 
     fun putAttachment(
         sha256: String,

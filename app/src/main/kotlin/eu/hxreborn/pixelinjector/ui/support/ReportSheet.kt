@@ -147,8 +147,15 @@ fun ReportSheet(
         return
     }
     val footerScrolls = compactHeight()
+    val unreadable = preview?.facts?.unreadableRomCodeFor(tweak).takeIf { replyTo == null }
     val footer: @Composable () -> Unit = {
-        Footer(phase, ready = preview != null, onSend = { onSend(message.trim(), tweak) }, onTryNow = onTryNow, onClose = onClose)
+        Footer(
+            phase,
+            ready = preview != null && unreadable == null,
+            onSend = { onSend(message.trim(), tweak) },
+            onTryNow = onTryNow,
+            onClose = onClose,
+        )
     }
     Column(Modifier.padding(horizontal = SheetPadding)) {
         Column(
@@ -190,6 +197,10 @@ fun ReportSheet(
             }
             if (replyTo == null) TweakField(tweak, preview, onSelect = { tweak = it })
             val romCode = preview?.facts?.romCodeFor(tweak).takeIf { replyTo == null }
+            unreadable?.let {
+                val file = if (it == RomCode.SERVICES) "services.jar" else "SystemUI"
+                Notice(Icons.Outlined.ErrorOutline, stringResource(R.string.report_rom_code_unreadable, file), error = true)
+            }
             if (romCode != null) Notice(Icons.Outlined.Code, stringResource(R.string.report_rom_code, romCode.name), error = false)
             Disclosure(preview, romCode, expanded, exact, messageLength = message.length, onToggle = { expanded = !expanded }, onExact = {
                 exact =

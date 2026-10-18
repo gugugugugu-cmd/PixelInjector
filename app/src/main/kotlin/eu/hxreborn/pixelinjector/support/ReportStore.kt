@@ -85,6 +85,7 @@ data class SentReport(
     val fixLine: String? = null,
     val romCode: RomCode? = null,
     val romCodeUploaded: Boolean = false,
+    val romCodeFailed: String? = null,
 ) {
     val noteKey: Hpke.NoteKey? by lazy {
         if (noteKeyPrivate == null || noteKeyPublic == null) {
@@ -139,6 +140,7 @@ data class SentReport(
             .put("fixLine", fixLine)
             .put("romCode", romCode?.toStoredJson())
             .put("romCodeUploaded", romCodeUploaded)
+            .put("romCodeFailed", romCodeFailed)
 
     companion object {
         fun from(json: JSONObject): SentReport =
@@ -164,6 +166,7 @@ data class SentReport(
                 fixLine = json.optStringOrNull("fixLine"),
                 romCode = RomCode.from(json.optJSONObject("romCode")),
                 romCodeUploaded = json.optBoolean("romCodeUploaded"),
+                romCodeFailed = json.optStringOrNull("romCodeFailed"),
             )
     }
 }

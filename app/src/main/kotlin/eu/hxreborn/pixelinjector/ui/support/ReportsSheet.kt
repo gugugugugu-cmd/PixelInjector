@@ -164,6 +164,14 @@ private fun ReportTile(
                 Text(LocalDateStyle.current.format(latest.lastActivity), style = AppText.meta, color = scheme.onSurfaceVariant)
             }
             StatusLine(latest)
+            val romCodeLabel =
+                when {
+                    report.romCodeFailed != null -> R.string.report_rom_code_failed
+                    report.romCodeUploaded -> R.string.report_rom_code_sent
+                    report.romCode != null -> R.string.report_rom_code_queued
+                    else -> null
+                }
+            romCodeLabel?.let { Text(stringResource(it), style = AppText.tileSupporting, color = scheme.onSurfaceVariant) }
             latest.note?.let { note ->
                 if (latest.status == ReportStatus.NEED_INFO) {
                     Question(note)

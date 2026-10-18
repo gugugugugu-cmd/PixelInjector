@@ -251,18 +251,45 @@ class Support(
         romCodeLock.withLock {
             val report = _reports.value.firstOrNull { it.id == id } ?: return@withLock
             val code = report.romCode?.takeUnless { report.romCodeUploaded } ?: return@withLock
-            if (ReportClient.hasAttachment(code.sha256)) {
-                Log.i(ModuleConstants.LOG_TAG, "rom code present id=$id kind=${code.kind}")
-                return@withLock updateReport(id) { it.copy(romCodeUploaded = true) }
+            val current = runCatching { RomCode.sha256Of(File(code.path)) }.getOrNull()
+            if (current != code.sha256) {
+                Log.w(ModuleConstants.LOG_TAG, "rom code changed id=$id kind=${code.kind}")
+                return@withLock dropRomCode(id, "changed")
+            }
+            when (val state = ReportClient.hasAttachment(code.sha256)) {
+                AttachmentState.Present -> {
+                    Log.i(ModuleConstants.LOG_TAG, "rom code present id=$id kind=${code.kind}")
+                    return@withLock updateReport(id) { it.copy(romCodeUploaded = true) }
+                }
+
+                is AttachmentState.Failed -> {
+                    Log.w(
+                        ModuleConstants.LOG_TAG,
+                        "rom code queued id=$id kind=${code.kind} reason=${state.reason}",
+                    )
+                    return@withLock
+                }
+
+                AttachmentState.Absent -> {}
+            }
+            val envelope =
+                runCatching { ReportBuilder.sealRomCode(code) }.getOrElse {
+                    Log.w(
+                        ModuleConstants.LOG_TAG,
+                        "rom code unsealable id=$id kind=${code.kind} reason=${it.message}",
+                    )
+                    return@withLock dropRomCode(id, it.message ?: it.javaClass.simpleName)
+                }
+            if (envelope.size > ReportBuilder.MAX_ATTACHMENT_BYTES) {
+                Log.w(
+                    ModuleConstants.LOG_TAG,
+                    "rom code too large id=$id kind=${code.kind} bytes=${envelope.size}",
+                )
+                return@withLock dropRomCode(id, "too large")
             }
             val reply =
                 runCatching {
-                    ReportClient.putAttachment(
-                        code.sha256,
-                        id,
-                        report.deleteToken,
-                        ReportBuilder.sealRomCode(code),
-                    )
+                    ReportClient.putAttachment(code.sha256, id, report.deleteToken, envelope)
                 }.getOrElse { ApiResponse.Refused(0, it.message ?: it.javaClass.simpleName) }
             when (reply) {
                 is ApiResponse.Ok -> {
@@ -285,10 +312,15 @@ class Support(
                         ModuleConstants.LOG_TAG,
                         "rom code refused id=$id kind=${code.kind} code=${reply.code} reason=${reply.reason}",
                     )
-                    updateReport(id) { it.copy(romCode = null) }
+                    dropRomCode(id, reply.reason)
                 }
             }
         }
+
+    private fun dropRomCode(
+        id: String,
+        reason: String,
+    ) = updateReport(id) { it.copy(romCode = null, romCodeFailed = reason) }
 
     fun retryWaiting() {
         scope.launch {

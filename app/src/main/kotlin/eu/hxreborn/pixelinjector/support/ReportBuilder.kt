@@ -33,9 +33,13 @@ class ReportFacts(
     val missing: List<MissingTarget>,
     val packages: Collection<String>,
     val romCodes: Map<String, RomCode> = emptyMap(),
+    val unreadableRomCodes: Map<String, String> = emptyMap(),
 ) {
     fun romCodeFor(tweak: String?): RomCode? =
-        tweak?.let(romCodes::get) ?: romCodes.values.firstOrNull()
+        if (tweak == null) romCodes.values.firstOrNull() else romCodes[tweak]
+
+    fun unreadableRomCodeFor(tweak: String?): String? =
+        if (tweak == null) unreadableRomCodes.values.firstOrNull() else unreadableRomCodes[tweak]
 }
 
 class ReportPreview(
@@ -58,6 +62,7 @@ class EncryptedReport(
 object ReportBuilder {
     private const val MAX_LOG_LINES = 4000
     private const val TOKEN_BYTES = 32
+    const val MAX_ATTACHMENT_BYTES = 25 shl 20
     private const val ENVELOPE_VERSION: Byte = 1
     private const val SIGNER_BYTES = 4
     private val random = SecureRandom()

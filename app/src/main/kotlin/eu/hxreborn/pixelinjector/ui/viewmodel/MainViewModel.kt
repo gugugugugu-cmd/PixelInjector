@@ -304,6 +304,7 @@ class MainViewModel(
                         logField(entry.body, "reason"),
                     )
                 }.distinctBy { it.tweak }
+        val (romCodes, unreadableRomCodes) = romCodes(missing)
         return ReportFacts(
             framework = service?.let { Framework(it.frameworkName, it.frameworkVersion, it.apiVersion) },
             rootDenied = log.denied,
@@ -326,29 +327,34 @@ class MainViewModel(
                             ':',
                         )
                     }.toSet() + ModuleConstants.SYSTEMUI_PACKAGE - SYSTEM_PROCESS,
-            romCodes = romCodes(missing),
+            romCodes = romCodes,
+            unreadableRomCodes = unreadableRomCodes,
         )
     }
 
-    private fun romCodes(missing: List<MissingTarget>): Map<String, RomCode> {
-        if (!RomCode.wanted) return emptyMap()
+    private fun romCodes(missing: List<MissingTarget>): Pair<Map<String, RomCode>, Map<String, String>> {
+        if (!RomCode.wanted) return emptyMap<String, RomCode>() to emptyMap()
         val found = mutableMapOf<String, RomCode?>()
-        return missing
-            .mapNotNull { target ->
-                val kind =
-                    when (tweakUis.firstOrNull { it.key == target.tweak }?.group) {
-                        TweakGroup.SYSTEM_UI -> RomCode.SYSTEMUI
-                        TweakGroup.SYSTEM -> RomCode.SERVICES
-                        else -> return@mapNotNull null
-                    }
-                val code =
-                    found.getOrPut(kind) {
-                        runCatching { RomCode.find(getApplication(), kind) }
-                            .onFailure { Log.w(ModuleConstants.LOG_TAG, "rom code unreadable kind=$kind reason=${it.message}") }
-                            .getOrNull()
-                    }
-                code?.let { target.tweak to it }
-            }.toMap()
+        val unreadable = mutableMapOf<String, String>()
+        val codes =
+            missing
+                .mapNotNull { target ->
+                    val kind =
+                        when (tweakUis.firstOrNull { it.key == target.tweak }?.group) {
+                            TweakGroup.SYSTEM_UI -> RomCode.SYSTEMUI
+                            TweakGroup.SYSTEM -> RomCode.SERVICES
+                            else -> return@mapNotNull null
+                        }
+                    val code =
+                        found.getOrPut(kind) {
+                            runCatching { RomCode.find(getApplication(), kind) }
+                                .onFailure { Log.w(ModuleConstants.LOG_TAG, "rom code unreadable kind=$kind reason=${it.message}") }
+                                .getOrNull()
+                        }
+                    if (code == null) unreadable[target.tweak] = kind
+                    code?.let { target.tweak to it }
+                }.toMap()
+        return codes to unreadable
     }
 
     private fun logField(
