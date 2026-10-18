@@ -1,5 +1,6 @@
 package eu.hxreborn.pixelinjector.xposed.hook.systemui
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager.ApplicationInfoFlags
 import android.graphics.Bitmap
@@ -14,7 +15,6 @@ import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
-import eu.hxreborn.pixelinjector.util.requiredMethod
 import eu.hxreborn.pixelinjector.util.requiredMethods
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
@@ -53,7 +53,7 @@ private class ScreenshotBindings(
     val context: Field,
     val type: Field,
     val bitmap: Field,
-    val packageName: Method,
+    val topComponent: Field,
 ) {
     companion object {
         fun resolve(cl: ClassLoader): ScreenshotBindings {
@@ -71,7 +71,7 @@ private class ScreenshotBindings(
                 context = controller.requiredField("context", "mContext"),
                 type = data.requiredField("type", "mType"),
                 bitmap = data.requiredField("bitmap", "mBitmap"),
-                packageName = data.requiredMethod("getPackageNameString"),
+                topComponent = data.requiredField("topComponent", "mTopComponent"),
             )
         }
     }
@@ -100,8 +100,7 @@ private class ScreenshotBindings(
         shot: Any,
         src: Bitmap,
     ): Bitmap? {
-        val pkg = packageName.invoke(shot) as String
-        if (pkg.isEmpty()) return null
+        val pkg = (topComponent.get(shot) as ComponentName?)?.packageName ?: return null
         if (!shouldStamp(pkg)) {
             Logger.info("stamp skipped tweak=$TWEAK pkg=$pkg onlySelected=${onlySelected.enabled}")
             return null
