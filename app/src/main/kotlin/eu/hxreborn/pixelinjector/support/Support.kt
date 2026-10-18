@@ -295,8 +295,10 @@ class Support(
             _reports.value.filter { it.status == ReportStatus.WAITING }.forEach { upload(it) }
             _reports.value
                 .filter {
-                    it.romCode != null && !it.romCodeUploaded &&
-                        it.status != ReportStatus.WAITING
+                    it.romCode != null &&
+                        !it.romCodeUploaded &&
+                        it.status != ReportStatus.WAITING &&
+                        it.status != ReportStatus.REJECTED
                 }.forEach { uploadRomCode(it.id) }
         }
     }
