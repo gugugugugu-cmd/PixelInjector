@@ -24,6 +24,7 @@ object Prefs {
     val EXPAND_NOTIFICATIONS = BoolPref("systemui.expandNotifications", false).register()
     val ONGOING_NO_DISMISS = BoolPref("systemui.ongoingNoDismiss", false).register()
     val CHARGING_DETAILS = BoolPref("systemui.chargingDetails", false).register()
+    val DOWNLOAD_CHIP = BoolPref("systemui.downloadChip", false).register()
     val HEADS_UP_DURATION = BoolPref("systemui.headsUpDuration", false).register()
     const val HEADS_UP_SECONDS_MIN = 1
     const val HEADS_UP_SECONDS_MAX = 15

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.EditNotifications
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Folder
@@ -141,6 +142,13 @@ val tweakUis: List<TweakUi> =
             Prefs.CHARGING_DETAILS,
             R.string.tweak_charging_details,
             R.string.tweak_charging_details_desc,
+            TweakGroup.SYSTEM_UI,
+        ),
+        TweakUi(
+            "DownloadChip",
+            Prefs.DOWNLOAD_CHIP,
+            R.string.tweak_download_chip,
+            R.string.tweak_download_chip_desc,
             TweakGroup.SYSTEM_UI,
         ),
         TweakUi(
@@ -285,6 +293,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "HeadsUpDuration" to Icons.Outlined.Timer,
         "FingerprintIcon" to Icons.Outlined.Fingerprint,
         "ChargingDetails" to Icons.Outlined.BatteryChargingFull,
+        "DownloadChip" to Icons.Outlined.Download,
         "StatusBarDoubleTap" to Icons.Outlined.TouchApp,
         "ForceNewTask" to Icons.Outlined.Layers,
         "ClipboardAllowlist" to Icons.Outlined.ContentPaste,

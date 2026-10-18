@@ -15,6 +15,7 @@ import eu.hxreborn.pixelinjector.xposed.hook.system.clipboardAllowlist
 import eu.hxreborn.pixelinjector.xposed.hook.system.forceNewTask
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.biometricBypass
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.chargingDetails
+import eu.hxreborn.pixelinjector.xposed.hook.systemui.downloadChip
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.emptyShade
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.expandNotifications
 import eu.hxreborn.pixelinjector.xposed.hook.systemui.fingerprintIcon
@@ -35,6 +36,7 @@ internal val tweaks: List<Tweak> =
         ongoingNoDismiss,
         headsUpDuration,
         chargingDetails,
+        downloadChip,
         fingerprintIcon,
         statusBarDoubleTap,
         forceNewTask,

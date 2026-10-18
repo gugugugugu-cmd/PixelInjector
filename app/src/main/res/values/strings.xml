@@ -34,6 +34,8 @@
     <string name="tweak_ongoing_no_dismiss_desc">Stops swiping away ongoing notifications like media and VPN</string>
     <string name="tweak_charging_details">Charging details</string>
     <string name="tweak_charging_details_desc">Adds watts volts amps and battery temperature under the lock screen charging text</string>
+    <string name="tweak_download_chip">Download chip</string>
+    <string name="tweak_download_chip_desc">Shows the progress of a downloading notification as a chip in the status bar</string>
     <string name="tweak_fingerprint_icon">Fingerprint icon</string>
     <string name="tweak_fingerprint_icon_desc">Replaces the lock screen fingerprint icon and its circle</string>
     <string name="tweak_fingerprint_icon_edit">Icon and circle</string>
