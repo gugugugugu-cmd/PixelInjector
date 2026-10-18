@@ -153,21 +153,21 @@ object ReportClient {
             envelope,
         )
 
-    fun statuses(reports: List<Pair<String, String>>): ApiResponse =
+    fun fetchReportStatuses(reports: List<Pair<String, String>>): ApiResponse =
         request(
             "GET",
             "/reports/status?ids=${reports.joinToString(",") { it.first }}",
             mapOf("X-Read-Tokens" to reports.joinToString(",") { it.second }),
         )
 
-    fun delete(
+    fun deleteReport(
         id: String,
         deleteToken: String,
     ): ApiResponse = request("DELETE", "/reports/$id", mapOf("X-Delete-Token" to deleteToken))
 
-    fun release(): ApiResponse = request("GET", "/release")
+    fun fetchRelease(): ApiResponse = request("GET", "/release")
 
-    fun gitHubRelease(etag: String?): ApiResponse =
+    fun fetchGitHubRelease(etag: String?): ApiResponse =
         request(
             "GET",
             "https://api.github.com/repos/${ReportConfig.repo}/releases/latest",

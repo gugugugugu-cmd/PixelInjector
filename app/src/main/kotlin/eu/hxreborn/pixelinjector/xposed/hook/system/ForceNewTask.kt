@@ -77,7 +77,7 @@ private class StarterBindings(
         }
     }
 
-    fun apply(request: Any) {
+    fun applyMatchingRule(request: Any) {
         val intent = intent.get(request) as Intent? ?: return
         if (intent.flags and Intent.FLAG_ACTIVITY_NEW_TASK != 0) return
         val source = callingPackage.get(request) as String? ?: return
@@ -121,7 +121,7 @@ private fun XposedModule.installForceNewTask(cl: ClassLoader): Boolean {
     for (method in bindings.executeRequest) {
         hook(method).intercept { chain ->
             if (switch.enabled && rules.value.isNotEmpty()) {
-                runCatching { bindings.apply(chain.getArg(0)) }
+                runCatching { bindings.applyMatchingRule(chain.getArg(0)) }
                     .onFailure {
                         Logger.error("apply failed tweak=$TWEAK reason=${it.message}", it)
                     }

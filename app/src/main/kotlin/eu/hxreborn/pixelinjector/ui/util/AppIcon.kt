@@ -47,8 +47,8 @@ fun rememberAppIcon(
             withContext(Dispatchers.IO) {
                 runCatching {
                     val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-                    val info = launcherApps.getActivityList(packageName, Process.myUserHandle()).firstOrNull()
-                    val drawable = info?.getIcon(0) ?: context.packageManager.getApplicationIcon(packageName)
+                    val launcherActivity = launcherApps.getActivityList(packageName, Process.myUserHandle()).firstOrNull()
+                    val drawable = launcherActivity?.getIcon(0) ?: context.packageManager.getApplicationIcon(packageName)
                     drawable.toIconBitmap(sizePx).asImageBitmap()
                 }.getOrNull()?.also { iconCache.put(key, it) }
             }

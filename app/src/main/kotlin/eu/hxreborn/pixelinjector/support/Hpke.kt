@@ -21,7 +21,7 @@ object Hpke {
     private const val NONCE_LENGTH = 12
     private const val TAG_BITS = 128
     private const val RAW_KEY_LENGTH = 32
-    private val spkiPrefix = hex("302a300506032b656e032100")
+    private val spkiPrefix = decodeHex("302a300506032b656e032100")
     private val version = "HPKE-v1".toByteArray()
     private val kemSuite = "KEM".toByteArray() + u16(KEM_ID)
     private val hpkeSuite = "HPKE".toByteArray() + u16(KEM_ID) + u16(KDF_ID) + u16(AEAD_ID)
@@ -171,5 +171,10 @@ object Hpke {
 
     private fun u16(value: Int): ByteArray = byteArrayOf((value shr 8).toByte(), value.toByte())
 
-    fun hex(value: String): ByteArray = value.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+    fun decodeHex(value: String): ByteArray =
+        value
+            .chunked(2)
+            .map {
+                it.toInt(16).toByte()
+            }.toByteArray()
 }

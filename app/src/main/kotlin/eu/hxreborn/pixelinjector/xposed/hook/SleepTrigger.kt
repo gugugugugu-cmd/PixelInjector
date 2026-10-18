@@ -29,7 +29,7 @@ internal class SleepTrigger(
     }
 
     private fun lockAndSleepWithRoot() {
-        runCatching { su(LOCK_THEN_SLEEP) }
+        runCatching { runRootCommand(LOCK_THEN_SLEEP) }
             .onSuccess { (code, output) ->
                 if (code == 0) {
                     Logger.info("sleep path=root tweak=$tweak exit=0")
@@ -65,18 +65,18 @@ internal class SleepTrigger(
     }
 }
 
-private fun su(cmd: String): Pair<Int, String> {
-    val p = ProcessBuilder("su", "-c", cmd).redirectErrorStream(true).start()
-    p.outputStream.close()
-    if (!p.waitFor(5, TimeUnit.SECONDS)) {
-        p.destroyForcibly()
+private fun runRootCommand(command: String): Pair<Int, String> {
+    val process = ProcessBuilder("su", "-c", command).redirectErrorStream(true).start()
+    process.outputStream.close()
+    if (!process.waitFor(5, TimeUnit.SECONDS)) {
+        process.destroyForcibly()
         throw TimeoutException("su timeout")
     }
     val output =
-        p.inputStream
+        process.inputStream
             .bufferedReader()
             .readText()
             .trim()
             .replace('\n', ' ')
-    return p.exitValue() to output
+    return process.exitValue() to output
 }

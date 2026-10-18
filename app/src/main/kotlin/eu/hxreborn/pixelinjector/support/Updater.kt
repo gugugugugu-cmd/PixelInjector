@@ -41,7 +41,7 @@ data class Release(
         private const val MAJOR = 10_000
         private const val MINOR = 100
 
-        fun code(versionName: String): Int {
+        fun versionCodeOf(versionName: String): Int {
             val parts =
                 versionName.removePrefix("v").split('.').map {
                     it.takeWhile(Char::isDigit).toIntOrNull()
@@ -150,7 +150,7 @@ data class Release(
                 val notes = notes(markdown.substring(heading.range.last + 1, end))
                 Release(
                     versionName = versionName,
-                    versionCode = code(versionName),
+                    versionCode = versionCodeOf(versionName),
                     publishedAt = date,
                     url = "https://github.com/${ReportConfig.repo}/releases/tag/v$versionName",
                     notesNew = notes.strings("new"),
@@ -176,7 +176,7 @@ data class Release(
                 }
             return Release(
                 versionName = versionName,
-                versionCode = code(versionName),
+                versionCode = versionCodeOf(versionName),
                 publishedAt = json.optStringOrNull("publishedAt"),
                 url = json.optString("url"),
                 notesNew = notes.strings("new"),
@@ -282,7 +282,7 @@ class Updater(
     }
 
     @Suppress("DEPRECATION")
-    fun archiveInfo(file: File): PackageInfo? {
+    fun readApkPackageInfo(file: File): PackageInfo? {
         val flags = PackageManager.GET_SIGNING_CERTIFICATES or PackageManager.GET_SIGNATURES
         return context.packageManager.getPackageArchiveInfo(
             file.path,

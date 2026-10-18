@@ -16,11 +16,11 @@ class LogArchive(
         val added = fresh.filter { seen.add(it) }
         if (added.isEmpty()) return kept
         val merged = (kept + added).takeLast(MAX_LINES)
-        val tmp = File(file.parentFile, "${file.name}.tmp")
+        val pendingArchiveFile = File(file.parentFile, "${file.name}.tmp")
         val written =
             runCatching {
-                tmp.writeText(merged.joinToString("\n", postfix = "\n"))
-                tmp.renameTo(file)
+                pendingArchiveFile.writeText(merged.joinToString("\n", postfix = "\n"))
+                pendingArchiveFile.renameTo(file)
             }.getOrDefault(false)
         if (!written) Log.w(ModuleConstants.LOG_TAG, "log archive write failed path=${file.path}")
         return merged

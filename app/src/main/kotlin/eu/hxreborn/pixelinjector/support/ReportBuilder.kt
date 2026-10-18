@@ -70,13 +70,13 @@ object ReportBuilder {
 
     fun signer(context: Context): String? =
         runCatching {
-            val info =
+            val packageInfo =
                 context.packageManager.getPackageInfo(
                     context.packageName,
                     PackageManager.GET_SIGNING_CERTIFICATES,
                 )
             val cert =
-                info.signingInfo
+                packageInfo.signingInfo
                     ?.apkContentsSigners
                     ?.firstOrNull()
                     ?.toByteArray() ?: return null
@@ -90,7 +90,7 @@ object ReportBuilder {
         "reportkit/v1/attachment".toByteArray() + byteArrayOf(0) + ReportConfig.app.toByteArray()
 
     private fun envelopeHeader(): ByteArray =
-        byteArrayOf(ENVELOPE_VERSION) + Hpke.hex(ReportConfig.keyId)
+        byteArrayOf(ENVELOPE_VERSION) + Hpke.decodeHex(ReportConfig.keyId)
 
     fun sealRomCode(code: RomCode): ByteArray {
         val header = envelopeHeader()
@@ -228,7 +228,7 @@ object ReportBuilder {
 
     fun sha256(data: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(data)
 
-    fun tokenHash(tokenHex: String): String = sha256(Hpke.hex(tokenHex)).toHex()
+    fun tokenHash(tokenHex: String): String = sha256(Hpke.decodeHex(tokenHex)).toHex()
 
     fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
 }

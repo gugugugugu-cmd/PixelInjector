@@ -9,7 +9,7 @@ private const val KEEP = 20
 
 val logTimestamp = SimpleDateFormat("HH:mm:ss", Locale.ROOT)
 
-fun formatLines(lines: List<LogLine>): String = lines.joinToString("\n") { "${logTimestamp.format(Date(it.epochMs))} ${it.text}" }
+fun formatReloadLog(lines: List<LogLine>): String = lines.joinToString("\n") { "${logTimestamp.format(Date(it.epochMs))} ${it.text}" }
 
 fun writeReloadLog(
     filesDir: File,
@@ -17,7 +17,7 @@ fun writeReloadLog(
     lines: List<LogLine>,
 ) {
     val dir = File(filesDir, "reload").apply { mkdirs() }
-    File(dir, "$startedAt.log").writeText(formatLines(lines) + "\n")
+    File(dir, "$startedAt.log").writeText(formatReloadLog(lines) + "\n")
     dir
         .listFiles { f -> f.extension == "log" }
         ?.sortedByDescending { it.name }

@@ -39,11 +39,11 @@ private const val UNMEASURED = -1
 
 private val hidePill =
     Switch(Prefs.HIDE_PILL) {
-        current?.repaint()
-        current?.relayout()
+        current?.refreshHandleColors()
+        current?.requestInsetsRecompute()
     }
 private val navSpace =
-    Value(Prefs.NAV_SPACE, onLoad = { current?.relayout() }) { it.coerceIn(0, FULL) }
+    Value(Prefs.NAV_SPACE, onLoad = { current?.requestInsetsRecompute() }) { it.coerceIn(0, FULL) }
 
 internal val taskbarHandle =
     Tweak(
@@ -71,7 +71,7 @@ private class TaskbarBindings(
 ) {
     @Volatile var live: WeakReference<View>? = null
 
-    @Volatile var liveContext: WeakReference<Any>? = null
+    @Volatile var liveActivityContext: WeakReference<Any>? = null
     private val stockBottoms = WeakHashMap<Array<*>, IntArray>()
 
     @Volatile private var stockLight: Int? = null
@@ -80,15 +80,15 @@ private class TaskbarBindings(
 
     @Volatile private var scaled = false
 
-    fun paint(view: View) {
+    fun updateHandleColors(view: View) {
         val hide = hidePill.enabled
-        val light = stockLight ?: stock(view, LIGHT_COLOR).also { stockLight = it }
-        val dark = stockDark ?: stock(view, DARK_COLOR).also { stockDark = it }
+        val light = stockLight ?: readStockColor(view, LIGHT_COLOR).also { stockLight = it }
+        val dark = stockDark ?: readStockColor(view, DARK_COLOR).also { stockDark = it }
         lightColor.setInt(view, if (hide) Color.TRANSPARENT else light)
         darkColor.setInt(view, if (hide) Color.TRANSPARENT else dark)
     }
 
-    private fun stock(
+    private fun readStockColor(
         view: View,
         name: String,
     ): Int {
@@ -96,11 +96,11 @@ private class TaskbarBindings(
         return context.getColor(context.resources.getIdentifier(name, "color", context.packageName))
     }
 
-    fun repaint() {
+    fun refreshHandleColors() {
         val view = live?.get() ?: return
         view.post {
             runCatching {
-                paint(view)
+                updateHandleColors(view)
                 val dark = regionDark.get(view) as Boolean?
                 regionDark.set(view, null)
                 updateHandleColor.invoke(view, dark ?: false, true)
@@ -109,8 +109,8 @@ private class TaskbarBindings(
         }
     }
 
-    fun relayout() {
-        val context = liveContext?.get() ?: return
+    fun requestInsetsRecompute() {
+        val context = liveActivityContext?.get() ?: return
         val view = live?.get() ?: return
         view.post {
             runCatching {
@@ -121,18 +121,18 @@ private class TaskbarBindings(
         }
     }
 
-    fun scale(context: Any) {
+    fun scaleNavigationInsets(context: Any) {
         val hide = hidePill.enabled
         if (!hide && !scaled) return
         scaled = hide
         val params = windowParams.get(context) as WindowManager.LayoutParams? ?: return
-        scale(params)
+        scaleNavigationInsets(params)
         (paramsForRotation?.get(params) as Array<*>?)?.forEach { rotated ->
-            (rotated as WindowManager.LayoutParams?)?.let(::scale)
+            (rotated as WindowManager.LayoutParams?)?.let(::scaleNavigationInsets)
         }
     }
 
-    private fun scale(params: WindowManager.LayoutParams) {
+    private fun scaleNavigationInsets(params: WindowManager.LayoutParams) {
         val providers = providedInsets.get(params) as Array<*>? ?: return
         val bottoms =
             synchronized(stockBottoms) {
@@ -211,19 +211,19 @@ private fun XposedModule.installTaskbarHandle(cl: ClassLoader): Boolean {
         runCatching {
             val view = chain.thisObject as View
             if (bindings.live?.get() !== view) bindings.live = WeakReference(view)
-            bindings.paint(view)
+            bindings.updateHandleColors(view)
         }.onFailure { Logger.error("paint failed tweak=$TWEAK reason=${it.message}", it) }
         chain.proceed()
     }
     hook(bindings.notifyUpdateLayoutParams).intercept { chain ->
         runCatching {
             val context = chain.thisObject
-            if (bindings.liveContext?.get() !==
+            if (bindings.liveActivityContext?.get() !==
                 context
             ) {
-                bindings.liveContext = WeakReference(context)
+                bindings.liveActivityContext = WeakReference(context)
             }
-            bindings.scale(context)
+            bindings.scaleNavigationInsets(context)
         }.onFailure { Logger.error("scale failed tweak=$TWEAK reason=${it.message}", it) }
         chain.proceed()
     }

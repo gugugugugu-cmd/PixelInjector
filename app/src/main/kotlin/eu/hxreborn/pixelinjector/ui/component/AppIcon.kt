@@ -27,19 +27,19 @@ private val HeaderGlyphSize = 20.dp
 private const val LAYER_PX = 432
 private const val GLYPH_PADDING_PERCENT = 8
 
-private class Loaded(
+private class CachedMonochromeIcon(
     val bitmap: ImageBitmap?,
 )
 
 private object MonochromeIcons {
-    private val cache = ConcurrentHashMap<String, Loaded>()
+    private val cache = ConcurrentHashMap<String, CachedMonochromeIcon>()
 
-    fun peek(packageName: String): Loaded? = cache[packageName]
+    fun peek(packageName: String): CachedMonochromeIcon? = cache[packageName]
 
     fun load(
         context: Context,
         packageName: String,
-    ): Loaded = cache.getOrPut(packageName) { Loaded(render(context, packageName)) }
+    ): CachedMonochromeIcon = cache.getOrPut(packageName) { CachedMonochromeIcon(render(context, packageName)) }
 
     private fun render(
         context: Context,
@@ -89,18 +89,18 @@ fun AppGlyph(
     fallback: ImageVector?,
 ) {
     val context = LocalContext.current.applicationContext
-    val loaded by produceState(packageName?.let(MonochromeIcons::peek), packageName) {
+    val cachedIcon by produceState(packageName?.let(MonochromeIcons::peek), packageName) {
         value = packageName?.let { withContext(Dispatchers.IO) { MonochromeIcons.load(context, it) } }
     }
     val modifier = Modifier.size(HeaderGlyphSize)
     val tint = MaterialTheme.colorScheme.primary
-    val bitmap = loaded?.bitmap
+    val bitmap = cachedIcon?.bitmap
     when {
         bitmap != null -> {
             Icon(bitmap, contentDescription = null, modifier = modifier, tint = tint)
         }
 
-        (loaded != null || packageName == null) && fallback != null -> {
+        (cachedIcon != null || packageName == null) && fallback != null -> {
             Icon(
                 fallback,
                 contentDescription = null,

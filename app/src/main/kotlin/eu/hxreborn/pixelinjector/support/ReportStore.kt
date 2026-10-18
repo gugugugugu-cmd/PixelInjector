@@ -52,12 +52,12 @@ data class ReportEvent(
 
         fun list(
             array: JSONArray?,
-            noteOf: (JSONObject) -> String? = { it.optStringOrNull("note") },
+            decodeNote: (JSONObject) -> String? = { it.optStringOrNull("note") },
         ): List<ReportEvent> =
             array
                 ?.let { a ->
                     List(a.length()) { a.optJSONObject(it) }.mapNotNull { json ->
-                        json?.let(::from)?.copy(note = noteOf(json))
+                        json?.let(::from)?.copy(note = decodeNote(json))
                     }
                 }.orEmpty()
     }
@@ -101,7 +101,7 @@ data class SentReport(
 
     val lastActivity: Long get() = maxOf(sentAt, events.maxOfOrNull { it.at } ?: 0L)
 
-    fun noteOf(json: JSONObject): String? {
+    fun decodeNote(json: JSONObject): String? {
         val sealed = json.optStringOrNull("noteSealed") ?: return json.optStringOrNull("note")
         val key = noteKey ?: return null
         return runCatching {
@@ -137,7 +137,7 @@ data class SentReport(
             .put("noteKeyPublic", noteKeyPublic)
             .put("issue", issue)
             .put("fixLine", fixLine)
-            .put("romCode", romCode?.toLedgerJson())
+            .put("romCode", romCode?.toStoredJson())
             .put("romCodeUploaded", romCodeUploaded)
 
     companion object {
@@ -173,31 +173,31 @@ fun JSONObject.optIntOrNull(key: String): Int? = if (has(key) && !isNull(key)) o
 fun JSONObject.optStringOrNull(key: String): String? =
     if (isNull(key)) null else optString(key).ifEmpty { null }
 
-class Ledger(
+class ReportStore(
     root: File,
 ) {
-    private val dir = File(root, "reports").apply { mkdirs() }
-    private val index = File(dir, "ledger.json")
+    private val reportsDirectory = File(root, "reports").apply { mkdirs() }
+    private val recordsFile = File(reportsDirectory, "ledger.json")
 
     fun read(): List<SentReport> =
         runCatching {
-            val array = JSONArray(index.readText())
+            val array = JSONArray(recordsFile.readText())
             List(array.length()) { SentReport.from(array.getJSONObject(it)) }
         }.getOrDefault(emptyList())
 
     @Synchronized
     fun write(reports: List<SentReport>) {
-        val tmp = File(dir, "ledger.json.tmp")
-        tmp.writeText(JSONArray(reports.map { it.toJson() }).toString())
-        tmp.renameTo(index)
+        val pendingRecordsFile = File(reportsDirectory, "ledger.json.tmp")
+        pendingRecordsFile.writeText(JSONArray(reports.map { it.toJson() }).toString())
+        pendingRecordsFile.renameTo(recordsFile)
     }
 
-    fun envelope(id: String): File = File(dir, "$id.bin")
+    fun envelopeFile(id: String): File = File(reportsDirectory, "$id.bin")
 
-    fun meta(id: String): File = File(dir, "$id.meta")
+    fun metadataFile(id: String): File = File(reportsDirectory, "$id.meta")
 
     fun deletePayload(id: String) {
-        envelope(id).delete()
-        meta(id).delete()
+        envelopeFile(id).delete()
+        metadataFile(id).delete()
     }
 }
