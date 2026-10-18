@@ -193,10 +193,7 @@ private fun onPosted(sbn: StatusBarNotification) {
     if (!switch.enabled) return
     val notification = sbn.notification
     if (!hasProgress(notification)) {
-        if (sbn.key == tracked) {
-            tracked = null
-            render()
-        }
+        if (sbn.key == tracked) release()
         return
     }
     if (tracked != null && tracked != sbn.key) return
@@ -215,9 +212,13 @@ private fun onPosted(sbn: StatusBarNotification) {
 }
 
 private fun onRemoved(sbn: StatusBarNotification) {
-    if (sbn.key != tracked) return
+    if (sbn.key == tracked) release()
+}
+
+private fun release() {
     tracked = null
     render()
+    if (switch.enabled) replay()
 }
 
 private fun attach(statusBar: ViewGroup) {
