@@ -43,16 +43,15 @@ private class TwoFactorBindings(
 ) {
     companion object {
         fun resolve(cl: ClassLoader): TwoFactorBindings {
-            val dialog = cl.loadClass(DIALOG)
-            val state =
-                dialog.declaredClasses.firstOrNull { cls ->
-                    cls.isEnum &&
-                        cls.enumConstants.orEmpty().any { (it as Enum<*>).name == APPROVED }
-                } ?: throw NoSuchFieldException("TwoFactorDialog.$APPROVED")
             val mapper =
-                dialog.declaredMethods.firstOrNull { m ->
-                    Modifier.isStatic(m.modifiers) && m.parameterCount == 1 && m.returnType == state
-                } ?: throw NoSuchMethodException("TwoFactorDialog.stateMapper(?)")
+                cl.loadClass(DIALOG).declaredMethods.firstOrNull { m ->
+                    Modifier.isStatic(m.modifiers) &&
+                        m.parameterCount == 1 &&
+                        m.returnType.isEnum &&
+                        m.returnType.enumConstants
+                            .orEmpty()
+                            .any { (it as Enum<*>).name == APPROVED }
+                } ?: throw NoSuchFieldException("TwoFactorDialog.$APPROVED")
             return TwoFactorBindings(
                 onCreate = cl.loadClass(ACTIVITY).requiredMethod("onCreate", Bundle::class.java),
                 stateMapper = mapper.apply { isAccessible = true },
