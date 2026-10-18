@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.ExpandLess
@@ -88,6 +89,7 @@ import eu.hxreborn.pixelinjector.BuildConfig
 import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.support.ReportConfig
 import eu.hxreborn.pixelinjector.support.ReportPreview
+import eu.hxreborn.pixelinjector.support.RomCode
 import eu.hxreborn.pixelinjector.support.SentReport
 import eu.hxreborn.pixelinjector.ui.component.SheetHeader
 import eu.hxreborn.pixelinjector.ui.component.compactHeight
@@ -187,7 +189,9 @@ fun ReportSheet(
                 )
             }
             if (replyTo == null) TweakField(tweak, preview, onSelect = { tweak = it })
-            Disclosure(preview, expanded, exact, messageLength = message.length, onToggle = { expanded = !expanded }, onExact = {
+            val romCode = preview?.facts?.romCodeFor(tweak).takeIf { replyTo == null }
+            if (romCode != null) Notice(Icons.Outlined.Code, stringResource(R.string.report_rom_code, romCode.name), error = false)
+            Disclosure(preview, romCode, expanded, exact, messageLength = message.length, onToggle = { expanded = !expanded }, onExact = {
                 exact =
                     !exact
             })
@@ -308,6 +312,7 @@ private fun TweakField(
 @Composable
 private fun Disclosure(
     preview: ReportPreview?,
+    romCode: RomCode?,
     expanded: Boolean,
     exact: Boolean,
     messageLength: Int,
@@ -373,7 +378,7 @@ private fun Disclosure(
                                 stringResource(R.string.report_field_message) to
                                     pluralStringResource(R.plurals.report_characters, messageLength, messageLength),
                                 stringResource(R.string.report_field_versions) to stringResource(R.string.report_versions_value),
-                            ),
+                            ) + listOfNotNull(romCode?.let { stringResource(R.string.report_field_rom_code) to it.name }),
                         )
                         val facts = preview?.facts
                         FieldGroup(

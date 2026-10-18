@@ -133,6 +133,26 @@ object ReportClient {
             envelope,
         )
 
+    fun hasAttachment(sha256: String): Boolean =
+        request("HEAD", "/attachments/$sha256") is ApiResponse.Ok
+
+    fun putAttachment(
+        sha256: String,
+        reportId: String,
+        deleteToken: String,
+        envelope: ByteArray,
+    ): ApiResponse =
+        request(
+            "PUT",
+            "/attachments/$sha256",
+            mapOf(
+                "X-Report-Id" to reportId,
+                "X-Delete-Token" to deleteToken,
+                "X-Key-Id" to ReportConfig.keyId,
+            ),
+            envelope,
+        )
+
     fun statuses(reports: List<Pair<String, String>>): ApiResponse =
         request(
             "GET",

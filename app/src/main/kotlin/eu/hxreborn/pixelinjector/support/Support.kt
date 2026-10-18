@@ -82,6 +82,7 @@ class Support(
     private val prefs = context.getSharedPreferences("support", Context.MODE_PRIVATE)
     private val ledger = Ledger(context.filesDir)
     private val sendLock = Mutex()
+    private val romCodeLock = Mutex()
     val updater = Updater(context)
 
     private val _reports = MutableStateFlow(ledger.read())
@@ -161,6 +162,7 @@ class Support(
                         KeyWrap.wrap(encrypted.noteKey.privatePkcs8),
                     ),
                 noteKeyPublic = Base64.getEncoder().encodeToString(encrypted.noteKey.publicRaw),
+                romCode = encrypted.romCode,
             )
         ledger.envelope(report.id).writeBytes(encrypted.envelope)
         ledger.meta(report.id).writeBytes(encrypted.meta)
@@ -213,6 +215,7 @@ class Support(
                         )
                     ledger.deletePayload(report.id)
                     replace(sent)
+                    if (sent.romCode != null) scope.launch { uploadRomCode(sent.id) }
                     SendResult.Sent(sent)
                 }
 
@@ -239,9 +242,62 @@ class Support(
 
     suspend fun resend(report: SentReport): SendResult = upload(report)
 
+    private fun updateReport(
+        id: String,
+        change: (SentReport) -> SentReport,
+    ) = mutate { list -> list.map { if (it.id == id) change(it) else it } }
+
+    private suspend fun uploadRomCode(id: String) =
+        romCodeLock.withLock {
+            val report = _reports.value.firstOrNull { it.id == id } ?: return@withLock
+            val code = report.romCode?.takeUnless { report.romCodeUploaded } ?: return@withLock
+            if (ReportClient.hasAttachment(code.sha256)) {
+                Log.i(ModuleConstants.LOG_TAG, "rom code present id=$id kind=${code.kind}")
+                return@withLock updateReport(id) { it.copy(romCodeUploaded = true) }
+            }
+            val reply =
+                runCatching {
+                    ReportClient.putAttachment(
+                        code.sha256,
+                        id,
+                        report.deleteToken,
+                        ReportBuilder.sealRomCode(code),
+                    )
+                }.getOrElse { ApiResponse.Refused(0, it.message ?: it.javaClass.simpleName) }
+            when (reply) {
+                is ApiResponse.Ok -> {
+                    Log.i(
+                        ModuleConstants.LOG_TAG,
+                        "rom code sent id=$id kind=${code.kind} code=${reply.code}",
+                    )
+                    updateReport(id) { it.copy(romCodeUploaded = true) }
+                }
+
+                is ApiResponse.Retryable -> {
+                    Log.w(
+                        ModuleConstants.LOG_TAG,
+                        "rom code queued id=$id kind=${code.kind} reason=${reply.reason}",
+                    )
+                }
+
+                is ApiResponse.Refused -> {
+                    Log.w(
+                        ModuleConstants.LOG_TAG,
+                        "rom code refused id=$id kind=${code.kind} code=${reply.code} reason=${reply.reason}",
+                    )
+                    updateReport(id) { it.copy(romCode = null) }
+                }
+            }
+        }
+
     fun retryWaiting() {
         scope.launch {
             _reports.value.filter { it.status == ReportStatus.WAITING }.forEach { upload(it) }
+            _reports.value
+                .filter {
+                    it.romCode != null && !it.romCodeUploaded &&
+                        it.status != ReportStatus.WAITING
+                }.forEach { uploadRomCode(it.id) }
         }
     }
 
