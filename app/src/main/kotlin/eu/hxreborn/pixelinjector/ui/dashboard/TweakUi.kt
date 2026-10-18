@@ -150,6 +150,10 @@ val tweakUis: List<TweakUi> =
             R.string.tweak_download_chip,
             R.string.tweak_download_chip_desc,
             TweakGroup.SYSTEM_UI,
+            editor =
+                TweakEditor(R.string.tweak_download_chip_edit, null, Destination.DownloadChipEditor) {
+                    it[Prefs.DOWNLOAD_CHIP_SIDE].replaceFirstChar(Char::uppercase)
+                },
         ),
         TweakUi(
             "FingerprintIcon",

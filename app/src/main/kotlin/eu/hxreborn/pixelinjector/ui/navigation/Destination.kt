@@ -29,6 +29,9 @@ sealed interface Destination : NavKey {
     data object FingerprintIconEditor : Destination
 
     @Serializable
+    data object DownloadChipEditor : Destination
+
+    @Serializable
     data object ModuleLog : Destination
 
     @Serializable
