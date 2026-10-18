@@ -109,6 +109,7 @@ object ReportBuilder {
         facts: ReportFacts,
         tweak: String?,
         notePublicKey: ByteArray? = null,
+        romCode: RomCode? = null,
     ): JSONObject {
         val missing =
             facts.missing.firstOrNull { it.tweak == tweak }
@@ -159,7 +160,7 @@ object ReportBuilder {
             }
             put("log", if (facts.logLines.isNullOrEmpty()) "unavailable" else "attached")
             tweak?.let { put("tweak", it) }
-            facts.romCodeFor(tweak)?.let { put("attachment", it.toJson()) }
+            romCode?.let { put("attachment", it.toJson()) }
             missing?.let {
                 put(
                     "fingerprintKey",
@@ -178,12 +179,14 @@ object ReportBuilder {
         replyTo: String?,
         noteKey: Hpke.NoteKey,
     ): EncryptedReport {
+        val romCode = preview.facts.romCodeFor(tweak).takeIf { replyTo == null }
         val metaBytes =
             meta(
                 context,
                 preview.facts,
                 tweak,
                 notePublicKey = noteKey.publicRaw,
+                romCode = romCode,
             ).toString().toByteArray()
         val versions = JSONObject()
         preview.facts.packages.forEach { pkg ->
@@ -211,7 +214,7 @@ object ReportBuilder {
             readToken = token(),
             deleteToken = token(),
             noteKey = noteKey,
-            romCode = preview.facts.romCodeFor(tweak),
+            romCode = romCode,
         )
     }
 
