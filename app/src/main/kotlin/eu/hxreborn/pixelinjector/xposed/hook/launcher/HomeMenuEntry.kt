@@ -123,7 +123,16 @@ private class ComposeMenu(
 
     companion object {
         fun resolve(cl: ClassLoader): ComposeMenu {
-            val getAll = cl.loadClass(OPTIONS).requiredMethod("getAll", Context::class.java)
+            val options = cl.loadClass(OPTIONS)
+            val getAll =
+                runCatching { options.requiredMethod("getAll", Context::class.java) }.getOrElse {
+                    // Pixel Launcher 17 CP41.260831.019
+                    options.requiredMethod(
+                        "getAll",
+                        Context::class.java,
+                        Boolean::class.javaPrimitiveType,
+                    )
+                }
             val popupDataClass = cl.loadClass(POPUP_DATA)
             val category = popupDataClass.requiredField("category")
             val eventType = popupDataClass.requiredField("eventId").type
