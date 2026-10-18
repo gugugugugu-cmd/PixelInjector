@@ -34,6 +34,7 @@ import eu.hxreborn.pixelinjector.support.ReportConfig
 import eu.hxreborn.pixelinjector.ui.dashboard.DashboardActions
 import eu.hxreborn.pixelinjector.ui.dashboard.DashboardScreen
 import eu.hxreborn.pixelinjector.ui.editor.AppsSheet
+import eu.hxreborn.pixelinjector.ui.editor.DownloadChipSheet
 import eu.hxreborn.pixelinjector.ui.editor.EmptyShadeSheet
 import eu.hxreborn.pixelinjector.ui.editor.FingerprintIconSheet
 import eu.hxreborn.pixelinjector.ui.editor.RulesEditorScreen
@@ -221,6 +222,20 @@ fun AppNavHost(
                         onStyleChange = { viewModel.save(Prefs.FINGERPRINT_ICON_STYLE, it) },
                         onHideCircleChange = { viewModel.save(Prefs.FINGERPRINT_HIDE_CIRCLE, it) },
                         onImagePicked = viewModel::saveFingerprintImage,
+                    )
+                }
+                entry<Destination.DownloadChipEditor>(metadata = BottomSheetSceneStrategy.bottomSheet()) {
+                    DownloadChipSheet(
+                        side = prefs[Prefs.DOWNLOAD_CHIP_SIDE],
+                        icon = prefs[Prefs.DOWNLOAD_CHIP_ICON],
+                        hideLocked = prefs[Prefs.DOWNLOAD_CHIP_HIDE_LOCKED],
+                        hideHeadsUp = prefs[Prefs.DOWNLOAD_CHIP_HIDE_HEADS_UP],
+                        hideStatusIcon = prefs[Prefs.DOWNLOAD_CHIP_HIDE_STATUS_ICON],
+                        onSideChange = { viewModel.save(Prefs.DOWNLOAD_CHIP_SIDE, it) },
+                        onIconChange = { viewModel.save(Prefs.DOWNLOAD_CHIP_ICON, it) },
+                        onHideLockedChange = { viewModel.save(Prefs.DOWNLOAD_CHIP_HIDE_LOCKED, it) },
+                        onHideHeadsUpChange = { viewModel.save(Prefs.DOWNLOAD_CHIP_HIDE_HEADS_UP, it) },
+                        onHideStatusIconChange = { viewModel.save(Prefs.DOWNLOAD_CHIP_HIDE_STATUS_ICON, it) },
                     )
                 }
                 entry<Destination.Settings> {

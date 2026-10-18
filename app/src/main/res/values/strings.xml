@@ -36,6 +36,16 @@
     <string name="tweak_charging_details_desc">Adds watts volts amps and battery temperature under the lock screen charging text</string>
     <string name="tweak_download_chip">Download chip</string>
     <string name="tweak_download_chip_desc">Shows the progress of a downloading notification as a chip in the status bar</string>
+    <string name="tweak_download_chip_edit">Side and icon</string>
+    <string name="download_chip_side">Side</string>
+    <string name="download_chip_left">Left</string>
+    <string name="download_chip_right">Right</string>
+    <string name="download_chip_icon">Icon</string>
+    <string name="download_chip_notification">Notification</string>
+    <string name="download_chip_app">App</string>
+    <string name="download_chip_hide_locked">Hide on lock screen</string>
+    <string name="download_chip_hide_heads_up">Hide during heads-up</string>
+    <string name="download_chip_hide_status_icon">Hide the download icon</string>
     <string name="tweak_fingerprint_icon">Fingerprint icon</string>
     <string name="tweak_fingerprint_icon_desc">Replaces the lock screen fingerprint icon and its circle</string>
     <string name="tweak_fingerprint_icon_edit">Icon and circle</string>
