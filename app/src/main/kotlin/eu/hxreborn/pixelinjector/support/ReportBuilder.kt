@@ -32,7 +32,11 @@ class ReportFacts(
     val tweaks: Map<String, String>,
     val missing: List<MissingTarget>,
     val packages: Collection<String>,
-)
+    val romCodes: Map<String, RomCode> = emptyMap(),
+) {
+    fun romCodeFor(tweak: String?): RomCode? =
+        tweak?.let(romCodes::get) ?: romCodes.values.firstOrNull()
+}
 
 class ReportPreview(
     val facts: ReportFacts,
@@ -48,6 +52,7 @@ class EncryptedReport(
     val readToken: String,
     val deleteToken: String,
     val noteKey: Hpke.NoteKey,
+    val romCode: RomCode?,
 )
 
 object ReportBuilder {
@@ -81,11 +86,30 @@ object ReportBuilder {
     val noteInfo: ByteArray =
         "reportkit/v1/note".toByteArray() + byteArrayOf(0) + ReportConfig.app.toByteArray()
 
+    private val attachmentInfo: ByteArray =
+        "reportkit/v1/attachment".toByteArray() + byteArrayOf(0) + ReportConfig.app.toByteArray()
+
+    private fun envelopeHeader(): ByteArray =
+        byteArrayOf(ENVELOPE_VERSION) + Hpke.hex(ReportConfig.keyId)
+
+    fun sealRomCode(code: RomCode): ByteArray {
+        val header = envelopeHeader()
+        val hpke =
+            Hpke.seal(
+                ReportConfig.publicKey,
+                attachmentInfo,
+                header + code.sha256.toByteArray(),
+                code.zip(),
+            )
+        return header + hpke.enc + hpke.ciphertext
+    }
+
     fun meta(
         context: Context,
         facts: ReportFacts,
         tweak: String?,
         notePublicKey: ByteArray? = null,
+        romCode: RomCode? = null,
     ): JSONObject {
         val missing =
             facts.missing.firstOrNull { it.tweak == tweak }
@@ -136,6 +160,7 @@ object ReportBuilder {
             }
             put("log", if (facts.logLines.isNullOrEmpty()) "unavailable" else "attached")
             tweak?.let { put("tweak", it) }
+            romCode?.let { put("attachment", it.toJson()) }
             missing?.let {
                 put(
                     "fingerprintKey",
@@ -154,12 +179,14 @@ object ReportBuilder {
         replyTo: String?,
         noteKey: Hpke.NoteKey,
     ): EncryptedReport {
+        val romCode = preview.facts.romCodeFor(tweak).takeIf { replyTo == null }
         val metaBytes =
             meta(
                 context,
                 preview.facts,
                 tweak,
                 notePublicKey = noteKey.publicRaw,
+                romCode = romCode,
             ).toString().toByteArray()
         val versions = JSONObject()
         preview.facts.packages.forEach { pkg ->
@@ -177,7 +204,7 @@ object ReportBuilder {
                     .toString()
                     .toByteArray(),
             )
-        val header = byteArrayOf(ENVELOPE_VERSION) + Hpke.hex(ReportConfig.keyId)
+        val header = envelopeHeader()
         val info = "reportkit/v1".toByteArray() + byteArrayOf(0) + ReportConfig.app.toByteArray()
         val hpke = Hpke.seal(ReportConfig.publicKey, info, header + metaBytes, plaintext)
         return EncryptedReport(
@@ -187,6 +214,7 @@ object ReportBuilder {
             readToken = token(),
             deleteToken = token(),
             noteKey = noteKey,
+            romCode = romCode,
         )
     }
 

@@ -31,6 +31,7 @@ import eu.hxreborn.pixelinjector.support.MissingTarget
 import eu.hxreborn.pixelinjector.support.ReportBuilder
 import eu.hxreborn.pixelinjector.support.ReportFacts
 import eu.hxreborn.pixelinjector.support.ReportPreview
+import eu.hxreborn.pixelinjector.support.RomCode
 import eu.hxreborn.pixelinjector.support.SendResult
 import eu.hxreborn.pixelinjector.support.SentReport
 import eu.hxreborn.pixelinjector.ui.dashboard.DashboardState
@@ -325,7 +326,29 @@ class MainViewModel(
                             ':',
                         )
                     }.toSet() + ModuleConstants.SYSTEMUI_PACKAGE - SYSTEM_PROCESS,
+            romCodes = romCodes(missing),
         )
+    }
+
+    private fun romCodes(missing: List<MissingTarget>): Map<String, RomCode> {
+        if (!RomCode.wanted) return emptyMap()
+        val found = mutableMapOf<String, RomCode?>()
+        return missing
+            .mapNotNull { target ->
+                val kind =
+                    when (tweakUis.firstOrNull { it.key == target.tweak }?.group) {
+                        TweakGroup.SYSTEM_UI -> RomCode.SYSTEMUI
+                        TweakGroup.SYSTEM -> RomCode.SERVICES
+                        else -> return@mapNotNull null
+                    }
+                val code =
+                    found.getOrPut(kind) {
+                        runCatching { RomCode.find(getApplication(), kind) }
+                            .onFailure { Log.w(ModuleConstants.LOG_TAG, "rom code unreadable kind=$kind reason=${it.message}") }
+                            .getOrNull()
+                    }
+                code?.let { target.tweak to it }
+            }.toMap()
     }
 
     private fun logField(
