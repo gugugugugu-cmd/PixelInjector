@@ -25,6 +25,27 @@ object Prefs {
     val ONGOING_NO_DISMISS = BoolPref("systemui.ongoingNoDismiss", false).register()
     val CHARGING_DETAILS = BoolPref("systemui.chargingDetails", false).register()
     val DOWNLOAD_CHIP = BoolPref("systemui.downloadChip", false).register()
+    const val DOWNLOAD_CHIP_LEFT = "left"
+    const val DOWNLOAD_CHIP_RIGHT = "right"
+    const val DOWNLOAD_CHIP_NOTIFICATION = "notification"
+    const val DOWNLOAD_CHIP_APP = "app"
+    val DOWNLOAD_CHIP_SIDE = StringPref("systemui.downloadChip.side", DOWNLOAD_CHIP_LEFT).register()
+    val DOWNLOAD_CHIP_ICON =
+        StringPref(
+            "systemui.downloadChip.icon",
+            DOWNLOAD_CHIP_NOTIFICATION,
+        ).register()
+    val DOWNLOAD_CHIP_HIDE_LOCKED = BoolPref("systemui.downloadChip.hideLocked", false).register()
+    val DOWNLOAD_CHIP_HIDE_HEADS_UP =
+        BoolPref(
+            "systemui.downloadChip.hideHeadsUp",
+            false,
+        ).register()
+    val DOWNLOAD_CHIP_HIDE_STATUS_ICON =
+        BoolPref(
+            "systemui.downloadChip.hideStatusIcon",
+            false,
+        ).register()
     val HEADS_UP_DURATION = BoolPref("systemui.headsUpDuration", false).register()
     const val HEADS_UP_SECONDS_MIN = 1
     const val HEADS_UP_SECONDS_MAX = 15
