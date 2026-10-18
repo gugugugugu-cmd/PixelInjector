@@ -98,7 +98,7 @@ Needs Android 14 or newer, arm64, root and an Xposed framework with libxposed AP
 
 ## Report a bug
 
-Report from the app or on [GitHub](https://github.com/hxreborn/PixelInjector/issues/new/choose), whichever you prefer. App reports are opt-in and end-to-end encrypted. Nothing leaves the phone until you tap Send. On a phone that isn't a Pixel, a report about a System UI or System Framework tweak also sends that ROM's SystemUI or `services.jar` code, encrypted with the report.
+Report from the app or on [GitHub](https://github.com/hxreborn/PixelInjector/issues/new/choose), whichever you prefer. App reports are opt-in and end-to-end encrypted. Nothing leaves the phone until you tap Send. On a phone that isn't a Pixel and doesn't run an open source ROM such as LineageOS, a report about a System UI or System Framework tweak also sends that ROM's SystemUI or `services.jar` code, encrypted with the report.
 
 1. Open Settings, tap Report a bug, say what happened and send.
 2. Follow it in Your reports. My questions and the GitHub issue show there.
