@@ -54,7 +54,7 @@ private class HotseatBindings(
     val getDimensionPixelSize: Method,
 ) {
     @Volatile var live: WeakReference<View>? = null
-    private val verdicts = SparseIntArray()
+    private val searchBarHeightMatches = SparseIntArray()
     private val hooked = AtomicBoolean(false)
 
     fun capture(hotseat: Any) {
@@ -78,7 +78,7 @@ private class HotseatBindings(
         module.hook(getDimensionPixelSize).intercept { chain ->
             if (!switch.enabled) return@intercept chain.proceed()
             val resources = chain.thisObject as? Resources ?: return@intercept chain.proceed()
-            if (zeroed(resources, chain.getArg(0) as Int)) 0 else chain.proceed()
+            if (isSearchBarHeightResource(resources, chain.getArg(0) as Int)) 0 else chain.proceed()
         }
     }
 
@@ -86,15 +86,18 @@ private class HotseatBindings(
         view.visibility = if (switch.enabled) View.GONE else View.VISIBLE
     }
 
-    private fun zeroed(
+    private fun isSearchBarHeightResource(
         resources: Resources,
         id: Int,
     ): Boolean {
-        val cached = synchronized(verdicts) { verdicts.get(id, UNKNOWN) }
+        val cached =
+            synchronized(searchBarHeightMatches) { searchBarHeightMatches.get(id, UNKNOWN) }
         if (cached != UNKNOWN) return cached == ZERO
         val name = runCatching { resources.getResourceEntryName(id) }.getOrDefault("")
         val zero = name == QSB_HEIGHT
-        synchronized(verdicts) { verdicts.put(id, if (zero) ZERO else KEEP) }
+        synchronized(
+            searchBarHeightMatches,
+        ) { searchBarHeightMatches.put(id, if (zero) ZERO else KEEP) }
         return zero
     }
 

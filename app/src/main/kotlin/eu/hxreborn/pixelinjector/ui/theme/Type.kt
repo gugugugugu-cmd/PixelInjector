@@ -10,7 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import eu.hxreborn.pixelinjector.R
 
-private fun variable(
+private fun variableFont(
     resId: Int,
     weight: FontWeight,
 ): Font =
@@ -23,16 +23,16 @@ private fun variable(
 
 val RobotoFlex =
     FontFamily(
-        variable(R.font.roboto_flex, FontWeight.Normal),
-        variable(R.font.roboto_flex, FontWeight.Medium),
-        variable(R.font.roboto_flex, FontWeight.SemiBold),
-        variable(R.font.roboto_flex, FontWeight.Bold),
+        variableFont(R.font.roboto_flex, FontWeight.Normal),
+        variableFont(R.font.roboto_flex, FontWeight.Medium),
+        variableFont(R.font.roboto_flex, FontWeight.SemiBold),
+        variableFont(R.font.roboto_flex, FontWeight.Bold),
     )
 
 val RobotoMono =
     FontFamily(
-        variable(R.font.roboto_mono, FontWeight.Normal),
-        variable(R.font.roboto_mono, FontWeight.Medium),
+        variableFont(R.font.roboto_mono, FontWeight.Normal),
+        variableFont(R.font.roboto_mono, FontWeight.Medium),
     )
 
 val AppTypography = Typography(RobotoFlex)

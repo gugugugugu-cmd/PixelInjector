@@ -143,12 +143,12 @@ fun ModuleLogScreen(
     val range by
         remember {
             derivedStateOf {
-                val info = listState.layoutInfo
-                info.visibleItemsInfo.takeIf { it.isNotEmpty() }?.let {
+                val layoutInfo = listState.layoutInfo
+                layoutInfo.visibleItemsInfo.takeIf { it.isNotEmpty() }?.let {
                     Triple(
                         it.first().index + 1,
                         it.last().index + 1,
-                        info.totalItemsCount,
+                        layoutInfo.totalItemsCount,
                     )
                 }
             }

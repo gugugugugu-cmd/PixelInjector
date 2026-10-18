@@ -96,7 +96,7 @@ class MainViewModel(
     application: Application,
 ) : AndroidViewModel(application) {
     private val app = App.from(application)
-    private val runner = HotReloadRunner(viewModelScope, application.filesDir)
+    private val reloadRunner = HotReloadRunner(viewModelScope, application.filesDir)
     val support = app.support
     private val logArchive = LogArchive(application.filesDir)
     private val logLock = Mutex()
@@ -124,7 +124,7 @@ class MainViewModel(
     fun setDateStyle(style: DateStyle) = app.setDateStyle(style)
 
     private val targets = MutableStateFlow<List<HookedTarget>>(emptyList())
-    private val scope = MutableStateFlow<Set<String>?>(null)
+    private val scopedPackages = MutableStateFlow<Set<String>?>(null)
 
     private fun targetRank(target: HookedTarget): Int =
         when {
@@ -138,7 +138,7 @@ class MainViewModel(
             .map { list -> list.sortedWith(compareBy(::targetRank, HookedTarget::getProcessName)) }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private fun pendingTargets(list: List<HookedTarget>): List<HookedTarget> =
+    private fun selectReloadTargets(list: List<HookedTarget>): List<HookedTarget> =
         list.filter { it.state == HookedTarget.State.STALE }.ifEmpty { list }
 
     val reloadCount: StateFlow<Int> =
@@ -146,7 +146,7 @@ class MainViewModel(
             .map { list -> list.count { it.state == HookedTarget.State.STALE } }
             .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-    val reload: StateFlow<ReloadRun?> = runner.state
+    val reload: StateFlow<ReloadRun?> = reloadRunner.state
 
     val homeApp: StateFlow<HomeApp?> =
         targets
@@ -155,12 +155,12 @@ class MainViewModel(
             .stateIn(viewModelScope, SharingStarted.Eagerly, resolveHomeApp(emptyList()))
 
     val hookedPackages: StateFlow<Map<TweakGroup, HookedPackages>> =
-        combine(scope, targets, homeApp) { scope, targets, home -> hookedPackages(scope, targets, home) }
+        combine(scopedPackages, targets, homeApp) { scopedPackages, targets, home -> hookedPackages(scopedPackages, targets, home) }
             .flowOn(Dispatchers.IO)
             .stateIn(viewModelScope, SharingStarted.Eagerly, fixedPackages)
 
     private fun hookedPackages(
-        scope: Set<String>?,
+        scopedPackages: Set<String>?,
         targets: List<HookedTarget>,
         home: HomeApp?,
     ): Map<TweakGroup, HookedPackages> {
@@ -168,7 +168,7 @@ class MainViewModel(
 
         fun hooked(candidates: Set<String>): HookedPackages? {
             val installed = candidates.filter(::installed)
-            val scoped = installed.filter { it in running || scope == null || it in scope }
+            val scoped = installed.filter { it in running || scopedPackages == null || it in scopedPackages }
             return when {
                 scoped.isNotEmpty() -> HookedPackages(scoped, true)
                 installed.isNotEmpty() -> HookedPackages(installed, false)
@@ -388,10 +388,10 @@ class MainViewModel(
     fun retryReport(report: SentReport) {
         reportJob?.cancel()
         _reportPhase.value = ReportPhase.Sending
-        reportJob = viewModelScope.launch(Dispatchers.IO) { showResult(support.resend(report)) }
+        reportJob = viewModelScope.launch(Dispatchers.IO) { showSendResult(support.resend(report)) }
     }
 
-    private fun CoroutineScope.showResult(result: SendResult) {
+    private fun CoroutineScope.showSendResult(result: SendResult) {
         if (!isActive) return
         _reportPhase.value =
             when (result) {
@@ -421,7 +421,7 @@ class MainViewModel(
                     }.onFailure { Log.e(ModuleConstants.LOG_TAG, "report failed reason=${it.message}", it) }
                         .getOrElse { SendResult.Rejected(it.message ?: it.javaClass.simpleName) }
                 if (result !is SendResult.Rejected) _reportDrafts.update { it - replyTo.orEmpty() }
-                showResult(result)
+                showSendResult(result)
             }
     }
 
@@ -438,8 +438,8 @@ class MainViewModel(
             app.service.collect { service ->
                 if (service == null) {
                     targets.value = emptyList()
-                    scope.value = null
-                    runner.onServiceDied()
+                    scopedPackages.value = null
+                    reloadRunner.onServiceDied()
                 } else {
                     refreshTargets()
                 }
@@ -455,7 +455,7 @@ class MainViewModel(
                     .onFailure { Log.w(ModuleConstants.LOG_TAG, "getRunningTargets failed reason=${it.message}", it) }
                     .getOrDefault(emptyList())
             announceUpdate(targets.value)
-            scope.value =
+            scopedPackages.value =
                 runCatching { service.scope.toSet() }
                     .onFailure { Log.w(ModuleConstants.LOG_TAG, "getScope failed reason=${it.message}", it) }
                     .getOrNull()
@@ -489,15 +489,15 @@ class MainViewModel(
 
     fun hotReload(selected: List<HookedTarget>) {
         val service = app.service.value ?: return
-        runner.start(service, selected)
+        reloadRunner.start(service, selected)
     }
 
-    fun hotReloadPending() = hotReload(pendingTargets(reloadTargets.value))
+    fun hotReloadPending() = hotReload(selectReloadTargets(reloadTargets.value))
 
-    fun cancelHotReload() = runner.cancel()
+    fun cancelHotReload() = reloadRunner.cancel()
 
     fun dismissHotReload() {
-        runner.dismiss()
+        reloadRunner.dismiss()
         refreshTargets()
         refreshModuleLog()
     }

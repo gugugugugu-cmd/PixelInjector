@@ -34,7 +34,7 @@ class RomCode(
             .put("size", size)
             .put("file", name)
 
-    fun toLedgerJson(): JSONObject = toJson().put("path", path)
+    fun toStoredJson(): JSONObject = toJson().put("path", path)
 
     fun zip(): ByteArray {
         val out = ByteArrayOutputStream()

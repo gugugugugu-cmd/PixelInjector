@@ -174,7 +174,7 @@ fun ProgressSheet(
                     ButtonLabel(Icons.Outlined.Close, stringResource(R.string.close))
                 }
                 FilledTonalButton(shapes = ButtonDefaults.shapes(), onClick = {
-                    val clip = ClipData.newPlainText("PixelInjector hot reload", formatLines(run.lines))
+                    val clip = ClipData.newPlainText("PixelInjector hot reload", formatReloadLog(run.lines))
                     context.getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
                 }) { ButtonLabel(Icons.Outlined.ContentCopy, stringResource(R.string.copy)) }
             }

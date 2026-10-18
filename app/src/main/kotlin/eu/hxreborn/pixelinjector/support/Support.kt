@@ -78,14 +78,14 @@ class Support(
                     Log.e(ModuleConstants.LOG_TAG, "support task failed reason=${e.message}", e)
                 },
         )
-    private val ledgerWriter = Dispatchers.IO.limitedParallelism(1)
+    private val reportWriteDispatcher = Dispatchers.IO.limitedParallelism(1)
     private val prefs = context.getSharedPreferences("support", Context.MODE_PRIVATE)
-    private val ledger = Ledger(context.filesDir)
+    private val reportStore = ReportStore(context.filesDir)
     private val sendLock = Mutex()
     private val romCodeLock = Mutex()
     val updater = Updater(context)
 
-    private val _reports = MutableStateFlow(ledger.read())
+    private val _reports = MutableStateFlow(reportStore.read())
     val reports: StateFlow<List<SentReport>> = _reports.asStateFlow()
 
     private val _release = MutableStateFlow<ReleaseCheck>(cachedRelease())
@@ -111,13 +111,13 @@ class Support(
         return ReleaseCheck.Done(release, prefs.getLong(RELEASE_CHECKED_AT, 0))
     }
 
-    private fun mutate(change: (List<SentReport>) -> List<SentReport>) {
+    private fun updateReports(change: (List<SentReport>) -> List<SentReport>) {
         _reports.update(change)
-        scope.launch(ledgerWriter) { ledger.write(_reports.value) }
+        scope.launch(reportWriteDispatcher) { reportStore.write(_reports.value) }
     }
 
-    private fun replace(report: SentReport) =
-        mutate { list ->
+    private fun replaceReport(report: SentReport) =
+        updateReports { list ->
             list.map { if (it.id == report.id) report else it }
         }
 
@@ -135,7 +135,7 @@ class Support(
         replyTo?.let { root -> _reports.value.firstOrNull { it.id == root }?.noteKey }
             ?: Hpke.newNoteKey()
 
-    fun markNotesSeen() = mutate { list -> list.map { it.copy(noteSeen = true) } }
+    fun markNotesSeen() = updateReports { list -> list.map { it.copy(noteSeen = true) } }
 
     suspend fun send(
         encrypted: EncryptedReport,
@@ -164,9 +164,9 @@ class Support(
                 noteKeyPublic = Base64.getEncoder().encodeToString(encrypted.noteKey.publicRaw),
                 romCode = encrypted.romCode,
             )
-        ledger.envelope(report.id).writeBytes(encrypted.envelope)
-        ledger.meta(report.id).writeBytes(encrypted.meta)
-        mutate { listOf(report) + it }
+        reportStore.envelopeFile(report.id).writeBytes(encrypted.envelope)
+        reportStore.metadataFile(report.id).writeBytes(encrypted.meta)
+        updateReports { listOf(report) + it }
         return upload(report)
     }
 
@@ -182,8 +182,8 @@ class Support(
                     SendResult.Sent(current)
                 }
             }
-            val envelope = ledger.envelope(report.id).takeIf { it.exists() }?.readBytes()
-            val meta = ledger.meta(report.id).takeIf { it.exists() }?.readBytes()
+            val envelope = reportStore.envelopeFile(report.id).takeIf { it.exists() }?.readBytes()
+            val meta = reportStore.metadataFile(report.id).takeIf { it.exists() }?.readBytes()
             if (envelope == null || meta == null) return SendResult.Rejected("missing payload")
             when (
                 val reply =
@@ -203,7 +203,7 @@ class Support(
                             ModuleConstants.LOG_TAG,
                             "report queued id=${report.id} reason=reply is not JSON code=${reply.code}",
                         )
-                        replace(report.copy(error = "reply is not JSON"))
+                        replaceReport(report.copy(error = "reply is not JSON"))
                         return@withLock SendResult.Waiting(report)
                     }
                     Log.i(ModuleConstants.LOG_TAG, "report sent id=${report.id} code=${reply.code}")
@@ -213,8 +213,8 @@ class Support(
                             status = ReportStatus.RECEIVED,
                             error = null,
                         )
-                    ledger.deletePayload(report.id)
-                    replace(sent)
+                    reportStore.deletePayload(report.id)
+                    replaceReport(sent)
                     if (sent.romCode != null) scope.launch { uploadRomCode(sent.id) }
                     SendResult.Sent(sent)
                 }
@@ -224,7 +224,7 @@ class Support(
                         ModuleConstants.LOG_TAG,
                         "report queued id=${report.id} reason=${reply.reason}",
                     )
-                    replace(report.copy(error = reply.reason))
+                    replaceReport(report.copy(error = reply.reason))
                     SendResult.Waiting(report)
                 }
 
@@ -233,8 +233,8 @@ class Support(
                         ModuleConstants.LOG_TAG,
                         "report refused id=${report.id} code=${reply.code} reason=${reply.reason}",
                     )
-                    ledger.deletePayload(report.id)
-                    replace(report.copy(status = ReportStatus.REJECTED, error = reply.reason))
+                    reportStore.deletePayload(report.id)
+                    replaceReport(report.copy(status = ReportStatus.REJECTED, error = reply.reason))
                     SendResult.Rejected(reply.reason)
                 }
             }
@@ -245,7 +245,7 @@ class Support(
     private fun updateReport(
         id: String,
         change: (SentReport) -> SentReport,
-    ) = mutate { list -> list.map { if (it.id == id) change(it) else it } }
+    ) = updateReports { list -> list.map { if (it.id == id) change(it) else it } }
 
     private suspend fun uploadRomCode(id: String) =
         romCodeLock.withLock {
@@ -310,18 +310,20 @@ class Support(
                 }
             if (tracked.isEmpty()) return@launch
             val reply =
-                ReportClient.statuses(tracked.map { it.id to it.readToken }) as? ApiResponse.Ok
+                ReportClient.fetchReportStatuses(
+                    tracked.map { it.id to it.readToken },
+                ) as? ApiResponse.Ok
                     ?: return@launch
             val byId =
                 runCatching {
                     ReportClient.parseStatuses(reply.body)
                 }.getOrDefault(emptyList()).associateBy { it.optString("id") }
-            mutate { list ->
+            updateReports { list ->
                 list.mapNotNull { report ->
                     val json = byId[report.id] ?: return@mapNotNull report
                     val wire = json.optString("status")
                     if (wire == "gone") return@mapNotNull null
-                    val note = report.noteOf(json)
+                    val note = report.decodeNote(json)
                     report.copy(
                         short = json.optStringOrNull("short") ?: report.short,
                         status = ReportStatus.of(wire) ?: report.status,
@@ -332,7 +334,7 @@ class Support(
                         noteSeen = report.noteSeen && note == report.note,
                         events =
                             ReportEvent
-                                .list(json.optJSONArray("events"), report::noteOf)
+                                .list(json.optJSONArray("events"), report::decodeNote)
                                 .ifEmpty { report.events },
                     )
                 }
@@ -340,33 +342,33 @@ class Support(
         }
     }
 
-    private val pendingDeletes = ConcurrentHashMap<String, Job>()
-    private val pendingGroups = ConcurrentHashMap<String, List<SentReport>>()
+    private val pendingDeletionJobs = ConcurrentHashMap<String, Job>()
+    private val pendingReportDeletions = ConcurrentHashMap<String, List<SentReport>>()
 
     fun delete(report: SentReport) {
         val group = listOf(report) + _reports.value.filter { it.replyTo == report.id }
         val ids = group.map { it.id }.toSet()
-        mutate { list -> list.filterNot { it.id in ids } }
-        pendingGroups[report.id] = group
-        pendingDeletes[report.id] =
+        updateReports { list -> list.filterNot { it.id in ids } }
+        pendingReportDeletions[report.id] = group
+        pendingDeletionJobs[report.id] =
             scope.launch {
                 delay(UNDO_WINDOW_MS)
-                if (!pendingDeletes.remove(report.id, coroutineContext.job)) return@launch
-                pendingGroups.remove(report.id)
-                group.forEach { ledger.deletePayload(it.id) }
+                if (!pendingDeletionJobs.remove(report.id, coroutineContext.job)) return@launch
+                pendingReportDeletions.remove(report.id)
+                group.forEach { reportStore.deletePayload(it.id) }
                 if (report.status != ReportStatus.WAITING &&
                     report.status != ReportStatus.REJECTED
                 ) {
-                    ReportClient.delete(report.id, report.deleteToken)
+                    ReportClient.deleteReport(report.id, report.deleteToken)
                 }
             }
     }
 
     fun restore(report: SentReport) {
-        val pending = pendingDeletes.remove(report.id) ?: return
+        val pending = pendingDeletionJobs.remove(report.id) ?: return
         pending.cancel()
-        val group = pendingGroups.remove(report.id) ?: listOf(report)
-        mutate { list -> (list + group).sortedByDescending { it.sentAt } }
+        val group = pendingReportDeletions.remove(report.id) ?: listOf(report)
+        updateReports { list -> (list + group).sortedByDescending { it.sentAt } }
     }
 
     fun checkRelease(force: Boolean) {
@@ -416,7 +418,7 @@ class Support(
     }
 
     private fun fetchRelease(): ApiResponse {
-        val worker = ReportClient.release()
+        val worker = ReportClient.fetchRelease()
         if (worker is ApiResponse.Ok) {
             prefs.edit { remove(GITHUB_ETAG) }
             return worker
@@ -424,7 +426,7 @@ class Support(
         Log.w(ModuleConstants.LOG_TAG, "release check failed source=worker reason=$worker")
         val cached = prefs.getString(RELEASE_BODY, null)
         val etag = prefs.getString(GITHUB_ETAG, null)?.takeIf { cached != null }
-        return when (val gitHub = ReportClient.gitHubRelease(etag)) {
+        return when (val gitHub = ReportClient.fetchGitHubRelease(etag)) {
             is ApiResponse.Ok if gitHub.code == HttpURLConnection.HTTP_NOT_MODIFIED &&
                 cached != null -> {
                 ApiResponse.Ok(gitHub.code, cached)
@@ -511,7 +513,7 @@ class Support(
         if (!expected.equals(hash, ignoreCase = true)) {
             return InstallStep.Rejected(InstallStep.Rejected.Cause.CHECKSUM, expected, hash)
         }
-        val archive = updater.archiveInfo(file)
+        val archive = updater.readApkPackageInfo(file)
         val fileSigners = updater.signers(archive)
         onStep(
             InstallStep.Verifying(

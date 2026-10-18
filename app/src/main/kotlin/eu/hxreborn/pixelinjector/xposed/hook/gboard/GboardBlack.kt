@@ -41,7 +41,7 @@ internal val gboardBlack =
 private class TypedArrayBindings(
     val getColor: Method,
 ) {
-    private val verdicts = SparseIntArray()
+    private val blackSurfaceMatches = SparseIntArray()
     private val hooked = AtomicBoolean(false)
 
     fun hookOnce() {
@@ -57,20 +57,22 @@ private class TypedArrayBindings(
                 return@intercept result
             }
             val id = array.getResourceId(chain.getArg(0) as Int, 0)
-            if (id != 0 && paintsBlack(array, id)) Color.BLACK else result
+            if (id != 0 && isBlackSurfaceResource(array, id)) Color.BLACK else result
         }
         Logger.debug { "hooked tweak=$TWEAK" }
     }
 
-    private fun paintsBlack(
+    private fun isBlackSurfaceResource(
         array: TypedArray,
         id: Int,
     ): Boolean {
-        val cached = synchronized(verdicts) { verdicts.get(id, UNKNOWN) }
+        val cached = synchronized(blackSurfaceMatches) { blackSurfaceMatches.get(id, UNKNOWN) }
         if (cached != UNKNOWN) return cached == BLACK
         val name = runCatching { array.resources.getResourceEntryName(id) }.getOrDefault("")
         val black = name.startsWith(SURFACE_PREFIX) && !name.contains(HIGH_VARIANT)
-        synchronized(verdicts) { verdicts.put(id, if (black) BLACK else KEEP) }
+        synchronized(
+            blackSurfaceMatches,
+        ) { blackSurfaceMatches.put(id, if (black) BLACK else KEEP) }
         return black
     }
 
