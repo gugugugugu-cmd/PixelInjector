@@ -1,3 +1,25 @@
+## [1.12.0](https://github.com/hxreborn/PixelInjector/compare/v1.11.1...v1.12.0) (2026-10-18)
+
+### Features
+
+* **report:** attach ROM code to reports from non-Pixel phones ([ecd9307](https://github.com/hxreborn/PixelInjector/commit/ecd9307c5f23f155478f169ce620fd2ced8d8662))
+* **tweak:** add DownloadChip settings sheet ([f7ea290](https://github.com/hxreborn/PixelInjector/commit/f7ea290c103ade73ed70c40952eb44b4f45c4d67))
+* **tweak:** add DownloadChip side, icon and hide options ([189340b](https://github.com/hxreborn/PixelInjector/commit/189340b804bcf25a383eb5faab43f5e0169220ed))
+* **tweak:** add DownloadChip status bar progress chip ([7432602](https://github.com/hxreborn/PixelInjector/commit/74326020da0e5c96b2e05c8892c72c22b24add1c))
+
+### Bug Fixes
+
+* **report:** guard ROM code upload against unreadable and changed files ([95e2a1f](https://github.com/hxreborn/PixelInjector/commit/95e2a1f3cc433de71c820dac703514e27c8798b8))
+* **report:** skip the unreadable ROM code block when one was found ([13e5d8e](https://github.com/hxreborn/PixelInjector/commit/13e5d8e57d1ea66ad1754c04340ff2a86378e9b7))
+* **tweak:** add ChargingDetails support for HyperOS 3 ([cf66f23](https://github.com/hxreborn/PixelInjector/commit/cf66f2361752d9f38f6aab150ca14913620debed)), closes [#31](https://github.com/hxreborn/PixelInjector/issues/31)
+* **tweak:** add HomeMenuEntry support for Pixel Launcher CP41.260831 ([f0e01ed](https://github.com/hxreborn/PixelInjector/commit/f0e01edfea66cfe475a88a66140d0763bf835b23))
+* **tweak:** find the GhFastPass state enum by its constant ([b6e411c](https://github.com/hxreborn/PixelInjector/commit/b6e411c33ac084fbf9a510429b66bad05074dd34))
+* **tweak:** read the PillShot app from ScreenshotData.topComponent ([a7eaa63](https://github.com/hxreborn/PixelInjector/commit/a7eaa63f4d9cf3e985da316ff8eea47069a55242))
+
+### Refactor
+
+* rename vague and metaphorical identifiers ([0b1978d](https://github.com/hxreborn/PixelInjector/commit/0b1978dd729bfa2d263c4dc77a82ef5fe0d48ecf))
+
 ## [1.11.1](https://github.com/hxreborn/PixelInjector/compare/v1.11.0...v1.11.1) (2026-10-17)
 
 ### Bug Fixes
