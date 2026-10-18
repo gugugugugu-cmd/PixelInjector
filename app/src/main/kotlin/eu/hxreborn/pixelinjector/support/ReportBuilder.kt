@@ -39,7 +39,11 @@ class ReportFacts(
         if (tweak == null) romCodes.values.firstOrNull() else romCodes[tweak]
 
     fun unreadableRomCodeFor(tweak: String?): String? =
-        if (tweak == null) unreadableRomCodes.values.firstOrNull() else unreadableRomCodes[tweak]
+        when {
+            romCodeFor(tweak) != null -> null
+            tweak == null -> unreadableRomCodes.values.firstOrNull()
+            else -> unreadableRomCodes[tweak]
+        }
 }
 
 class ReportPreview(
