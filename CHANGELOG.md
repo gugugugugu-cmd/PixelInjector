@@ -9,8 +9,6 @@
 
 ### Bug Fixes
 
-* **report:** guard ROM code upload against unreadable and changed files ([95e2a1f](https://github.com/hxreborn/PixelInjector/commit/95e2a1f3cc433de71c820dac703514e27c8798b8))
-* **report:** skip the unreadable ROM code block when one was found ([13e5d8e](https://github.com/hxreborn/PixelInjector/commit/13e5d8e57d1ea66ad1754c04340ff2a86378e9b7))
 * **tweak:** add ChargingDetails support for HyperOS 3 ([cf66f23](https://github.com/hxreborn/PixelInjector/commit/cf66f2361752d9f38f6aab150ca14913620debed)), closes [#31](https://github.com/hxreborn/PixelInjector/issues/31)
 * **tweak:** add HomeMenuEntry support for Pixel Launcher CP41.260831 ([f0e01ed](https://github.com/hxreborn/PixelInjector/commit/f0e01edfea66cfe475a88a66140d0763bf835b23))
 * **tweak:** find the GhFastPass state enum by its constant ([b6e411c](https://github.com/hxreborn/PixelInjector/commit/b6e411c33ac084fbf9a510429b66bad05074dd34))
