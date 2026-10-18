@@ -6,6 +6,8 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.view.Gravity
@@ -34,6 +36,7 @@ private const val LISTENER = "com.android.systemui.statusbar.NotificationListene
 private const val CLOCK = "com.android.systemui.statusbar.policy.Clock"
 private const val ICON_AREA_ID = "notification_icon_area"
 private const val START_SIDE_ID = "status_bar_start_side_except_heads_up"
+private const val WINDOW_MANAGER_GLOBAL = "android.view.WindowManagerGlobal"
 private const val STATE_CHIP = "chip"
 private const val STATE_LISTENER = "listener"
 private const val CHIP_WIDTH_DP = 56
@@ -233,7 +236,33 @@ private fun attach(statusBar: ViewGroup) {
     (view.parent as? ViewGroup)?.removeView(view)
     container.addView(view, container.indexOfChild(anchor))
     chip = view
+    Logger.info("attached tweak=$TWEAK")
     resync()
+}
+
+private fun View.findInstance(type: Class<*>): View? {
+    if (type.isInstance(this)) return this
+    val group = this as? ViewGroup ?: return null
+    for (index in 0 until group.childCount) {
+        group.getChildAt(index).findInstance(type)?.let { return it }
+    }
+    return null
+}
+
+private fun findLiveStatusBar(statusBarClass: Class<*>): ViewGroup? {
+    val global = Class.forName(WINDOW_MANAGER_GLOBAL)
+    val instance = global.getMethod("getInstance").invoke(null)
+    val names = global.getMethod("getViewRootNames").invoke(instance) as Array<*>
+    val getRootView = global.getMethod("getRootView", String::class.java)
+    return names.firstNotNullOfOrNull { name ->
+        (getRootView.invoke(instance, name) as? View)?.findInstance(statusBarClass) as? ViewGroup
+    }
+}
+
+private fun attachLive(statusBarClass: Class<*>) {
+    if (chip != null) return
+    runCatching { findLiveStatusBar(statusBarClass)?.let(::attach) }
+        .onFailure { Logger.error("attach failed tweak=$TWEAK reason=${it.message}", it) }
 }
 
 private fun XposedModule.installDownloadChip(cl: ClassLoader): Boolean {
@@ -285,5 +314,7 @@ private fun XposedModule.installDownloadChip(cl: ClassLoader): Boolean {
             result
         }
     }
+    val statusBarClass = bindings.onFinishInflate.declaringClass
+    Handler(Looper.getMainLooper()).post { attachLive(statusBarClass) }
     return true
 }
