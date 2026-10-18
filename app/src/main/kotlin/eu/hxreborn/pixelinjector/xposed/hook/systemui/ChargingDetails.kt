@@ -5,10 +5,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Build
+import android.view.View
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.findFieldUpward
 import eu.hxreborn.pixelinjector.util.member
+import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
+import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
@@ -25,6 +28,10 @@ private const val TWEAK = "ChargingDetails"
 private const val GOOGLE_CONTROLLER =
     "com.google.android.systemui.statusbar.KeyguardIndicationControllerGoogle"
 private const val CONTROLLER = "com.android.systemui.statusbar.KeyguardIndicationController"
+private const val ROTATE_CONTROLLER =
+    "com.android.systemui.keyguard.KeyguardIndicationRotateTextViewController"
+private const val INDICATION = "com.android.systemui.keyguard.KeyguardIndication"
+private const val INDICATION_TYPE_BATTERY = 3
 private const val MICRO = 1_000_000f
 private const val MILLI = 1_000f
 private const val TENTHS = 10f
@@ -40,20 +47,53 @@ internal val chargingDetails =
     )
 
 private class IndicationBindings(
-    val computePowerIndication: Method,
+    val method: Method,
     val context: Field,
+    val message: Field?,
 ) {
+    fun detailed(
+        owner: Any?,
+        text: CharSequence,
+    ): String? {
+        val hostContext =
+            when (val value = owner?.let(context::get)) {
+                is Context -> value
+                is View -> value.context
+                else -> null
+            } ?: return null
+        return details(hostContext)?.let { "$text\n$it" }
+    }
+
     companion object {
         fun resolve(cl: ClassLoader): IndicationBindings {
             val controller =
                 runCatching {
                     cl.loadClass(GOOGLE_CONTROLLER)
                 }.getOrElse { cl.loadClass(CONTROLLER) }
+            controller.optionalMethod("computePowerIndication", 0)?.let {
+                return IndicationBindings(
+                    method = it,
+                    context =
+                        controller.findFieldUpward("mContext")
+                            ?: throw NoSuchFieldException("${controller.simpleName}.mContext"),
+                    message = null,
+                )
+            }
+            // HyperOS 3 SystemUI OS3.0.303 BP2A.250605.031.A3
+            val rotate = cl.loadClass(ROTATE_CONTROLLER)
+            val indication = cl.loadClass(INDICATION)
             return IndicationBindings(
-                computePowerIndication = controller.requiredMethod("computePowerIndication"),
+                method =
+                    rotate.requiredMethod(
+                        "updateIndication",
+                        Int::class.javaPrimitiveType,
+                        indication,
+                        Boolean::class.javaPrimitiveType,
+                    ),
                 context =
-                    controller.findFieldUpward("mContext")
-                        ?: throw NoSuchFieldException("${controller.simpleName}.mContext"),
+                    rotate.findFieldUpward("mView")
+                        ?: throw NoSuchFieldException("${rotate.simpleName}.mView"),
+                message = indication.requiredField("mMessage"),
             )
         }
     }
@@ -85,18 +125,29 @@ private fun XposedModule.installChargingDetails(cl: ClassLoader): Boolean {
             )
             return false
         }
-    Logger.info("resolved tweak=$TWEAK members=${bindings.computePowerIndication.signature()}")
-    hook(bindings.computePowerIndication).intercept { chain ->
-        val result = chain.proceed()
-        if (!switch.enabled || result !is String) return@intercept result
-        val context =
-            chain.thisObject?.let { bindings.context.get(it) } as? Context
-                ?: return@intercept result
-        runCatching { details(context) }
-            .onFailure { Logger.error("details failed tweak=$TWEAK reason=${it.message}", it) }
-            .getOrNull()
-            ?.let { "$result\n$it" }
-            ?: result
+    Logger.info("resolved tweak=$TWEAK members=${bindings.method.signature()}")
+    val message = bindings.message
+    if (message == null) {
+        hook(bindings.method).intercept { chain ->
+            val result = chain.proceed()
+            if (!switch.enabled || result !is String) return@intercept result
+            runCatching { bindings.detailed(chain.thisObject, result) }
+                .onFailure { Logger.error("details failed tweak=$TWEAK reason=${it.message}", it) }
+                .getOrNull()
+                ?: result
+        }
+        return true
+    }
+    hook(bindings.method).intercept { chain ->
+        val indication = chain.getArg(1)
+        if (switch.enabled && chain.getArg(0) == INDICATION_TYPE_BATTERY && indication != null) {
+            runCatching {
+                (message.get(indication) as? CharSequence)
+                    ?.let { bindings.detailed(chain.thisObject, it) }
+                    ?.let { message.set(indication, it) }
+            }.onFailure { Logger.error("details failed tweak=$TWEAK reason=${it.message}", it) }
+        }
+        chain.proceed()
     }
     return true
 }
