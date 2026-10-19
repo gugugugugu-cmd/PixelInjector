@@ -27,6 +27,7 @@ import io.github.libxposed.api.XposedModule
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.lang.reflect.Proxy
 import kotlin.math.roundToInt
 
@@ -140,8 +141,10 @@ private class ComposeMenu(
             val int = Int::class.javaPrimitiveType
             val constructor =
                 popupDataClass.declaredConstructors
-                    .filter { actionType in it.parameterTypes && it.parameterTypes.last() != int }
-                    .maxByOrNull { it.parameterCount }
+                    .filter {
+                        !it.isSynthetic && actionType in it.parameterTypes &&
+                            it.parameterTypes.last() != int
+                    }.maxByOrNull { it.parameterCount }
                     ?: throw NoSuchMethodException("PopupData.<init>(...,${actionType.name})")
             val types = constructor.parameterTypes
             val stringContainer = types.firstOrNull { it.name == STRING_CONTAINER }
@@ -179,16 +182,25 @@ private class ComposeMenu(
                                 )
                             }
 
+                            // AOSP Launcher3QuickStep GSI DP11.260918.006
                             else -> {
-                                throw NoSuchMethodException(
-                                    "PopupData.<init>(...,${type.name})",
-                                )
+                                if (type.isPrimitive) {
+                                    throw NoSuchMethodException(
+                                        "PopupData.<init>(...,${type.name})",
+                                    )
+                                }
+                                null
                             }
                         }
                     }.toTypedArray()
             return ComposeMenu(
                 member = getAll,
-                listConstructor = getAll.returnType.getDeclaredConstructor(int),
+                // LineageOS 24 Launcher3QuickStep CP2A.260605.016
+                listConstructor =
+                    getAll.returnType
+                        .takeUnless { Modifier.isAbstract(it.modifiers) }
+                        ?.getDeclaredConstructor(int)
+                        ?: ArrayList::class.java.getConstructor(int),
                 popupData = constructor.apply { isAccessible = true },
                 args = args,
                 categoryIndex =
