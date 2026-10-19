@@ -230,7 +230,7 @@ private fun inherited(
 ): Method? =
     generateSequence(type) {
         it.superclass
-    }.firstNotNullOfOrNull { it.optionalMethod(name, 1) }
+    }.firstNotNullOfOrNull { it.optionalMethod(name) }
 
 private fun headsUpChangeMethods(manager: Class<*>): List<Method> =
     listOf(
