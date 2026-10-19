@@ -3,12 +3,14 @@ package eu.hxreborn.pixelinjector.xposed.hook.systemui
 import android.os.Build
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.member
+import eu.hxreborn.pixelinjector.util.orNullIfMissing
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredMethod
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
 import eu.hxreborn.pixelinjector.xposed.Target
 import eu.hxreborn.pixelinjector.xposed.Tweak
+import eu.hxreborn.pixelinjector.xposed.hook.DexKit
 import io.github.libxposed.api.XposedModule
 import java.lang.reflect.Method
 
@@ -17,6 +19,8 @@ private const val PLAY_LAMBDA =
     "com.android.systemui.screenshot.ScreenshotSoundControllerImpl\$playScreenshotSound\$2"
 private const val CONTROLLER = "com.android.systemui.screenshot.ScreenshotController"
 private const val UNIT = "kotlin.Unit"
+private const val PLAY_FAILED_MESSAGE = "Screenshot sound failed to play"
+private const val INVOKE_SUSPEND = "invokeSuspend"
 
 private val switch = Switch(Prefs.SCREENSHOT_SOUND)
 
@@ -37,20 +41,27 @@ private class SoundBindings(
 
     companion object {
         fun resolve(cl: ClassLoader): SoundBindings {
-            val lambda = runCatching { cl.loadClass(PLAY_LAMBDA) }.getOrNull()
-            if (lambda != null) {
-                return SoundBindings(
-                    play = lambda.requiredMethod("invokeSuspend", Any::class.java),
-                    skipped = cl.loadClass(UNIT).getField("INSTANCE").get(null),
-                )
-            }
-            return SoundBindings(
-                play = cl.loadClass(CONTROLLER).requiredMethod("playCameraSoundIfNeeded"),
-                skipped = null,
-            )
+            val unit = { cl.loadClass(UNIT).getField("INSTANCE").get(null) }
+            orNullIfMissing {
+                cl
+                    .loadClass(
+                        PLAY_LAMBDA,
+                    ).requiredMethod(INVOKE_SUSPEND, Any::class.java)
+            }?.let { return SoundBindings(play = it, skipped = unit()) }
+            orNullIfMissing { cl.loadClass(CONTROLLER).requiredMethod("playCameraSoundIfNeeded") }
+                ?.let { return SoundBindings(play = it, skipped = null) }
+            return SoundBindings(play = findPlayMethodByString(cl), skipped = unit())
         }
     }
 }
+
+private fun findPlayMethodByString(cl: ClassLoader): Method =
+    DexKit
+        .methods(TWEAK, cl) {
+            it.findMethod { matcher { name(INVOKE_SUSPEND).usingStrings(PLAY_FAILED_MESSAGE) } }
+        }.singleOrNull()
+        ?.apply { isAccessible = true }
+        ?: throw NoSuchMethodException("$INVOKE_SUSPEND usingStrings($PLAY_FAILED_MESSAGE)")
 
 private fun XposedModule.installScreenshotSound(cl: ClassLoader): Boolean {
     val bindings =
