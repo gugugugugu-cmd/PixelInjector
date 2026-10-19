@@ -61,9 +61,9 @@ private class ScreenshotBindings(
             val data = cl.loadClass(DATA)
             val handleScreenshot = controller.requiredMethods("handleScreenshot")
             val capture = runCatching { cl.loadClass(CAPTURE) }.getOrNull()
-            val captureDisplay = capture?.optionalMethod("captureDisplay", 2)
+            val captureDisplay = capture?.optionalMethod("captureDisplay")
             if (captureDisplay == null && Build.VERSION.SDK_INT <= LAST_INLINE_CAPTURE_SDK) {
-                throw NoSuchMethodException("ImageCaptureImpl.captureDisplay(int,Rect)")
+                throw NoSuchMethodException("ImageCaptureImpl.captureDisplay")
             }
             return ScreenshotBindings(
                 handleScreenshot = handleScreenshot,
