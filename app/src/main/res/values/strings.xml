@@ -349,6 +349,16 @@
     <string name="changelog_summary">Every release</string>
     <string name="changelog_see_full">See full changelog</string>
     <string name="changelog_installed">installed</string>
+    <string name="changelog_open_commit">Open commit</string>
+    <string name="changelog_area_tweaks">Tweaks</string>
+    <string name="changelog_area_hooks">Hooks</string>
+    <string name="changelog_area_reports">Reports</string>
+    <string name="changelog_area_updates">Updates</string>
+    <string name="changelog_area_log">Module log</string>
+    <string name="changelog_area_reload">Hot reload</string>
+    <string name="changelog_area_ui">Interface</string>
+    <string name="changelog_area_app">App</string>
+    <string name="changelog_area_other">Other</string>
     <plurals name="changelog_count">
         <item quantity="one">%1$d release</item>
         <item quantity="other">%1$d releases</item>

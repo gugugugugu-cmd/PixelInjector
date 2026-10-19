@@ -1,9 +1,11 @@
 package eu.hxreborn.pixelinjector.ui.support
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,23 +16,36 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Article
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Smartphone
+import androidx.compose.material.icons.outlined.SystemUpdate
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.VerticalAlignBottom
 import androidx.compose.material.icons.outlined.VerticalAlignTop
+import androidx.compose.material.icons.outlined.Webhook
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
@@ -45,9 +60,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.BuildConfig
 import eu.hxreborn.pixelinjector.R
@@ -64,10 +86,34 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val CHANGELOG_ASSET = "CHANGELOG.md"
-private val CardRadius = 20.dp
-private val CardPadding = 16.dp
 private val ChipRadius = 8.dp
 private val ScrollbarGutter = 12.dp
+private val ReleaseGap = 20.dp
+private val AreaIconSize = 16.dp
+private val BadgeHeight = 22.dp
+private val BadgeIconSize = 14.dp
+private val NoteMinHeight = 40.dp
+
+private enum class NoteArea(
+    val scopes: Set<String?>,
+    @param:StringRes val title: Int,
+    val icon: ImageVector,
+) {
+    TWEAKS(setOf("tweak"), R.string.changelog_area_tweaks, Icons.Outlined.Tune),
+    HOOKS(setOf("hook", "module"), R.string.changelog_area_hooks, Icons.Outlined.Webhook),
+    REPORTS(setOf("report"), R.string.changelog_area_reports, Icons.Outlined.BugReport),
+    UPDATES(setOf("update"), R.string.changelog_area_updates, Icons.Outlined.SystemUpdate),
+    LOG(setOf("log"), R.string.changelog_area_log, Icons.AutoMirrored.Outlined.Article),
+    RELOAD(setOf("reload"), R.string.changelog_area_reload, Icons.Outlined.Refresh),
+    INTERFACE(setOf("ui"), R.string.changelog_area_ui, Icons.Outlined.Palette),
+    APP(setOf("app"), R.string.changelog_area_app, Icons.Outlined.Smartphone),
+    OTHER(emptySet(), R.string.changelog_area_other, Icons.Outlined.Code),
+    ;
+
+    companion object {
+        fun of(scope: String?): NoteArea = entries.firstOrNull { scope in it.scopes } ?: OTHER
+    }
+}
 
 @Composable
 fun rememberChangelog(): List<Release>? {
@@ -112,9 +158,16 @@ fun ChangelogScreen(onBack: () -> Unit) {
                         top = 8.dp,
                         bottom = navBottom + 88.dp,
                     ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(releases, key = { it.versionName }) { ReleaseCard(it) }
+                itemsIndexed(releases, key = { _, release -> release.versionName }) { index, release ->
+                    if (index > 0) {
+                        HorizontalDivider(
+                            Modifier.padding(vertical = ReleaseGap),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+                    }
+                    ReleaseSection(release)
+                }
             }
             androidx.compose.animation.AnimatedVisibility(
                 visible = listState.canScrollBackward || listState.canScrollForward,
@@ -140,25 +193,23 @@ fun ChangelogScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun ReleaseCard(release: Release) {
-    Surface(
-        shape = RoundedCornerShape(CardRadius),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(CardPadding), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(release.versionName, style = MaterialTheme.typography.titleLargeEmphasized)
-                Text(
-                    LocalDateStyle.current.formatIso(release.publishedAt).orEmpty(),
-                    style = AppText.meta,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
-                if (release.versionName == BuildConfig.VERSION_NAME) InstalledChip()
-            }
-            ReleaseNotes(release)
+private fun ReleaseSection(release: Release) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            Modifier.padding(horizontal = 4.dp).semantics { heading() },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(release.versionName, style = MaterialTheme.typography.titleLargeEmphasized)
+            Text(
+                LocalDateStyle.current.formatIso(release.publishedAt).orEmpty(),
+                style = AppText.meta,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            if (release.versionName == BuildConfig.VERSION_NAME) InstalledChip()
         }
+        ReleaseNotes(release)
     }
 }
 
@@ -176,10 +227,98 @@ private fun InstalledChip() {
 
 @Composable
 private fun ReleaseNotes(release: Release) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Notes(stringResource(R.string.notes_new), release.notesNew, emptyMap())
-        Notes(stringResource(R.string.notes_fixed), release.notesFixed, emptyMap())
-        Notes(stringResource(R.string.notes_other), release.notesOther, emptyMap())
+    val byArea = release.notes.groupBy { NoteArea.of(it.scope) }
+    Column {
+        NoteArea.entries.forEach { area ->
+            val notes = byArea[area]?.sortedBy { it.kind.ordinal } ?: return@forEach
+            AreaHeader(area)
+            notes.forEach { NoteRow(it) }
+        }
+    }
+}
+
+@Composable
+private fun AreaHeader(area: NoteArea) {
+    Row(
+        Modifier.padding(start = 4.dp, end = 4.dp, top = 12.dp, bottom = 2.dp).semantics { heading() },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            area.icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(AreaIconSize),
+        )
+        Text(
+            stringResource(area.title).uppercase(),
+            style = MaterialTheme.typography.labelMediumEmphasized,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun NoteRow(note: Release.Note) {
+    val uriHandler = LocalUriHandler.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = NoteMinHeight)
+            .clip(RoundedCornerShape(ChipRadius))
+            .then(
+                note.commitUrl?.let {
+                    Modifier.clickable(onClickLabel = stringResource(R.string.changelog_open_commit), role = Role.Button) {
+                        uriHandler.openUri(it)
+                    }
+                } ?: Modifier,
+            ).padding(horizontal = 4.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        KindBadge(note)
+        Text(
+            note.text.replaceFirstChar(Char::uppercase),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun KindBadge(note: Release.Note) {
+    val scheme = MaterialTheme.colorScheme
+    val (label, icon, colors) =
+        when (note.kind) {
+            Release.Note.Kind.NEW -> {
+                Triple(
+                    stringResource(R.string.notes_new),
+                    Icons.Outlined.AutoAwesome,
+                    scheme.primaryContainer to scheme.onPrimaryContainer,
+                )
+            }
+
+            Release.Note.Kind.FIXED -> {
+                Triple(
+                    stringResource(R.string.notes_fixed),
+                    Icons.Outlined.Build,
+                    scheme.tertiaryContainer to scheme.onTertiaryContainer,
+                )
+            }
+
+            Release.Note.Kind.OTHER -> {
+                Triple(note.section, Icons.Outlined.Code, scheme.surfaceContainerHighest to scheme.onSurfaceVariant)
+            }
+        }
+    Surface(shape = RoundedCornerShape(ChipRadius), color = colors.first, contentColor = colors.second) {
+        Row(
+            Modifier.heightIn(min = BadgeHeight).padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(BadgeIconSize))
+            Text(label, style = MaterialTheme.typography.labelSmallEmphasized, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
