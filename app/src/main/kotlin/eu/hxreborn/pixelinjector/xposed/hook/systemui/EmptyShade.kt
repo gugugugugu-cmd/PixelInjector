@@ -13,6 +13,8 @@ import eu.hxreborn.pixelinjector.ModuleConstants.SYSTEMUI_PACKAGE
 import eu.hxreborn.pixelinjector.icons.ShadeIcons
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.member
+import eu.hxreborn.pixelinjector.util.optionalField
+import eu.hxreborn.pixelinjector.util.orNullIfMissing
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethods
@@ -34,8 +36,10 @@ private const val CONTENT =
 
 // View shade of stable Android 17 (CD1A.261005.003 SystemUIGoogle), not yet in AOSP. Older binder:
 // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/packages/SystemUI/src/com/android/systemui/statusbar/notification/emptyshade/ui/viewbinder/EmptyShadeViewBinder.kt
-private const val VIEW_COLLECTOR =
-    "com.android.systemui.statusbar.notification.emptyshade.ui.viewbinder.EmptyShadeViewBinder\$bind\$2\$1\$1"
+private const val VIEW_BINDER =
+    "com.android.systemui.statusbar.notification.emptyshade.ui.viewbinder.EmptyShadeViewBinder"
+private const val VIEW_COLLECTOR_FIELD = "\$view"
+private const val MAX_ANONYMOUS_CLASS_INDEX = 4
 private const val ICON_MESSAGE_MODEL =
     "com.android.systemui.statusbar.notification.emptyshade.ui.shared.model.IconMessageModel"
 private const val ICON_VIEW =
@@ -50,6 +54,8 @@ private const val SNAPSHOT_STATE = "androidx.compose.runtime.SnapshotStateKt"
 private const val STATE = "androidx.compose.runtime.State"
 private const val MUTABLE_STATE = "androidx.compose.runtime.MutableState"
 private const val DEFAULT_POLICY_ARG_MASK = 2
+private const val CARRIED_VIEW = "view"
+private const val CARRIED_MODEL = "model"
 
 @Volatile private var current: ShadeBindings? = null
 
@@ -109,8 +115,11 @@ internal val emptyShade =
         key = TWEAK,
         targets = setOf(Target.SYSTEMUI),
         prefs = listOf(switch, customText, customIcon),
-        saveState = { current?.recomposeState },
-        restoreState = { saved -> current?.restoreRecomposeState(saved) },
+        saveState = { current?.recomposeState ?: currentView?.carry() },
+        restoreState = { saved ->
+            current?.restoreRecomposeState(saved)
+            currentView?.restoreLive(saved)
+        },
         install = XposedModule::installEmptyShade,
     )
 
@@ -151,8 +160,8 @@ private class StockIcon(
 }
 
 private class ViewBindings(
-    val emit: Method,
-    private val collectorView: Field,
+    val collectorViews: Map<Method, Field>,
+    private val modelType: Class<*>,
     private val modelMessage: Field,
     private val modelIcon: Field,
     private val textView: Field,
@@ -162,12 +171,28 @@ private class ViewBindings(
     @Volatile private var live: Pair<WeakReference<View>, Any>? = null
 
     fun onEmit(
+        viewField: Field,
         collector: Any,
-        model: Any,
+        emitted: Any?,
     ) {
-        val view = collectorView.get(collector) as? View ?: return
+        val model = emitted?.takeIf(modelType::isInstance) ?: return
+        val view = viewField.get(collector) as? View ?: return
         live = WeakReference(view) to model
         if (switch.enabled) apply(view, model)
+    }
+
+    fun carry(): HashMap<String, Any>? {
+        val (ref, model) = live ?: return null
+        val view = ref.get() ?: return null
+        return hashMapOf(CARRIED_VIEW to view, CARRIED_MODEL to model)
+    }
+
+    fun restoreLive(saved: Any?) {
+        val carried = saved as? Map<*, *> ?: return
+        val view = carried[CARRIED_VIEW] as? View ?: return
+        val model = carried[CARRIED_MODEL] ?: return
+        live = WeakReference(view) to model
+        reapply()
     }
 
     fun reapply() {
@@ -195,12 +220,11 @@ private class ViewBindings(
 
     companion object {
         fun resolve(cl: ClassLoader): ViewBindings {
-            val collector = cl.loadClass(VIEW_COLLECTOR)
             val model = cl.loadClass(ICON_MESSAGE_MODEL)
             val view = cl.loadClass(ICON_VIEW)
             return ViewBindings(
-                emit = collector.requiredMethods("emit").single(),
-                collectorView = collector.requiredField("\$view"),
+                collectorViews = findCollectorViews(cl),
+                modelType = model,
                 modelMessage = model.requiredField("message"),
                 modelIcon = model.requiredField("icon"),
                 textView = view.requiredField("textView"),
@@ -209,6 +233,21 @@ private class ViewBindings(
             )
         }
     }
+}
+
+private fun findCollectorViews(cl: ClassLoader): Map<Method, Field> {
+    val indices = 1..MAX_ANONYMOUS_CLASS_INDEX
+    return indices
+        .flatMap { a -> indices.flatMap { b -> indices.map { c -> "\$bind\$$a\$$b\$$c" } } }
+        .mapNotNull { orNullIfMissing { cl.loadClass(VIEW_BINDER + it) } }
+        .mapNotNull { type ->
+            val viewField = type.optionalField(VIEW_COLLECTOR_FIELD) ?: return@mapNotNull null
+            type.declaredMethods
+                .singleOrNull { it.name == "emit" }
+                ?.apply { isAccessible = true }
+                ?.let { it to viewField }
+        }.toMap()
+        .ifEmpty { throw NoSuchMethodException("$VIEW_BINDER\$bind.emit") }
 }
 
 private class ShadeBindings(
@@ -311,13 +350,16 @@ private fun XposedModule.installViewPath(
             }
             return false
         }
-    Logger.info("resolved tweak=$TWEAK members=${bindings.emit.signature()}")
+    val members = bindings.collectorViews.keys.joinToString(",") { it.signature() }
+    Logger.info("resolved tweak=$TWEAK members=$members")
     currentView = bindings
-    hook(bindings.emit).intercept { chain ->
-        val result = chain.proceed()
-        runCatching { bindings.onEmit(chain.thisObject, chain.args[0]) }
-            .onFailure { Logger.warn("rewrite failed tweak=$TWEAK reason=${it.reason()}") }
-        result
+    for ((emit, viewField) in bindings.collectorViews) {
+        hook(emit).intercept { chain ->
+            val result = chain.proceed()
+            runCatching { bindings.onEmit(viewField, chain.thisObject, chain.args[0]) }
+                .onFailure { Logger.warn("rewrite failed tweak=$TWEAK reason=${it.reason()}") }
+            result
+        }
     }
     return true
 }

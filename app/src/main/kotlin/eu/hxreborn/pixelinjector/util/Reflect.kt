@@ -66,3 +66,10 @@ fun Throwable.reason(): String =
         is NoSuchMethodException -> "no-method"
         else -> javaClass.simpleName
     }
+
+fun <T> orNullIfMissing(lookup: () -> T): T? =
+    try {
+        lookup()
+    } catch (e: ReflectiveOperationException) {
+        null
+    }
