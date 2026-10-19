@@ -72,11 +72,17 @@ private class AuthBindings(
                 CONTAINER_VIEWS.firstNotNullOfOrNull {
                     runCatching { cl.loadClass(it) }.getOrNull()
                 } ?: throw ClassNotFoundException("AuthContainerView")
-            val animatedIn =
-                view.declaredMethods.firstOrNull {
+            val candidates =
+                view.declaredMethods.filter {
                     it.parameterCount == 0 &&
                         (it.name == ANIMATED_IN || it.name.startsWith("$ANIMATED_IN$"))
-                } ?: throw NoSuchMethodException("AuthContainerView.$ANIMATED_IN")
+                }
+            val animatedIn =
+                candidates.firstOrNull { it.name == ANIMATED_IN }
+                    ?: candidates.singleOrNull()
+                    ?: throw NoSuchMethodException(
+                        "AuthContainerView.$ANIMATED_IN candidates=${candidates.size}",
+                    )
             val playToken =
                 runCatching { cl.loadClass(MULTISENSORY).optionalMethod(PLAY_TOKEN, 3) }.getOrNull()
             return AuthBindings(animatedIn.apply { isAccessible = true }, playToken)
