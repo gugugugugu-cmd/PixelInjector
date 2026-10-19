@@ -21,6 +21,7 @@ import eu.hxreborn.pixelinjector.xposed.Tweak
 import io.github.libxposed.api.XposedModule
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.util.Locale
 import kotlin.math.abs
 
@@ -70,9 +71,13 @@ private class IndicationBindings(
                 runCatching {
                     cl.loadClass(GOOGLE_CONTROLLER)
                 }.getOrElse { cl.loadClass(CONTROLLER) }
-            controller.optionalMethod("computePowerIndication", 0)?.let {
+            val computePower =
+                controller
+                    .optionalMethod("computePowerIndication", 0)
+                    ?.takeUnless { Modifier.isAbstract(it.modifiers) }
+            if (computePower != null) {
                 return IndicationBindings(
-                    method = it,
+                    method = computePower,
                     context =
                         controller.findFieldUpward("mContext")
                             ?: throw NoSuchFieldException("${controller.simpleName}.mContext"),
