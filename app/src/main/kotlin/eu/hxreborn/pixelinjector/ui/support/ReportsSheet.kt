@@ -94,17 +94,17 @@ fun ReportsSheet(
     val scope = rememberCoroutineScope()
     val deleted = stringResource(R.string.report_deleted)
     val undo = stringResource(R.string.undo)
-    var confirming by remember { mutableStateOf<SentReport?>(null) }
+    var confirmingId by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) { onOpened() }
-    confirming?.let { report ->
+    reports.firstOrNull { it.id == confirmingId }?.let { report ->
         AlertDialog(
-            onDismissRequest = { confirming = null },
+            onDismissRequest = { confirmingId = null },
             title = { Text(stringResource(R.string.report_delete_title, report.short ?: report.id.take(SHORT_ID))) },
             text = { Text(stringResource(R.string.report_delete_body)) },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        confirming = null
+                        confirmingId = null
                         onDelete(report)
                         snackbar.currentSnackbarData?.dismiss()
                         scope.launch {
@@ -117,7 +117,7 @@ fun ReportsSheet(
                     },
                 ) { Text(stringResource(R.string.report_delete_confirm), color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { confirming = null }) { Text(stringResource(R.string.cancel)) } },
+            dismissButton = { TextButton(onClick = { confirmingId = null }) { Text(stringResource(R.string.cancel)) } },
         )
     }
     Box {
@@ -137,7 +137,7 @@ fun ReportsSheet(
                         onReply = { onReply(report) },
                         onTryNow = onTryNow,
                         onOpenIssue = onOpenIssue,
-                        onDelete = { confirming = report },
+                        onDelete = { confirmingId = report.id },
                     )
                 }
             }
