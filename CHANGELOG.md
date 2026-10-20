@@ -1,3 +1,9 @@
+## [1.14.0](https://github.com/hxreborn/PixelInjector/compare/v1.13.1...v1.14.0) (2026-10-20)
+
+### Features
+
+* **tweak:** add ten FingerprintIcon icons from crDroid and AospExtended ([80982aa](https://github.com/hxreborn/PixelInjector/commit/80982aad03c5f9c5f72216e0315fa2b2a1bfc7b0))
+
 ## [1.13.1](https://github.com/hxreborn/PixelInjector/compare/v1.13.0...v1.13.1) (2026-10-20)
 
 ### Bug Fixes
