@@ -126,7 +126,10 @@ fun AppsSheet(
                         }
                     ToggleButton(
                         checked = onlySelected == value,
-                        onCheckedChange = { onOnlySelectedChange(value) },
+                        onCheckedChange = {
+                            if (onlySelected != value) haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+                            onOnlySelectedChange(value)
+                        },
                         shapes = shapes,
                         modifier = Modifier.weight(1f).then(radioRole),
                     ) { Text(stringResource(label)) }
