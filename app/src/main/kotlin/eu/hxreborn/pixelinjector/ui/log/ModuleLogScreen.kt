@@ -208,7 +208,7 @@ fun ModuleLogScreen(
                             null
                         } else {
                             {
-                                IconButton(onClick = { query = "" }) {
+                                IconButton(onClick = { query = "" }, shapes = IconButtonDefaults.shapes()) {
                                     Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.clear_search))
                                 }
                             }

@@ -474,7 +474,11 @@ private fun VersionTile(
         ) { target ->
             when (target) {
                 VersionAction.Update -> {
-                    FilledTonalButton(onClick = actions.onUpdate, modifier = Modifier.clearAndSetSemantics { }) {
+                    FilledTonalButton(
+                        onClick = actions.onUpdate,
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.clearAndSetSemantics { },
+                    ) {
                         Icon(Icons.Outlined.Download, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
                         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                         Text(stringResource(R.string.update))
@@ -711,7 +715,7 @@ private fun SignerTile(
                 overflow = if (expanded) TextOverflow.Clip else TextOverflow.MiddleEllipsis,
             )
         }
-        IconButton(onClick = {
+        IconButton(shapes = IconButtonDefaults.shapes(), onClick = {
             context
                 .getSystemService(ClipboardManager::class.java)
                 .setPrimaryClip(ClipData.newPlainText(title, signer))

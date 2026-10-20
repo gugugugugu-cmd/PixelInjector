@@ -54,6 +54,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
@@ -356,7 +357,15 @@ private fun Disclosure(
                     )
                 }
                 val toggleState = stringResource(if (expanded) R.string.state_expanded else R.string.state_collapsed)
-                IconButton(onClick = onToggle, modifier = Modifier.semantics { stateDescription = toggleState }) {
+                IconButton(
+                    onClick = onToggle,
+                    shapes = IconButtonDefaults.shapes(),
+                    modifier =
+                        Modifier.semantics {
+                            stateDescription =
+                                toggleState
+                        },
+                ) {
                     Icon(
                         if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
                         contentDescription = stringResource(R.string.report_what_gets_sent),
@@ -452,7 +461,7 @@ private fun Disclosure(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (preview != null && preview.logLineCount > 0) {
-                        TextButton(onClick = onExact, modifier = Modifier.offset(x = (-12).dp)) {
+                        TextButton(onClick = onExact, shapes = ButtonDefaults.shapes(), modifier = Modifier.offset(x = (-12).dp)) {
                             Text(stringResource(if (exact) R.string.report_hide_exact else R.string.report_show_exact))
                         }
                     }

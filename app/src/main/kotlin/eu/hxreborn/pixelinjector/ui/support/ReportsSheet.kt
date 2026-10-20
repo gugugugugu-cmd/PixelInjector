@@ -103,6 +103,7 @@ fun ReportsSheet(
             text = { Text(stringResource(R.string.report_delete_body)) },
             confirmButton = {
                 TextButton(
+                    shapes = ButtonDefaults.shapes(),
                     onClick = {
                         confirmingId = null
                         onDelete(report)
@@ -117,7 +118,9 @@ fun ReportsSheet(
                     },
                 ) { Text(stringResource(R.string.report_delete_confirm), color = MaterialTheme.colorScheme.error) }
             },
-            dismissButton = { TextButton(onClick = { confirmingId = null }) { Text(stringResource(R.string.cancel)) } },
+            dismissButton = {
+                TextButton(onClick = { confirmingId = null }, shapes = ButtonDefaults.shapes()) { Text(stringResource(R.string.cancel)) }
+            },
         )
     }
     Box {

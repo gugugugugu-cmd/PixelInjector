@@ -284,7 +284,7 @@ private fun Primary(
 
 @Composable
 private fun GitHubLink(onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    TextButton(onClick = onClick, shapes = ButtonDefaults.shapes(), modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.update_view_github))
         Spacer(Modifier.width(ButtonDefaults.IconSpacing))
         Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))

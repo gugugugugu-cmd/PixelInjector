@@ -556,7 +556,11 @@ private fun ToggleTile(
                     TileText(stringResource(tile.title), error.text, supportingColor = MaterialTheme.colorScheme.error)
                 }
                 if (error.reportable) {
-                    TextButton(onClick = { onReport(tile.tweak.key) }, modifier = Modifier.offset(x = ReportButtonInset)) {
+                    TextButton(
+                        onClick = { onReport(tile.tweak.key) },
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.offset(x = ReportButtonInset),
+                    ) {
                         Text(stringResource(R.string.report), style = AppText.button)
                     }
                 }
