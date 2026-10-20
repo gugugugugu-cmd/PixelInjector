@@ -86,6 +86,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -95,7 +96,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -418,7 +421,19 @@ private fun VersionTile(
 ) {
     val release = state.release
     val available = state.available
-    val onClick = if (available != null) actions.onUpdate else actions.onCheck
+    val haptic = LocalHapticFeedback.current
+    var checkRequested by remember { mutableStateOf(false) }
+    LaunchedEffect(release) {
+        if (checkRequested && release !is ReleaseCheck.Checking) {
+            checkRequested = false
+            haptic.performHapticFeedback(if (release is ReleaseCheck.Failed) HapticFeedbackType.Reject else HapticFeedbackType.Confirm)
+        }
+    }
+    val onCheck = {
+        checkRequested = true
+        actions.onCheck()
+    }
+    val onClick = if (available != null) actions.onUpdate else onCheck
     Tile(shape = shape, onClick = onClick) {
         TileLeading(Icons.Outlined.SystemUpdate)
         val supporting =
@@ -490,7 +505,7 @@ private fun VersionTile(
                 }
 
                 VersionAction.Check, VersionAction.Retry -> {
-                    IconButton(onClick = actions.onCheck, shapes = IconButtonDefaults.shapes()) {
+                    IconButton(onClick = onCheck, shapes = IconButtonDefaults.shapes()) {
                         Icon(
                             if (target == VersionAction.Retry) Icons.Outlined.ErrorOutline else Icons.Outlined.Refresh,
                             contentDescription = stringResource(R.string.update_check),
