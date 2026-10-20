@@ -2,9 +2,13 @@ package eu.hxreborn.pixelinjector.ui.reload
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,6 +56,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.ui.component.Console
@@ -214,10 +219,13 @@ private fun ResultTile(
             Text(processNameForDisplay(row.target.processName), style = AppText.tileTitle)
             Text(supporting, style = AppText.meta, color = toneColor(tone, scheme.onSurfaceVariant))
         }
-        Crossfade(
-            targetState = row.status,
-            animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-            label = "result-chip",
+        val chipFade = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+        val chipSize = MaterialTheme.motionScheme.defaultSpatialSpec<IntSize>()
+        transition.AnimatedContent(
+            transitionSpec = {
+                fadeIn(chipFade).togetherWith(fadeOut(chipFade)).using(SizeTransform(clip = false) { _, _ -> chipSize })
+            },
+            contentAlignment = Alignment.CenterEnd,
         ) { status ->
             if (status != null) {
                 val (container, content) =
