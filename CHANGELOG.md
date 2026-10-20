@@ -1,3 +1,19 @@
+## [1.13.0](https://github.com/hxreborn/PixelInjector/compare/v1.12.0...v1.13.0) (2026-10-20)
+
+### Features
+
+* **update:** group changelog notes by area with commit links ([13d5f9b](https://github.com/hxreborn/PixelInjector/commit/13d5f9b94676f3e11f1ef0289e35618316e64509))
+
+### Bug Fixes
+
+* **tweak:** find any EmptyShade view collector and carry it on reload ([0654408](https://github.com/hxreborn/PixelInjector/commit/065440884e0ffa5c267c5de37a0c12d6de911ebe))
+* **tweak:** find the ScreenshotSound lambda by its log string ([f3300b4](https://github.com/hxreborn/PixelInjector/commit/f3300b47841f975ea0f31446c11e954a9a7d8d2a))
+* **tweak:** install HomeMenuEntry on LineageOS 24 and AOSP launchers ([4e813d0](https://github.com/hxreborn/PixelInjector/commit/4e813d0523d2cf7216cee24b63d39a3d37a7d398))
+* **tweak:** prefer the exact BiometricBypass onDialogAnimatedIn name ([2aa7f6f](https://github.com/hxreborn/PixelInjector/commit/2aa7f6fe10f1fb9073908184e338d4b8b4ea5747))
+* **tweak:** resolve DownloadChip heads-up methods at any arity ([d15464c](https://github.com/hxreborn/PixelInjector/commit/d15464c3e01024b71858776a54e32aed818ed909))
+* **tweak:** resolve PillShot captureDisplay at any arity ([82f90ad](https://github.com/hxreborn/PixelInjector/commit/82f90adefb08688cbddab7980fcf52957ade3934))
+* **tweak:** skip an abstract ChargingDetails computePowerIndication ([e1794e5](https://github.com/hxreborn/PixelInjector/commit/e1794e56b60c04cd25be67befb5e442f15c47d80))
+
 ## [1.12.0](https://github.com/hxreborn/PixelInjector/compare/v1.11.1...v1.12.0) (2026-10-18)
 
 ### Features
