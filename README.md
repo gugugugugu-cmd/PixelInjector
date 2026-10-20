@@ -55,7 +55,7 @@ Needs Android 14 or newer, arm64, root and an Xposed framework with libxposed AP
 - **Pin ongoing notifications**: stops swiping away ongoing notifications like media and VPN.
 - **Charging details**: adds watts, volts, amps and battery temperature under the lock screen charging text.
 - **Download chip**: shows a download's progress as a chip in the status bar. Ported from [Iconify](https://github.com/Mahmud0808/Iconify)'s ongoing action chip.
-- **Fingerprint icon**: replaces the lock screen fingerprint icon with one of 24 icons from custom ROMs or your own image and can hide the circle behind it. Phones with an under-display fingerprint sensor.
+- **Fingerprint icon**: replaces the lock screen fingerprint icon with one of 34 icons from custom ROMs or your own image and can hide the circle behind it. Phones with an under-display fingerprint sensor.
 - **Heads-up duration**: sets how long a heads-up notification shows, from 1 to 15 seconds.
 - **Double tap status bar to sleep**: double tap empty status bar space and the phone sleeps.
 - **Biometric Bypass**: taps confirm on the biometric prompt after a face unlock and plays a system sound of your choice. Same hook as <img src="assets/modules/biometric-bypass.png" width="16" alt=""> [biometric-bypass](https://github.com/hxreborn/biometric-bypass).
@@ -134,7 +134,7 @@ Or reach me at [hxreborn@duck.com](mailto:hxreborn@duck.com) or on [Telegram](ht
 - [LuckyPray/DexKit](https://github.com/LuckyPray/DexKit) for the dex search library.
 - [JingMatrix/Vector](https://github.com/JingMatrix/Vector) for the module log screen design.
 - [Material Symbols](https://github.com/google/material-design-icons) for the empty shade icons (Apache 2.0).
-- AospExtended's UdfpsResources for the fingerprint icons, taken from [Syberia](https://github.com/syberia-project/platform_vendor_syberia), [DerpFest](https://github.com/DerpFest-AOSP/vendor_derp), [AfterlifeOS](https://github.com/AfterlifeOS/packages_overlays_Themes), [Infinity-X](https://github.com/ProjectInfinity-X/packages_overlays_Themes) and [AlphaDroid](https://github.com/AlphaDroid-Project/vendor_addons).
+- AospExtended's UdfpsResources for the fingerprint icons, taken from [Syberia](https://github.com/syberia-project/platform_vendor_syberia), [DerpFest](https://github.com/DerpFest-AOSP/vendor_derp), [AfterlifeOS](https://github.com/AfterlifeOS/packages_overlays_Themes), [Infinity-X](https://github.com/ProjectInfinity-X/packages_overlays_Themes), [AlphaDroid](https://github.com/AlphaDroid-Project/vendor_addons), [crDroid](https://github.com/crdroidandroid/android_vendor_addons) and [AospExtended](https://github.com/AospExtended/platform_vendor_aosp).
 
 ## License
 

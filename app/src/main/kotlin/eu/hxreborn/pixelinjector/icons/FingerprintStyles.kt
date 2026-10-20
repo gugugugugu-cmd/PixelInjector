@@ -32,6 +32,16 @@ object FingerprintStyles {
             "target",
             "ring",
             "glow",
+            "triangle",
+            "diamond",
+            "claws",
+            "sunset",
+            "dragon",
+            "yield",
+            "orbit",
+            "eclipse",
+            "splash",
+            "aurora",
         )
 
     fun isCustom(style: String): Boolean = style.startsWith(CUSTOM)
