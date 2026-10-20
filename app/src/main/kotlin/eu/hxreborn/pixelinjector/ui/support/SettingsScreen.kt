@@ -3,11 +3,16 @@ package eu.hxreborn.pixelinjector.ui.support
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.os.Build
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -106,6 +111,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import eu.hxreborn.pixelinjector.BuildConfig
 import eu.hxreborn.pixelinjector.R
@@ -401,6 +407,8 @@ private fun Chevron() {
     }
 }
 
+private enum class VersionAction { Update, Checking, Check, Retry }
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun VersionTile(
@@ -410,12 +418,7 @@ private fun VersionTile(
 ) {
     val release = state.release
     val available = state.available
-    val onClick =
-        when {
-            available != null -> actions.onUpdate
-            release is ReleaseCheck.Checking -> null
-            else -> actions.onCheck
-        }
+    val onClick = if (available != null) actions.onUpdate else actions.onCheck
     Tile(shape = shape, onClick = onClick) {
         TileLeading(Icons.Outlined.SystemUpdate)
         val supporting =
@@ -452,26 +455,44 @@ private fun VersionTile(
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                 },
         )
-        when {
-            available != null -> {
-                FilledTonalButton(onClick = actions.onUpdate, modifier = Modifier.clearAndSetSemantics { }) {
-                    Icon(Icons.Outlined.Download, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.update))
+        val action =
+            when {
+                available != null -> VersionAction.Update
+                release is ReleaseCheck.Checking -> VersionAction.Checking
+                failed -> VersionAction.Retry
+                else -> VersionAction.Check
+            }
+        val fadeSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+        val sizeSpec = MaterialTheme.motionScheme.defaultSpatialSpec<IntSize>()
+        AnimatedContent(
+            targetState = action,
+            transitionSpec = {
+                fadeIn(fadeSpec).togetherWith(fadeOut(fadeSpec)).using(SizeTransform(clip = false) { _, _ -> sizeSpec })
+            },
+            contentAlignment = Alignment.CenterEnd,
+            label = "version-action",
+        ) { target ->
+            when (target) {
+                VersionAction.Update -> {
+                    FilledTonalButton(onClick = actions.onUpdate, modifier = Modifier.clearAndSetSemantics { }) {
+                        Icon(Icons.Outlined.Download, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                        Text(stringResource(R.string.update))
+                    }
                 }
-            }
 
-            release is ReleaseCheck.Checking -> {
-                Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { LoadingIndicator(Modifier.size(32.dp)) }
-            }
+                VersionAction.Checking -> {
+                    Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) { LoadingIndicator(Modifier.size(32.dp)) }
+                }
 
-            else -> {
-                IconButton(onClick = actions.onCheck, shapes = IconButtonDefaults.shapes()) {
-                    Icon(
-                        if (failed) Icons.Outlined.ErrorOutline else Icons.Outlined.Refresh,
-                        contentDescription = stringResource(R.string.update_check),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                VersionAction.Check, VersionAction.Retry -> {
+                    IconButton(onClick = actions.onCheck, shapes = IconButtonDefaults.shapes()) {
+                        Icon(
+                            if (target == VersionAction.Retry) Icons.Outlined.ErrorOutline else Icons.Outlined.Refresh,
+                            contentDescription = stringResource(R.string.update_check),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
         }
