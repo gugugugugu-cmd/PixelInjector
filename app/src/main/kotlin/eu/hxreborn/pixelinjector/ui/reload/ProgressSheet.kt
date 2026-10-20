@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,12 +21,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.RemoveCircleOutline
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,7 +30,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
@@ -78,7 +74,6 @@ private val Tick = 1.seconds
 private val SlowAfter = 30.seconds
 private val ResultIconSize = 40.dp
 private val ConsoleHeight = 240.dp
-private val ResultIndicatorSize = 38.dp
 private val ResultStartPadding = 8.dp
 private val ResultEndPadding = 12.dp
 
@@ -202,6 +197,7 @@ private fun ResultTile(
     val scheme = MaterialTheme.colorScheme
     val tone = toneOf(row.status)
     val pid = row.target.pid
+    val transition = updateTransition(targetState = row.status, label = "result")
     val supporting =
         when (row.status) {
             null -> "pid=$pid not queued"
@@ -213,22 +209,7 @@ private fun ResultTile(
             else -> "pid=$pid ${row.message ?: "old module refused"}"
         }
     Tile(shape = shape, startPadding = ResultStartPadding, endPadding = ResultEndPadding) {
-        Crossfade(
-            targetState = row.status,
-            animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-            modifier = Modifier.size(ResultIconSize),
-            label = "result-icon",
-        ) { status ->
-            Box(Modifier.size(ResultIconSize), contentAlignment = Alignment.Center) {
-                when {
-                    status == ReloadStatus.RELOADING -> LoadingIndicator(Modifier.size(ResultIndicatorSize))
-                    status == null -> Icon(Icons.Outlined.RemoveCircleOutline, null, tint = scheme.onSurfaceVariant)
-                    toneOf(status) == Tone.OK -> Icon(Icons.Outlined.CheckCircle, null, tint = scheme.tertiary)
-                    toneOf(status) == Tone.WARN -> Icon(Icons.Outlined.Info, null, tint = scheme.secondary)
-                    else -> Icon(Icons.Outlined.Cancel, null, tint = scheme.error)
-                }
-            }
-        }
+        Box(Modifier.size(ResultIconSize), contentAlignment = Alignment.Center) { ResultBadge(transition) }
         Column(Modifier.weight(1f)) {
             Text(processNameForDisplay(row.target.processName), style = AppText.tileTitle)
             Text(supporting, style = AppText.meta, color = toneColor(tone, scheme.onSurfaceVariant))
