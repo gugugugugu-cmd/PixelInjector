@@ -364,8 +364,8 @@
         <item quantity="other">%1$d releases</item>
     </plurals>
     <string name="source_code">Source code</string>
-    <string name="suggest_feature">Suggest a feature</string>
-    <string name="suggest_feature_summary">Opens a feature request on GitHub</string>
+    <string name="open_issue">Suggest a feature or report a bug</string>
+    <string name="open_issue_summary">Opens an issue on GitHub</string>
     <string name="settings_this_device">This device</string>
     <string name="android_build">Android build</string>
     <string name="signing_key">Signing key</string>
