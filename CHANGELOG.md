@@ -1,3 +1,9 @@
+## [1.13.1](https://github.com/hxreborn/PixelInjector/compare/v1.13.0...v1.13.1) (2026-10-20)
+
+### Bug Fixes
+
+* **tweak:** draw FingerprintIcon picker icons on a lock screen backdrop ([5601896](https://github.com/hxreborn/PixelInjector/commit/5601896b48f9812fabf28d538c5604966a75d1bb))
+
 ## [1.13.0](https://github.com/hxreborn/PixelInjector/compare/v1.12.0...v1.13.0) (2026-10-20)
 
 ### Features
