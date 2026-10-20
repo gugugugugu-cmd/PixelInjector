@@ -30,14 +30,14 @@ import androidx.compose.material.icons.outlined.BatteryFull
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.SignalWifi4Bar
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -139,6 +139,7 @@ fun DownloadChipSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ChoiceTile(
     title: String,
@@ -150,15 +151,21 @@ private fun ChoiceTile(
     Tile(shape = TileShape) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(ChoiceGap)) {
             Text(title, style = AppText.tileTitle, color = MaterialTheme.colorScheme.onSurface)
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
                 options.forEachIndexed { index, (value, label) ->
-                    SegmentedButton(
-                        selected = value == selected,
-                        onClick = {
+                    ToggleButton(
+                        checked = value == selected,
+                        onCheckedChange = {
                             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
                             onSelect(value)
                         },
-                        shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                        shapes =
+                            when (index) {
+                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                            },
+                        modifier = Modifier.weight(1f).semantics { role = Role.RadioButton },
                     ) {
                         Text(label, style = AppText.button, maxLines = 1)
                     }
