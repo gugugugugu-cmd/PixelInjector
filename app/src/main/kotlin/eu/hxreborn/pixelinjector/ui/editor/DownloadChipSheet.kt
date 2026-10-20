@@ -39,10 +39,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -230,7 +230,7 @@ private fun Pill(
     appIcon: Boolean,
     ink: Color,
 ) {
-    val progress by
+    val progress =
         rememberInfiniteTransition(label = "progress").animateFloat(
             initialValue = 0f,
             targetValue = 1f,
@@ -262,9 +262,8 @@ private fun Pill(
                 .weight(1f)
                 .height(BarHeight)
                 .clip(CircleShape)
-                .background(ink.copy(alpha = TRACK_ALPHA)),
-        ) {
-            Box(Modifier.fillMaxWidth(progress).height(BarHeight).background(ink))
-        }
+                .background(ink.copy(alpha = TRACK_ALPHA))
+                .drawBehind { drawRect(ink, size = size.copy(width = size.width * progress.value)) },
+        )
     }
 }
