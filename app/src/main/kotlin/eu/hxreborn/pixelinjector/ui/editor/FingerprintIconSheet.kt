@@ -37,12 +37,14 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.outlined.HideSource
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -50,7 +52,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
@@ -88,7 +89,8 @@ private val PreviewIcon = 40.dp
 private val PreviewShape = RoundedCornerShape(28.dp)
 private val TileShape = RoundedCornerShape(20.dp)
 private val SectionGap = 16.dp
-private const val CIRCLE_ALPHA = 0.14f
+private val LockScreen = Color.Black
+private val LockScreenIcon = Color.White
 private const val COLUMNS = 4
 private const val ICON_PX = 192
 private const val SHEET_HEIGHT_FRACTION = 0.8f
@@ -237,21 +239,21 @@ private fun Preview(
             .fillMaxWidth()
             .height(PreviewHeight)
             .clip(PreviewShape)
-            .background(Brush.verticalGradient(listOf(colors.surfaceContainerHighest, colors.surfaceContainerLowest))),
+            .background(LockScreen),
         contentAlignment = Alignment.Center,
     ) {
         Box(
             Modifier
                 .size(PreviewCircle)
                 .alpha(circleAlpha)
-                .background(Color.White.copy(alpha = CIRCLE_ALPHA), CircleShape),
+                .background(colors.outline, CircleShape),
         )
         if (icon != null) {
             Image(
                 icon,
                 contentDescription = null,
                 modifier = Modifier.size(PreviewIcon),
-                colorFilter = if (tinted) ColorFilter.tint(Color.White) else null,
+                colorFilter = if (tinted) ColorFilter.tint(LockScreenIcon) else null,
             )
         }
     }
@@ -275,12 +277,13 @@ private fun StyleCell(
         Box(
             Modifier
                 .size(CellSize)
-                .clip(CircleShape)
-                .background(colors.surfaceContainerHighest)
                 .then(if (checked) Modifier.border(SelectedRing, colors.primary, CircleShape) else Modifier)
-                .indication(interaction, ripple()),
+                .padding(SelectedRing)
+                .clip(CircleShape)
+                .background(LockScreen)
+                .indication(interaction, ripple(color = LockScreenIcon)),
             contentAlignment = Alignment.Center,
-        ) { icon() }
+        ) { CompositionLocalProvider(LocalContentColor provides LockScreenIcon, content = icon) }
         Text(
             label,
             style = AppText.tileSupporting,
