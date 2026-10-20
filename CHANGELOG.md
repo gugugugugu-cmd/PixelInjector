@@ -1,3 +1,23 @@
+## [1.16.0](https://github.com/hxreborn/PixelInjector/compare/v1.15.0...v1.16.0) (2026-10-20)
+
+### Features
+
+* **ui:** animate the update check action swap in settings ([fdbf0d3](https://github.com/hxreborn/PixelInjector/commit/fdbf0d350d3f2ce2e470ce868f3bdbae79613fd5))
+* **ui:** confirm or reject the manual update check with haptics ([629579b](https://github.com/hxreborn/PixelInjector/commit/629579bb884cbb3475721a8263687d64e765d155))
+* **ui:** morph the reload result badge between cookie and sunny ([1b841f1](https://github.com/hxreborn/PixelInjector/commit/1b841f1b77f3e013a2b4c6bb99f180dd6cbb84f5))
+* **ui:** morph the remaining buttons on press ([613e31f](https://github.com/hxreborn/PixelInjector/commit/613e31fe2ef4c57377334d25d64adbc4ced5beb4))
+* **ui:** pick download chip options with a connected button group ([233e1c4](https://github.com/hxreborn/PixelInjector/commit/233e1c4826b755a20bbdc63f1e75ddfc15d64921))
+* **ui:** resize the reload result chip as its status swaps ([3244224](https://github.com/hxreborn/PixelInjector/commit/324422422300bf929a0a3abe628a12006a68846f))
+* **ui:** tick haptics when switching the app filter mode ([ecdedec](https://github.com/hxreborn/PixelInjector/commit/ecdedec914db775bb85fe9cbb07e341846d7ee25))
+
+### Bug Fixes
+
+* **ui:** keep the report delete confirmation across recreation ([2cc0dc8](https://github.com/hxreborn/PixelInjector/commit/2cc0dc87621bac9529e7eae002871e6bace0bfbe))
+
+### Performance Improvements
+
+* **ui:** draw the download chip preview progress without recomposing ([d260694](https://github.com/hxreborn/PixelInjector/commit/d260694451f2b588ddd1f25a111302590fc74cc8))
+
 ## [1.15.0](https://github.com/hxreborn/PixelInjector/compare/v1.14.0...v1.15.0) (2026-10-20)
 
 ### Features
