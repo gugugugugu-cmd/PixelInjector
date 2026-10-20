@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -45,7 +47,6 @@ import androidx.compose.material.icons.outlined.VerticalAlignTop
 import androidx.compose.material.icons.outlined.Webhook
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
@@ -61,6 +62,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -77,7 +79,9 @@ import eu.hxreborn.pixelinjector.support.Release
 import eu.hxreborn.pixelinjector.ui.component.DetailScaffold
 import eu.hxreborn.pixelinjector.ui.component.SheetActions
 import eu.hxreborn.pixelinjector.ui.component.SheetHeader
+import eu.hxreborn.pixelinjector.ui.component.TileGap
 import eu.hxreborn.pixelinjector.ui.component.readableGutter
+import eu.hxreborn.pixelinjector.ui.component.tileShape
 import eu.hxreborn.pixelinjector.ui.theme.AppText
 import eu.hxreborn.pixelinjector.ui.util.LocalDateStyle
 import eu.hxreborn.pixelinjector.ui.util.verticalScrollbar
@@ -88,7 +92,7 @@ import kotlinx.coroutines.withContext
 private const val CHANGELOG_ASSET = "CHANGELOG.md"
 private val ChipRadius = 8.dp
 private val ScrollbarGutter = 12.dp
-private val ReleaseGap = 20.dp
+private val ReleaseCardPadding = 12.dp
 private val AreaIconSize = 16.dp
 private val BadgeHeight = 22.dp
 private val BadgeIconSize = 14.dp
@@ -160,13 +164,8 @@ fun ChangelogScreen(onBack: () -> Unit) {
                     ),
             ) {
                 itemsIndexed(releases, key = { _, release -> release.versionName }) { index, release ->
-                    if (index > 0) {
-                        HorizontalDivider(
-                            Modifier.padding(vertical = ReleaseGap),
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
-                    }
-                    ReleaseSection(release)
+                    if (index > 0) Spacer(Modifier.height(TileGap))
+                    ReleaseSection(release, tileShape(releases.size, index))
                 }
             }
             androidx.compose.animation.AnimatedVisibility(
@@ -193,8 +192,17 @@ fun ChangelogScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun ReleaseSection(release: Release) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+private fun ReleaseSection(
+    release: Release,
+    shape: Shape,
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainer, shape)
+            .padding(ReleaseCardPadding),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         Row(
             Modifier.padding(horizontal = 4.dp).semantics { heading() },
             verticalAlignment = Alignment.CenterVertically,
