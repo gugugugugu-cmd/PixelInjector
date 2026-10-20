@@ -1,3 +1,13 @@
+## [1.15.0](https://github.com/hxreborn/PixelInjector/compare/v1.14.0...v1.15.0) (2026-10-20)
+
+### Features
+
+* **ui:** open the github issue template chooser from about ([b1d0cb8](https://github.com/hxreborn/PixelInjector/commit/b1d0cb83b5ea0233e15501f0560cd0bbfd6c9cbf))
+
+### Bug Fixes
+
+* **ui:** separate changelog releases with cards instead of dividers ([f16af42](https://github.com/hxreborn/PixelInjector/commit/f16af4292f17f452aa98a573c0f3e33ce753b8e9))
+
 ## [1.14.0](https://github.com/hxreborn/PixelInjector/compare/v1.13.1...v1.14.0) (2026-10-20)
 
 ### Features
