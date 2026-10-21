@@ -1,3 +1,13 @@
+## [1.17.0](https://github.com/hxreborn/PixelInjector/compare/v1.16.0...v1.17.0) (2026-10-21)
+
+### Features
+
+* **update:** group changelog notes by type with area chips ([299abc3](https://github.com/hxreborn/PixelInjector/commit/299abc36df4f62077bf935bfb65a8ab13ace2ab5))
+
+### Bug Fixes
+
+* **tweak:** draw FingerprintIcon on the Android 14 UDFPS keyguard view ([50acb3c](https://github.com/hxreborn/PixelInjector/commit/50acb3cf464ce2073c25fa3abcb17a99c1d6c076)), closes [#38](https://github.com/hxreborn/PixelInjector/issues/38)
+
 ## [1.16.0](https://github.com/hxreborn/PixelInjector/compare/v1.15.0...v1.16.0) (2026-10-20)
 
 ### Features
