@@ -93,7 +93,7 @@ private const val CHANGELOG_ASSET = "CHANGELOG.md"
 private val ChipRadius = 8.dp
 private val ScrollbarGutter = 12.dp
 private val ReleaseCardPadding = 12.dp
-private val AreaIconSize = 16.dp
+private val SectionIconSize = 16.dp
 private val BadgeHeight = 22.dp
 private val BadgeIconSize = 14.dp
 private val NoteMinHeight = 40.dp
@@ -235,31 +235,32 @@ private fun InstalledChip() {
 
 @Composable
 private fun ReleaseNotes(release: Release) {
-    val byArea = release.notes.groupBy { NoteArea.of(it.scope) }
+    val bySection = release.notes.sortedBy { it.kind.ordinal }.groupBy { it.section }
     Column {
-        NoteArea.entries.forEach { area ->
-            val notes = byArea[area]?.sortedBy { it.kind.ordinal } ?: return@forEach
-            AreaHeader(area)
-            notes.forEach { NoteRow(it) }
+        bySection.values.forEach { notes ->
+            SectionHeader(notes.first())
+            notes.sortedBy { NoteArea.of(it.scope).ordinal }.forEach { NoteRow(it) }
         }
     }
 }
 
 @Composable
-private fun AreaHeader(area: NoteArea) {
+private fun SectionHeader(note: Release.Note) {
+    val scheme = MaterialTheme.colorScheme
+    val (label, icon, tint) =
+        when (note.kind) {
+            Release.Note.Kind.NEW -> Triple(stringResource(R.string.notes_new), Icons.Outlined.AutoAwesome, scheme.primary)
+            Release.Note.Kind.FIXED -> Triple(stringResource(R.string.notes_fixed), Icons.Outlined.Build, scheme.tertiary)
+            Release.Note.Kind.OTHER -> Triple(note.section, Icons.Outlined.Code, scheme.onSurfaceVariant)
+        }
     Row(
         Modifier.padding(start = 4.dp, end = 4.dp, top = 12.dp, bottom = 2.dp).semantics { heading() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(
-            area.icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(AreaIconSize),
-        )
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(SectionIconSize))
         Text(
-            stringResource(area.title).uppercase(),
+            label.uppercase(),
             style = MaterialTheme.typography.labelMediumEmphasized,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -284,7 +285,7 @@ private fun NoteRow(note: Release.Note) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        KindBadge(note)
+        AreaChip(note)
         Text(
             note.text.replaceFirstChar(Char::uppercase),
             style = MaterialTheme.typography.bodyMedium,
@@ -294,38 +295,25 @@ private fun NoteRow(note: Release.Note) {
 }
 
 @Composable
-private fun KindBadge(note: Release.Note) {
-    val scheme = MaterialTheme.colorScheme
-    val (label, icon, colors) =
-        when (note.kind) {
-            Release.Note.Kind.NEW -> {
-                Triple(
-                    stringResource(R.string.notes_new),
-                    Icons.Outlined.AutoAwesome,
-                    scheme.primaryContainer to scheme.onPrimaryContainer,
-                )
-            }
-
-            Release.Note.Kind.FIXED -> {
-                Triple(
-                    stringResource(R.string.notes_fixed),
-                    Icons.Outlined.Build,
-                    scheme.tertiaryContainer to scheme.onTertiaryContainer,
-                )
-            }
-
-            Release.Note.Kind.OTHER -> {
-                Triple(note.section, Icons.Outlined.Code, scheme.surfaceContainerHighest to scheme.onSurfaceVariant)
-            }
-        }
-    Surface(shape = RoundedCornerShape(ChipRadius), color = colors.first, contentColor = colors.second) {
+private fun AreaChip(note: Release.Note) {
+    val area = NoteArea.of(note.scope)
+    Surface(
+        shape = RoundedCornerShape(ChipRadius),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    ) {
         Row(
             Modifier.heightIn(min = BadgeHeight).padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(BadgeIconSize))
-            Text(label, style = MaterialTheme.typography.labelSmallEmphasized, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(area.icon, contentDescription = null, modifier = Modifier.size(BadgeIconSize))
+            Text(
+                stringResource(area.title),
+                style = MaterialTheme.typography.labelSmallEmphasized,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
