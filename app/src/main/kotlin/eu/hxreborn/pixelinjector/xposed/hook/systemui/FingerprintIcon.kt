@@ -2,8 +2,10 @@ package eu.hxreborn.pixelinjector.xposed.hook.systemui
 
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.DrawableWrapper
 import android.os.Build
@@ -28,12 +30,15 @@ import eu.hxreborn.pixelinjector.xposed.Value
 import eu.hxreborn.pixelinjector.xposed.module
 import io.github.libxposed.api.XposedModule
 import java.lang.reflect.Field
+import java.lang.reflect.Method
 import java.util.Collections
 import java.util.WeakHashMap
 import java.util.zip.ZipFile
 
 private const val TWEAK = "FingerprintIcon"
 private const val ICON_VIEW = "com.android.systemui.keyguard.ui.view.DeviceEntryIconView"
+private const val UDFPS_VIEW = "com.android.systemui.biometrics.UdfpsKeyguardView"
+private const val OPAQUE = 255
 
 @Volatile private var current: FingerprintBindings? = null
 
@@ -94,10 +99,97 @@ private class FingerprintSwap(
     }
 }
 
-private class FingerprintBindings(
+private sealed interface IconTarget {
+    val viewClass: Class<*>
+    val members: String
+    val refresh: Method?
+
+    fun apply(
+        view: View,
+        replacement: () -> Drawable?,
+        hidden: Boolean,
+        circleScale: Float,
+    ): Boolean
+}
+
+private class DeviceEntryTarget(
     val iconView: Field,
     val bgView: Field,
     val fingerprintStates: List<IntArray>,
+) : IconTarget {
+    override val viewClass: Class<*> = iconView.declaringClass
+    override val members = "${iconView.signature()},${bgView.signature()}"
+    override val refresh: Method? = null
+
+    override fun apply(
+        view: View,
+        replacement: () -> Drawable?,
+        hidden: Boolean,
+        circleScale: Float,
+    ): Boolean {
+        val icon = iconView.get(view) as ImageView
+        val bg = bgView.get(view) as ImageView
+        val swap = replacement()
+        val stock = unwrap(icon.drawable)
+        if (swap != null || hidden) {
+            val wrapper =
+                icon.drawable as? FingerprintSwap
+                    ?: FingerprintSwap(stock, fingerprintStates).also(icon::setImageDrawable)
+            wrapper.replacement = swap
+        } else if (icon.drawable !== stock) {
+            icon.setImageDrawable(stock)
+        }
+        bg.scaleX = circleScale
+        bg.scaleY = circleScale
+        return true
+    }
+
+    private fun unwrap(drawable: Drawable): Drawable =
+        if (drawable is DrawableWrapper &&
+            drawable.javaClass.name == FingerprintSwap::class.java.name
+        ) {
+            drawable.drawable ?: drawable
+        } else {
+            drawable
+        }
+}
+
+private class UdfpsTarget(
+    val fingerprints: List<Field>,
+    val bgProtection: Field,
+    override val refresh: Method,
+) : IconTarget {
+    override val viewClass: Class<*> = bgProtection.declaringClass
+    override val members = (fingerprints + bgProtection).joinToString(",") { it.signature() }
+
+    override fun apply(
+        view: View,
+        replacement: () -> Drawable?,
+        hidden: Boolean,
+        circleScale: Float,
+    ): Boolean {
+        val bg = bgProtection.get(view) as? ImageView ?: return false
+        fingerprints.map { it.get(view) as ImageView }.forEach { fingerprint ->
+            val swap = replacement()
+            fingerprint.imageAlpha = if (swap != null || hidden) 0 else OPAQUE
+            fingerprint.foreground =
+                swap?.let {
+                    FingerprintSwap(
+                        ColorDrawable(Color.TRANSPARENT),
+                        listOf(StateSet.WILD_CARD),
+                    ).apply {
+                        this.replacement = it
+                    }
+                }
+        }
+        bg.scaleX = circleScale
+        bg.scaleY = circleScale
+        return true
+    }
+}
+
+private class FingerprintBindings(
+    val target: IconTarget,
 ) {
     val views: MutableSet<View> =
         Collections.synchronizedSet(
@@ -132,7 +224,7 @@ private class FingerprintBindings(
 
     private fun iconViewsIn(view: View): List<View> =
         when {
-            iconView.declaringClass.isInstance(view) -> {
+            target.viewClass.isInstance(view) -> {
                 listOf(view)
             }
 
@@ -193,29 +285,18 @@ private class FingerprintBindings(
 
     private fun updateView(view: View) {
         runCatching {
-            val icon = iconView.get(view) as ImageView
-            val bg = bgView.get(view) as ImageView
             val style = style.value
-            val replacement =
-                if (switch.enabled && style != FingerprintStyles.STOCK &&
+            val swapping =
+                switch.enabled && style != FingerprintStyles.STOCK &&
                     style != FingerprintStyles.NONE
-                ) {
-                    newReplacement(view, style)
-                } else {
-                    null
-                }
-            val stock = unwrap(icon.drawable)
-            if (replacement != null || (switch.enabled && style == FingerprintStyles.NONE)) {
-                val wrapper =
-                    icon.drawable as? FingerprintSwap
-                        ?: FingerprintSwap(stock, fingerprintStates).also(icon::setImageDrawable)
-                wrapper.replacement = replacement
-            } else if (icon.drawable !== stock) {
-                icon.setImageDrawable(stock)
-            }
-            val circleScale = if (switch.enabled && hideCircle.enabled) 0f else 1f
-            bg.scaleX = circleScale
-            bg.scaleY = circleScale
+            val applied =
+                target.apply(
+                    view,
+                    replacement = { if (swapping) newReplacement(view, style) else null },
+                    hidden = switch.enabled && style == FingerprintStyles.NONE,
+                    circleScale = if (switch.enabled && hideCircle.enabled) 0f else 1f,
+                )
+            if (!applied) return@runCatching
             val styleLabel = style.ifEmpty { "stock" }
             Logger.info(
                 "applied tweak=$TWEAK style=$styleLabel hideCircle=${hideCircle.enabled} on=${switch.enabled}",
@@ -223,17 +304,17 @@ private class FingerprintBindings(
         }.onFailure { Logger.error("apply failed tweak=$TWEAK reason=${it.message}", it) }
     }
 
-    private fun unwrap(drawable: Drawable): Drawable =
-        if (drawable is DrawableWrapper &&
-            drawable.javaClass.name == FingerprintSwap::class.java.name
-        ) {
-            drawable.drawable ?: drawable
-        } else {
-            drawable
-        }
-
     companion object {
-        fun resolve(cl: ClassLoader): FingerprintBindings {
+        fun resolve(cl: ClassLoader): FingerprintBindings =
+            FingerprintBindings(
+                try {
+                    deviceEntry(cl)
+                } catch (_: ClassNotFoundException) {
+                    udfps(cl)
+                },
+            )
+
+        private fun deviceEntry(cl: ClassLoader): DeviceEntryTarget {
             val view = cl.loadClass(ICON_VIEW)
             val iconType = cl.loadClass("$ICON_VIEW\$IconType")
             val getIconState =
@@ -243,13 +324,32 @@ private class FingerprintBindings(
                     Boolean::class.javaPrimitiveType,
                 )
             val fingerprint = iconType.enumConstants.first { (it as Enum<*>).name == "FINGERPRINT" }
-            return FingerprintBindings(
+            return DeviceEntryTarget(
                 iconView = view.requiredField("iconView"),
                 bgView = view.requiredField("bgView"),
                 fingerprintStates =
                     listOf(false, true).map {
                         getIconState.invoke(null, fingerprint, it) as IntArray
                     },
+            )
+        }
+
+        // Android 14 SystemUI AP2A.240905.003
+        private fun udfps(cl: ClassLoader): UdfpsTarget {
+            val view =
+                try {
+                    cl.loadClass("${UDFPS_VIEW}Legacy")
+                } catch (_: ClassNotFoundException) {
+                    cl.loadClass(UDFPS_VIEW)
+                }
+            return UdfpsTarget(
+                fingerprints =
+                    listOf(
+                        view.requiredField("mLockScreenFp"),
+                        view.requiredField("mAodFp"),
+                    ),
+                bgProtection = view.requiredField("mBgProtection"),
+                refresh = view.requiredMethod("updateColor"),
             )
         }
     }
@@ -263,11 +363,16 @@ private fun XposedModule.installFingerprintIcon(cl: ClassLoader): Boolean {
             )
             return false
         }
-    Logger.info(
-        "resolved tweak=$TWEAK members=${bindings.iconView.signature()},${bindings.bgView.signature()}",
-    )
+    Logger.info("resolved tweak=$TWEAK members=${bindings.target.members}")
     current = bindings
-    for (constructor in bindings.iconView.declaringClass.declaredConstructors) {
+    bindings.target.refresh?.let { refresh ->
+        hook(refresh).intercept { chain ->
+            val result = chain.proceed()
+            (chain.thisObject as? View)?.let(bindings::register)
+            result
+        }
+    }
+    for (constructor in bindings.target.viewClass.declaredConstructors) {
         hook(constructor).intercept { chain ->
             val result = chain.proceed()
             (chain.thisObject as? View)?.let(bindings::register)
