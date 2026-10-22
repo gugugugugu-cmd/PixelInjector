@@ -1,3 +1,9 @@
+## [1.18.0](https://github.com/hxreborn/PixelInjector/compare/v1.17.0...v1.18.0) (2026-10-22)
+
+### Features
+
+* **tweak:** add FirefoxMaterialYou for Iceraven and Firefox ([#39](https://github.com/hxreborn/PixelInjector/issues/39)) ([871664a](https://github.com/hxreborn/PixelInjector/commit/871664a9079566eb95e74a00123abc8e0c122a62))
+
 ## [1.17.0](https://github.com/hxreborn/PixelInjector/compare/v1.16.0...v1.17.0) (2026-10-21)
 
 ### Features
