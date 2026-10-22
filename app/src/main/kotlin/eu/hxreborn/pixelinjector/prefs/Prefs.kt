@@ -75,4 +75,5 @@ object Prefs {
     val FILES_SORT_BY_DATE = BoolPref("files.sortByDate", false).register()
     val KDE_CONNECT_QUIET = BoolPref("kdeconnect.quiet", false).register()
     val GH_FAST_PASS = BoolPref("github.fastPass", false).register()
+    val FIREFOX_MATERIAL_YOU = BoolPref("firefox.materialYou", false).register()
 }

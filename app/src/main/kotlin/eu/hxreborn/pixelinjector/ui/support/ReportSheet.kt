@@ -261,6 +261,7 @@ private fun TweakField(
             TweakGroup.FILES to R.string.scope_files,
             TweakGroup.KDE_CONNECT to R.string.scope_kde_connect,
             TweakGroup.GITHUB to R.string.scope_github,
+            TweakGroup.FIREFOX to R.string.scope_firefox,
         )
     ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }) {
         OutlinedTextField(

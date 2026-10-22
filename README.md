@@ -96,6 +96,10 @@ Needs Android 14 or newer, arm64, root and an Xposed framework with libxposed AP
 
 - **GH FastPass**: closes the GitHub app's approved 2FA dialog right away. Same hook as <img src="assets/modules/gh-fast-pass.svg" width="16" alt=""> [gh-fast-pass](https://github.com/hxreborn/gh-fast-pass).
 
+### <img src="assets/icons/public.svg" width="20" alt=""> Firefox
+
+- **Material You colors**: uses your wallpaper colors in Iceraven and Firefox (stable, Beta and Nightly). Private browsing takes dark red surfaces and the red error accent. Toggling restarts the browser.
+
 ## Report a bug
 
 Report from the app or on [GitHub](https://github.com/hxreborn/PixelInjector/issues/new/choose), whichever you prefer. App reports are opt-in and end-to-end encrypted. Nothing leaves the phone until you tap Send. On a phone that isn't a Pixel and doesn't run an open source ROM such as LineageOS, a report about a System UI or System Framework tweak also sends that ROM's SystemUI or `services.jar` code, encrypted with the report.

@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.xposed
 import android.content.SharedPreferences
 import eu.hxreborn.pixelinjector.xposed.hook.dialer.dialerDechip
 import eu.hxreborn.pixelinjector.xposed.hook.files.filesSortByDate
+import eu.hxreborn.pixelinjector.xposed.hook.firefox.firefoxMaterialYou
 import eu.hxreborn.pixelinjector.xposed.hook.gboard.gboardBlack
 import eu.hxreborn.pixelinjector.xposed.hook.github.ghFastPass
 import eu.hxreborn.pixelinjector.xposed.hook.kdeconnect.kdeConnectQuiet
@@ -52,6 +53,7 @@ internal val tweaks: List<Tweak> =
         filesSortByDate,
         kdeConnectQuiet,
         ghFastPass,
+        firefoxMaterialYou,
     )
 
 internal fun tweaksFor(target: Target): List<Tweak> = tweaks.filter { target in it.targets }
