@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.xposed
 import android.content.SharedPreferences
 import eu.hxreborn.pixelinjector.ModuleConstants.DIALER_PACKAGE
 import eu.hxreborn.pixelinjector.ModuleConstants.FILES_PACKAGES
+import eu.hxreborn.pixelinjector.ModuleConstants.FIREFOX_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.GBOARD_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.GITHUB_PACKAGE
 import eu.hxreborn.pixelinjector.ModuleConstants.KDE_CONNECT_PACKAGE
@@ -22,6 +23,7 @@ internal enum class Target {
     FILES,
     KDE_CONNECT,
     GITHUB,
+    FIREFOX,
     ;
 
     companion object {
@@ -39,6 +41,7 @@ internal enum class Target {
                 process in FILES_PACKAGES -> FILES
                 process == KDE_CONNECT_PACKAGE -> KDE_CONNECT
                 process == GITHUB_PACKAGE -> GITHUB
+                process in FIREFOX_PACKAGES -> FIREFOX
                 else -> null
             }
     }

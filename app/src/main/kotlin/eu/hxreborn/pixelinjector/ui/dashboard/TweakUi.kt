@@ -20,7 +20,9 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.HorizontalRule
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.SearchOff
@@ -32,6 +34,7 @@ import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import eu.hxreborn.pixelinjector.ModuleConstants.FIREFOX_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.GBOARD_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.KDE_CONNECT_PACKAGE
 import eu.hxreborn.pixelinjector.ModuleConstants.LAUNCHER_PACKAGES
@@ -53,6 +56,7 @@ enum class TweakGroup {
     FILES,
     KDE_CONNECT,
     GITHUB,
+    FIREFOX,
 }
 
 class TweakEditor(
@@ -268,6 +272,13 @@ val tweakUis: List<TweakUi> =
             TweakGroup.KDE_CONNECT,
         ),
         TweakUi("GhFastPass", Prefs.GH_FAST_PASS, R.string.tweak_gh_fast_pass, R.string.tweak_gh_fast_pass_desc, TweakGroup.GITHUB),
+        TweakUi(
+            "FirefoxMaterialYou",
+            Prefs.FIREFOX_MATERIAL_YOU,
+            R.string.tweak_firefox_material_you,
+            R.string.tweak_firefox_material_you_desc,
+            TweakGroup.FIREFOX,
+        ),
     ).filter { Build.VERSION.SDK_INT >= it.minSdk }
 
 val restartOnChange: Map<PrefSpec<*>, Set<String>> =
@@ -276,6 +287,7 @@ val restartOnChange: Map<PrefSpec<*>, Set<String>> =
         Prefs.NAV_SPACE to LAUNCHER_PACKAGES,
         Prefs.GBOARD_BLACK to GBOARD_PACKAGES,
         Prefs.KDE_CONNECT_QUIET to setOf(KDE_CONNECT_PACKAGE),
+        Prefs.FIREFOX_MATERIAL_YOU to FIREFOX_PACKAGES,
     )
 
 private val moduleIcons: Map<String, Int> =
@@ -308,6 +320,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "HomeMenuEntry" to Icons.Outlined.AddToHomeScreen,
         "GboardBlack" to Icons.Outlined.DarkMode,
         "KdeConnectQuiet" to Icons.Outlined.WifiOff,
+        "FirefoxMaterialYou" to Icons.Outlined.Palette,
     )
 
 @Composable
@@ -323,4 +336,5 @@ val groupSymbols: Map<TweakGroup, ImageVector> =
         TweakGroup.FILES to Icons.Outlined.Folder,
         TweakGroup.KDE_CONNECT to Icons.Outlined.Devices,
         TweakGroup.GITHUB to Icons.Outlined.Code,
+        TweakGroup.FIREFOX to Icons.Outlined.Public,
     )

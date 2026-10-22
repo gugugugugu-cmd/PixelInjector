@@ -183,6 +183,7 @@ class MainViewModel(
             hooked(FILES_PACKAGES)?.let { put(TweakGroup.FILES, it) }
             hooked(setOf(ModuleConstants.KDE_CONNECT_PACKAGE))?.let { put(TweakGroup.KDE_CONNECT, it) }
             hooked(setOf(ModuleConstants.GITHUB_PACKAGE))?.let { put(TweakGroup.GITHUB, it) }
+            hooked(ModuleConstants.FIREFOX_PACKAGES)?.let { put(TweakGroup.FIREFOX, it) }
         }
     }
 

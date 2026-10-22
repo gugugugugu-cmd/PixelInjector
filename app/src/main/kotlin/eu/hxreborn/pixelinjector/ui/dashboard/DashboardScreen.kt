@@ -267,6 +267,7 @@ fun DashboardScreen(
             TweakGroup.FILES to stringResource(R.string.scope_files),
             TweakGroup.KDE_CONNECT to stringResource(R.string.scope_kde_connect),
             TweakGroup.GITHUB to stringResource(R.string.scope_github),
+            TweakGroup.FIREFOX to stringResource(R.string.scope_firefox),
         ).filter { (group, _) -> group == TweakGroup.LAUNCHER || group in state.packages }
     val errorLines =
         buildMap {

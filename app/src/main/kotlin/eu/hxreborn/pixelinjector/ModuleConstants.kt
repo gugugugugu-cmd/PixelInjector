@@ -19,4 +19,12 @@ object ModuleConstants {
 
     val FILES_PACKAGES: Set<String> =
         setOf("com.google.android.documentsui", "com.android.documentsui")
+
+    val FIREFOX_PACKAGES: Set<String> =
+        setOf(
+            "io.github.forkmaintainers.iceraven",
+            "org.mozilla.firefox",
+            "org.mozilla.firefox_beta",
+            "org.mozilla.fenix",
+        )
 }
