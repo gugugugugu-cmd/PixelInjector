@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -56,6 +57,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -136,6 +138,7 @@ fun ReportSheet(
     onMessageChange: (String) -> Unit,
     onSend: (message: String, tweak: String?) -> Unit,
     onTryNow: () -> Unit,
+    onRequestRoot: () -> Unit,
     onViewReports: () -> Unit,
     onClose: () -> Unit,
 ) {
@@ -149,10 +152,11 @@ fun ReportSheet(
     }
     val footerScrolls = compactHeight()
     val unreadable = preview?.facts?.unreadableRomCodeFor(tweak).takeIf { replyTo == null }
+    val needsRoot = replyTo == null && preview?.facts?.rootDenied == true
     val footer: @Composable () -> Unit = {
         Footer(
             phase,
-            ready = preview != null && unreadable == null,
+            ready = preview != null && unreadable == null && !needsRoot,
             onSend = { onSend(message.trim(), tweak) },
             onTryNow = onTryNow,
             onClose = onClose,
@@ -196,6 +200,14 @@ fun ReportSheet(
                         },
                 )
             }
+            if (needsRoot) {
+                Notice(
+                    Icons.Outlined.Terminal,
+                    stringResource(R.string.report_needs_root),
+                    error = true,
+                    action = stringResource(R.string.report_request_root) to onRequestRoot,
+                )
+            }
             if (replyTo == null) TweakField(tweak, preview, onSelect = { tweak = it })
             val romCode = preview?.facts?.romCodeFor(tweak).takeIf { replyTo == null }
             unreadable?.let {
@@ -218,6 +230,7 @@ private fun Notice(
     icon: ImageVector,
     text: String,
     error: Boolean,
+    action: Pair<String, () -> Unit>? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
     Surface(
@@ -226,9 +239,22 @@ private fun Notice(
         contentColor = if (error) scheme.onErrorContainer else scheme.onSecondaryContainer,
         modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
     ) {
-        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            Modifier.padding(start = 16.dp, end = if (action == null) 16.dp else 4.dp, top = 12.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Icon(icon, contentDescription = null)
-            Text(text, style = MaterialTheme.typography.bodyMedium)
+            Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            action?.let { (label, onClick) ->
+                TextButton(
+                    onClick = onClick,
+                    shapes = ButtonDefaults.shapes(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = LocalContentColor.current),
+                ) {
+                    Text(label)
+                }
+            }
         }
     }
 }

@@ -293,6 +293,7 @@ fun AppNavHost(
                         onMessageChange = { viewModel.saveReportDraft(destination.replyTo, it) },
                         onSend = { message, tweak -> viewModel.sendReport(message, tweak, destination.replyTo) },
                         onTryNow = { (reportPhase as? ReportPhase.Waiting)?.report?.let(viewModel::retryReport) },
+                        onRequestRoot = viewModel::openReport,
                         onViewReports = {
                             backStack.remove(destination)
                             push(Destination.Reports)
