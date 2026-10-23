@@ -153,6 +153,7 @@ fun ReportSheet(
     val footerScrolls = compactHeight()
     val unreadable = preview?.facts?.unreadableRomCodeFor(tweak).takeIf { replyTo == null }
     val needsRoot = replyTo == null && preview?.facts?.rootDenied == true
+    val notBound = replyTo == null && preview != null && preview.facts.framework == null
     val footer: @Composable () -> Unit = {
         Footer(
             phase,
@@ -207,6 +208,9 @@ fun ReportSheet(
                     error = true,
                     action = stringResource(R.string.report_request_root) to onRequestRoot,
                 )
+            }
+            if (notBound) {
+                Notice(Icons.Outlined.WarningAmber, stringResource(R.string.report_not_bound), error = false)
             }
             if (replyTo == null) TweakField(tweak, preview, onSelect = { tweak = it })
             val romCode = preview?.facts?.romCodeFor(tweak).takeIf { replyTo == null }

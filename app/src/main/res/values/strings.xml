@@ -233,6 +233,7 @@
     <string name="report_no_log">No module log: root was denied</string>
     <string name="report_needs_root">Sending a report needs root to read the module log</string>
     <string name="report_request_root">Request root</string>
+    <string name="report_not_bound">Module not loaded. Enable it in your Xposed manager then reboot</string>
     <string name="report_private_group">End-to-end encrypted</string>
     <string name="report_public_group">Not encrypted</string>
     <string name="report_crypto_group">Encryption</string>
