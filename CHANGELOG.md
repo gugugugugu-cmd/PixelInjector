@@ -1,3 +1,10 @@
+## [1.19.0](https://github.com/hxreborn/PixelInjector/compare/v1.18.0...v1.19.0) (2026-10-24)
+
+### Features
+
+* **report:** require root to send a report ([3df7e92](https://github.com/hxreborn/PixelInjector/commit/3df7e92950724300f38190b240fa7d5694b89132))
+* **report:** show a notice when the module is not loaded ([6c3a4c9](https://github.com/hxreborn/PixelInjector/commit/6c3a4c90de02f76147d92a31446158b6956e13e0))
+
 ## [1.18.0](https://github.com/hxreborn/PixelInjector/compare/v1.17.0...v1.18.0) (2026-10-22)
 
 ### Features
