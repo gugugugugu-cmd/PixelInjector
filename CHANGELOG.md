@@ -1,3 +1,20 @@
+## [1.20.0](https://github.com/hxreborn/PixelInjector/compare/v1.19.0...v1.20.0) (2026-10-25)
+
+### Features
+
+* **tweak:** add FirefoxLoadingIndicator for Iceraven ([070a66e](https://github.com/hxreborn/PixelInjector/commit/070a66e04919733634e15879f69b39caec8795a3))
+
+### Bug Fixes
+
+* **hook:** let hook failures propagate past tweak install catches ([d6a7fc5](https://github.com/hxreborn/PixelInjector/commit/d6a7fc5de00477c66e0f0ee6d970bc35b15d9578))
+
+### Dependencies
+
+* **deps:** bump aboutlibraries from 15.2.0 to 15.3.0 ([77bb115](https://github.com/hxreborn/PixelInjector/commit/77bb115537fffead2aa58f2316ee7f032b62f904))
+* **deps:** bump androidx.compose.material3:material3 ([4996bdb](https://github.com/hxreborn/PixelInjector/commit/4996bdb52efa1eb42ba69f53fc3bb35758a2d82f))
+* **deps:** bump gradle-wrapper from 9.8.1 to 9.8.2 ([73d42b1](https://github.com/hxreborn/PixelInjector/commit/73d42b1aeb3c912698e6e807de3bf5c4d7159a97))
+* **deps:** bump org.jetbrains.kotlinx:kotlinx-serialization-core ([5abfc48](https://github.com/hxreborn/PixelInjector/commit/5abfc488a4d3be3851bae134aa5706c045dce757))
+
 ## [1.19.0](https://github.com/hxreborn/PixelInjector/compare/v1.18.0...v1.19.0) (2026-10-24)
 
 ### Features
