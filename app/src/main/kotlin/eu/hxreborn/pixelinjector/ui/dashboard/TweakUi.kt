@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.Timer
@@ -279,6 +280,13 @@ val tweakUis: List<TweakUi> =
             R.string.tweak_firefox_material_you_desc,
             TweakGroup.FIREFOX,
         ),
+        TweakUi(
+            "FirefoxLoadingIndicator",
+            Prefs.FIREFOX_LOADING_INDICATOR,
+            R.string.tweak_firefox_loading_indicator,
+            R.string.tweak_firefox_loading_indicator_desc,
+            TweakGroup.FIREFOX,
+        ),
     ).filter { Build.VERSION.SDK_INT >= it.minSdk }
 
 val restartOnChange: Map<PrefSpec<*>, Set<String>> =
@@ -288,6 +296,7 @@ val restartOnChange: Map<PrefSpec<*>, Set<String>> =
         Prefs.GBOARD_BLACK to GBOARD_PACKAGES,
         Prefs.KDE_CONNECT_QUIET to setOf(KDE_CONNECT_PACKAGE),
         Prefs.FIREFOX_MATERIAL_YOU to FIREFOX_PACKAGES,
+        Prefs.FIREFOX_LOADING_INDICATOR to FIREFOX_PACKAGES,
     )
 
 private val moduleIcons: Map<String, Int> =
@@ -321,6 +330,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "GboardBlack" to Icons.Outlined.DarkMode,
         "KdeConnectQuiet" to Icons.Outlined.WifiOff,
         "FirefoxMaterialYou" to Icons.Outlined.Palette,
+        "FirefoxLoadingIndicator" to Icons.Outlined.Refresh,
     )
 
 @Composable
