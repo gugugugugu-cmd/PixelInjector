@@ -10,6 +10,7 @@ import eu.hxreborn.pixelinjector.sound.SystemSounds
 import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -70,7 +71,7 @@ private class AuthBindings(
         fun resolve(cl: ClassLoader): AuthBindings {
             val view =
                 CONTAINER_VIEWS.firstNotNullOfOrNull {
-                    runCatching { cl.loadClass(it) }.getOrNull()
+                    resolving { cl.loadClass(it) }.getOrNull()
                 } ?: throw ClassNotFoundException("AuthContainerView")
             val candidates =
                 view.declaredMethods.filter {
@@ -84,7 +85,7 @@ private class AuthBindings(
                         "AuthContainerView.$ANIMATED_IN candidates=${candidates.size}",
                     )
             val playToken =
-                runCatching { cl.loadClass(MULTISENSORY).optionalMethod(PLAY_TOKEN, 3) }.getOrNull()
+                resolving { cl.loadClass(MULTISENSORY).optionalMethod(PLAY_TOKEN, 3) }.getOrNull()
             return AuthBindings(animatedIn.apply { isAccessible = true }, playToken)
         }
     }
@@ -92,7 +93,7 @@ private class AuthBindings(
 
 private fun XposedModule.installBiometricBypass(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching { AuthBindings.resolve(cl) }.getOrElse {
+        resolving { AuthBindings.resolve(cl) }.getOrElse {
             Logger.error(
                 "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )

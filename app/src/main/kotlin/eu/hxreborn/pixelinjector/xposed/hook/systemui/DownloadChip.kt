@@ -26,6 +26,7 @@ import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredMethod
 import eu.hxreborn.pixelinjector.util.requiredMethods
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -136,8 +137,8 @@ private class ChipBindings(
         fun resolve(cl: ClassLoader): ChipBindings {
             val listenerClass = cl.loadClass(LISTENER)
             val headsUpManager =
-                runCatching { cl.loadClass(HEADS_UP_MANAGER) }.getOrNull()
-                    ?: runCatching { cl.loadClass(HEADS_UP_BASE_MANAGER) }.getOrNull()
+                resolving { cl.loadClass(HEADS_UP_MANAGER) }.getOrNull()
+                    ?: resolving { cl.loadClass(HEADS_UP_BASE_MANAGER) }.getOrNull()
             return ChipBindings(
                 onFinishInflate = cl.loadClass(STATUS_BAR_VIEW).requiredMethod("onFinishInflate"),
                 posted =
@@ -149,7 +150,7 @@ private class ChipBindings(
                 removed = listenerClass.requiredMethods("onNotificationRemoved"),
                 connected = listenerClass.requiredMethod("onListenerConnected"),
                 onDarkChanged =
-                    runCatching {
+                    resolving {
                         cl.loadClass(CLOCK).requiredMethod(
                             "onDarkChanged",
                             java.util.ArrayList::class.java,
@@ -158,7 +159,7 @@ private class ChipBindings(
                         )
                     }.getOrNull(),
                 keyguardState =
-                    runCatching {
+                    resolving {
                         cl.loadClass(KEYGUARD_STATE).requiredMethod(
                             "notifyKeyguardState",
                             Boolean::class.javaPrimitiveType,
@@ -167,7 +168,7 @@ private class ChipBindings(
                     }.getOrNull(),
                 headsUpChanges = headsUpManager?.let(::headsUpChangeMethods).orEmpty(),
                 headsUpQuery = headsUpManager?.let(::headsUpQueryMethod),
-                iconHider = runCatching { IconHider.resolve(cl) }.getOrNull(),
+                iconHider = resolving { IconHider.resolve(cl) }.getOrNull(),
             )
         }
     }
@@ -477,7 +478,7 @@ private fun attachLive(statusBarClass: Class<*>) {
 
 private fun XposedModule.installDownloadChip(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching { ChipBindings.resolve(cl) }.getOrElse {
+        resolving { ChipBindings.resolve(cl) }.getOrElse {
             Logger.error(
                 "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )

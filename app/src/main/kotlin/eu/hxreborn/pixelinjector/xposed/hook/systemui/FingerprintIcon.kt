@@ -21,6 +21,7 @@ import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -357,7 +358,7 @@ private class FingerprintBindings(
 
 private fun XposedModule.installFingerprintIcon(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching { FingerprintBindings.resolve(cl) }.getOrElse {
+        resolving { FingerprintBindings.resolve(cl) }.getOrElse {
             Logger.error(
                 "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )

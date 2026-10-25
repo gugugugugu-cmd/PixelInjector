@@ -18,6 +18,7 @@ import eu.hxreborn.pixelinjector.util.orNullIfMissing
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethods
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -318,7 +319,7 @@ private fun XposedModule.installEmptyShade(cl: ClassLoader): Boolean {
         return false
     }
     val bindings =
-        runCatching { ShadeBindings.resolve(cl) }.getOrElse { composeMiss ->
+        resolving { ShadeBindings.resolve(cl) }.getOrElse { composeMiss ->
             return installViewPath(cl, composeMiss)
         }
     Logger.info("resolved tweak=$TWEAK members=${bindings.content.signature()}")
@@ -342,7 +343,7 @@ private fun XposedModule.installViewPath(
     composeMiss: Throwable,
 ): Boolean {
     val bindings =
-        runCatching { ViewBindings.resolve(cl) }.getOrElse { viewMiss ->
+        resolving { ViewBindings.resolve(cl) }.getOrElse { viewMiss ->
             listOf(composeMiss, viewMiss).forEach {
                 Logger.error(
                     "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",

@@ -21,6 +21,7 @@ import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
 import eu.hxreborn.pixelinjector.util.requiredMethods
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -519,7 +520,7 @@ private fun isBlack(color: Long): Boolean =
 
 private fun XposedModule.installFirefoxMaterialYou(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching { MaterialYouBindings.resolve(cl) }.getOrElse {
+        resolving { MaterialYouBindings.resolve(cl) }.getOrElse {
             Logger.error(
                 "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )

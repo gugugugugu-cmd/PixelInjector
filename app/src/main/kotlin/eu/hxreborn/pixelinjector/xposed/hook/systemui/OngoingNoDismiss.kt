@@ -6,6 +6,7 @@ import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredMethod
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -27,7 +28,7 @@ internal val ongoingNoDismiss =
 
 private fun XposedModule.installOngoingNoDismiss(cl: ClassLoader): Boolean {
     val isNonDismissable =
-        runCatching {
+        resolving {
             StatusBarNotification::class.java.requiredMethod(
                 "isNonDismissable",
             )

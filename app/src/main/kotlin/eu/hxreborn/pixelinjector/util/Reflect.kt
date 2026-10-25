@@ -77,7 +77,7 @@ fun <T> orNullIfMissing(lookup: () -> T): T? =
 inline fun <T> resolving(lookup: () -> T): Result<T> =
     try {
         Result.success(lookup())
-    } catch (e: ReflectiveOperationException) {
+    } catch (e: Exception) {
         Result.failure(e)
     } catch (e: LinkageError) {
         Result.failure(e)

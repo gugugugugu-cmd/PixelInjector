@@ -4,6 +4,7 @@ import android.os.Build
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredMethod
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -28,7 +29,7 @@ internal val clipboardAllowlist =
 
 private fun XposedModule.installClipboardAllowlist(cl: ClassLoader): Boolean {
     val isDefaultIme =
-        runCatching {
+        resolving {
             cl
                 .loadClass(SERVICE)
                 .requiredMethod("isDefaultIme", Int::class.javaPrimitiveType, String::class.java)

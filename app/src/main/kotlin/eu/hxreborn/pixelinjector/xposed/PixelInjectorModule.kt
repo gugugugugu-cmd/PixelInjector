@@ -30,8 +30,13 @@ class PixelInjectorModule : XposedModule() {
     private val prefsListener =
         SharedPreferences.OnSharedPreferenceChangeListener { sp, key ->
             val target = target ?: return@OnSharedPreferenceChangeListener
-            runCatching { loadHookPrefs(sp, target, process, key) }
-                .onFailure { Logger.error("prefs reload failed reason=${it.message}", it) }
+            try {
+                loadHookPrefs(sp, target, process, key)
+            } catch (e: Exception) {
+                Logger.error("prefs reload failed reason=${e.message}", e)
+            } catch (e: LinkageError) {
+                Logger.error("prefs reload failed reason=${e.message}", e)
+            }
         }
 
     override fun onModuleLoaded(param: ModuleLoadedParam) {
@@ -99,6 +104,29 @@ class PixelInjectorModule : XposedModule() {
         installTweaks(param.processName, param.isSystemServer, cl, origin = "reload", saved = saved)
     }
 
+    private fun installIsolated(
+        tweak: Tweak,
+        cl: ClassLoader,
+    ): Boolean =
+        try {
+            tweak.install(this, cl)
+        } catch (e: Exception) {
+            installFailed(tweak, e)
+        } catch (e: LinkageError) {
+            installFailed(tweak, e)
+        }
+
+    private fun installFailed(
+        tweak: Tweak,
+        cause: Throwable,
+    ): Boolean {
+        Logger.error(
+            "install failed tweak=${tweak.key} build=${Build.ID} reason=${cause.message}",
+            cause,
+        )
+        return false
+    }
+
     private fun installTweaks(
         process: String,
         systemServer: Boolean,
@@ -132,14 +160,7 @@ class PixelInjectorModule : XposedModule() {
         val summary =
             try {
                 tweaks.associate { tweak ->
-                    tweak.key to
-                        runCatching { tweak.install(this, cl) }.getOrElse {
-                            Logger.error(
-                                "install failed tweak=${tweak.key} build=${Build.ID} reason=${it.message}",
-                                it,
-                            )
-                            false
-                        }
+                    tweak.key to installIsolated(tweak, cl)
                 }
             } finally {
                 DexKit.release()

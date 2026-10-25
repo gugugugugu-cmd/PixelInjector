@@ -5,6 +5,7 @@ import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredMethod
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -38,7 +39,7 @@ private class PopupBindings(
             val popup = cl.loadClass(POPUP)
             val itemInfo = cl.loadClass(ITEM_INFO)
             val iconRows =
-                runCatching {
+                resolving {
                     popup.requiredMethod(
                         "populateAndShowRows",
                         cl.loadClass(BUBBLE_TEXT_VIEW),
@@ -48,7 +49,7 @@ private class PopupBindings(
                 }.getOrNull()
             if (iconRows != null) return PopupBindings(iconRows, 1, null)
             val showRows =
-                runCatching {
+                resolving {
                     popup.requiredMethod(
                         "showComposePopup",
                         Int::class.javaPrimitiveType,
@@ -87,7 +88,7 @@ private class PopupBindings(
 
 private fun XposedModule.installHideAppShortcuts(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching { PopupBindings.resolve(cl) }.getOrElse {
+        resolving { PopupBindings.resolve(cl) }.getOrElse {
             Logger.error(
                 "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )

@@ -10,6 +10,7 @@ import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -131,7 +132,7 @@ private class HotseatBindings(
 
 private fun XposedModule.installHideSearchBar(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching { HotseatBindings.resolve(cl) }.getOrElse {
+        resolving { HotseatBindings.resolve(cl) }.getOrElse {
             Logger.error(
                 "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )

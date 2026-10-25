@@ -16,6 +16,7 @@ import eu.hxreborn.pixelinjector.util.optionalMethod
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethods
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -60,7 +61,7 @@ private class ScreenshotBindings(
             val controller = cl.loadClass(CONTROLLER)
             val data = cl.loadClass(DATA)
             val handleScreenshot = controller.requiredMethods("handleScreenshot")
-            val capture = runCatching { cl.loadClass(CAPTURE) }.getOrNull()
+            val capture = resolving { cl.loadClass(CAPTURE) }.getOrNull()
             val captureDisplay = capture?.optionalMethod("captureDisplay")
             if (captureDisplay == null && Build.VERSION.SDK_INT <= LAST_INLINE_CAPTURE_SDK) {
                 throw NoSuchMethodException("ImageCaptureImpl.captureDisplay")
@@ -111,7 +112,7 @@ private class ScreenshotBindings(
 
 private fun XposedModule.installPillShot(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching { ScreenshotBindings.resolve(cl) }.getOrElse {
+        resolving { ScreenshotBindings.resolve(cl) }.getOrElse {
             if (it is ClassNotFoundException) {
                 Logger.debug { "skipped tweak=$TWEAK reason=no-class" }
             } else {

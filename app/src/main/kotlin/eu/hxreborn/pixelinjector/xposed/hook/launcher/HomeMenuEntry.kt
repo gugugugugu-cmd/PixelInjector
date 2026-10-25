@@ -17,6 +17,7 @@ import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethod
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -126,7 +127,7 @@ private class ComposeMenu(
         fun resolve(cl: ClassLoader): ComposeMenu {
             val options = cl.loadClass(OPTIONS)
             val getAll =
-                runCatching { options.requiredMethod("getAll", Context::class.java) }.getOrElse {
+                resolving { options.requiredMethod("getAll", Context::class.java) }.getOrElse {
                     // Pixel Launcher 17 CP41.260831.019
                     options.requiredMethod(
                         "getAll",
@@ -321,10 +322,7 @@ private object EntryIcon {
     @Synchronized
     fun servedAsResource(context: Context): Boolean {
         if (bitmap(context) == null) return false
-        if (!hooked) {
-            hookResources()
-            hooked = true
-        }
+        if (!hooked) hookResources()
         return true
     }
 
@@ -347,15 +345,24 @@ private object EntryIcon {
 
     private fun hookResources() {
         val resources = Resources::class.java
+        val getValue =
+            resources.requiredMethod(
+                "getValue",
+                Int::class.javaPrimitiveType,
+                TypedValue::class.java,
+                Boolean::class.javaPrimitiveType,
+            )
+        val getDrawable =
+            resources.requiredMethod(
+                "getDrawable",
+                Int::class.javaPrimitiveType,
+                Resources.Theme::class.java,
+            )
+        val getText = resources.requiredMethod("getText", Int::class.javaPrimitiveType)
+        hooked = true
         module
-            .hook(
-                resources.requiredMethod(
-                    "getValue",
-                    Int::class.javaPrimitiveType,
-                    TypedValue::class.java,
-                    Boolean::class.javaPrimitiveType,
-                ),
-            ).intercept { chain ->
+            .hook(getValue)
+            .intercept { chain ->
                 if (chain.getArg(0) != ICON_ID) return@intercept chain.proceed()
                 (chain.getArg(1) as TypedValue).apply {
                     type = TypedValue.TYPE_STRING
@@ -365,19 +372,14 @@ private object EntryIcon {
                 null
             }
         module
-            .hook(
-                resources.requiredMethod(
-                    "getDrawable",
-                    Int::class.javaPrimitiveType,
-                    Resources.Theme::class.java,
-                ),
-            ).intercept { chain ->
+            .hook(getDrawable)
+            .intercept { chain ->
                 val icon = glyph
                 if (chain.getArg(0) != ICON_ID || icon == null) return@intercept chain.proceed()
                 BitmapDrawable(chain.thisObject as Resources, icon)
             }
         module
-            .hook(resources.requiredMethod("getText", Int::class.javaPrimitiveType))
+            .hook(getText)
             .intercept { chain ->
                 if (chain.getArg(0) != LABEL_ID) return@intercept chain.proceed()
                 ENTRY_LABEL
@@ -427,7 +429,7 @@ private fun openCompanion(context: Context?): Any? {
 
 private fun XposedModule.installHomeMenuEntry(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching<MenuBindings> { ComposeMenu.resolve(cl) }
+        resolving<MenuBindings> { ComposeMenu.resolve(cl) }
             .recoverCatching {
                 if (it is ClassNotFoundException) {
                     ViewMenu.resolve(
@@ -448,9 +450,12 @@ private fun XposedModule.installHomeMenuEntry(cl: ClassLoader): Boolean {
         if (!switch.enabled || options !is List<*>) return@intercept options
         val context = chain.getArg(0) as? Context ?: return@intercept options
 
-        runCatching { bindings.withEntry(context, options) }
-            .onFailure { Logger.error("entry failed tweak=$TWEAK reason=${it.message}", it) }
-            .getOrDefault(options)
+        try {
+            bindings.withEntry(context, options)
+        } catch (e: Exception) {
+            Logger.error("entry failed tweak=$TWEAK reason=${e.message}", e)
+            options
+        }
     }
     return true
 }

@@ -6,6 +6,7 @@ import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
 import eu.hxreborn.pixelinjector.util.requiredField
 import eu.hxreborn.pixelinjector.util.requiredMethods
+import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
@@ -98,7 +99,7 @@ private class HeadsUpBindings(
     companion object {
         fun resolve(cl: ClassLoader): HeadsUpBindings {
             val manager =
-                runCatching {
+                resolving {
                     cl.loadClass(
                         MANAGER,
                     )
@@ -111,7 +112,7 @@ private class HeadsUpBindings(
                         "mMinimumDisplayTime",
                     ),
                 createEntry =
-                    runCatching { manager.requiredMethods("createHeadsUpEntry") }
+                    resolving { manager.requiredMethods("createHeadsUpEntry") }
                         .getOrElse { manager.requiredMethods("showNotification") },
             )
         }
@@ -120,7 +121,7 @@ private class HeadsUpBindings(
 
 private fun XposedModule.installHeadsUpDuration(cl: ClassLoader): Boolean {
     val bindings =
-        runCatching { HeadsUpBindings.resolve(cl) }.getOrElse {
+        resolving { HeadsUpBindings.resolve(cl) }.getOrElse {
             Logger.error(
                 "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )

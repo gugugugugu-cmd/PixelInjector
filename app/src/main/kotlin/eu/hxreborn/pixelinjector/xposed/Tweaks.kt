@@ -69,13 +69,13 @@ internal fun loadHookPrefs(
     val values =
         tweaksFor(target).flatMap { it.prefs }.filter { changed == null || it.key == changed }
     for (value in values) {
-        runCatching { value.load(prefs) }
-            .onFailure {
-                Logger.warn(
-                    "prefs load failed key=${value.key} reason=${it.message}",
-                    it,
-                )
-            }
+        try {
+            value.load(prefs)
+        } catch (e: Exception) {
+            Logger.warn("prefs load failed key=${value.key} reason=${e.message}", e)
+        } catch (e: LinkageError) {
+            Logger.warn("prefs load failed key=${value.key} reason=${e.message}", e)
+        }
     }
     if (values.isNotEmpty()) {
         Logger.info("prefs reloaded proc=$process keys=${values.joinToString(",") { it.key }}")
