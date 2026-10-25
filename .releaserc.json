@@ -22,7 +22,7 @@
           { "type": "refactor", "section": "Refactor" },
           { "type": "revert",   "section": "Reverts" },
           { "type": "test",  "hidden": true },
-          { "type": "build", "hidden": true },
+          { "type": "build",    "section": "Dependencies" },
           { "type": "docs",  "hidden": true },
           { "type": "style", "hidden": true },
           { "type": "ci",    "hidden": true },
