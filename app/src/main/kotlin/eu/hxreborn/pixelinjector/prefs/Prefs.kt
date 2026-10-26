@@ -77,4 +77,5 @@ object Prefs {
     val GH_FAST_PASS = BoolPref("github.fastPass", false).register()
     val FIREFOX_MATERIAL_YOU = BoolPref("firefox.materialYou", false).register()
     val FIREFOX_LOADING_INDICATOR = BoolPref("firefox.loadingIndicator", false).register()
+    val FIREFOX_CLASSIC_MENU = BoolPref("firefox.classicMenu", false).register()
 }

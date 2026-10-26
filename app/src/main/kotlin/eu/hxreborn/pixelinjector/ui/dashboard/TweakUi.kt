@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.HorizontalRule
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Public
@@ -287,6 +288,13 @@ val tweakUis: List<TweakUi> =
             R.string.tweak_firefox_loading_indicator_desc,
             TweakGroup.FIREFOX,
         ),
+        TweakUi(
+            "FirefoxClassicMenu",
+            Prefs.FIREFOX_CLASSIC_MENU,
+            R.string.tweak_firefox_classic_menu,
+            R.string.tweak_firefox_classic_menu_desc,
+            TweakGroup.FIREFOX,
+        ),
     ).filter { Build.VERSION.SDK_INT >= it.minSdk }
 
 val restartOnChange: Map<PrefSpec<*>, Set<String>> =
@@ -297,6 +305,7 @@ val restartOnChange: Map<PrefSpec<*>, Set<String>> =
         Prefs.KDE_CONNECT_QUIET to setOf(KDE_CONNECT_PACKAGE),
         Prefs.FIREFOX_MATERIAL_YOU to FIREFOX_PACKAGES,
         Prefs.FIREFOX_LOADING_INDICATOR to FIREFOX_PACKAGES,
+        Prefs.FIREFOX_CLASSIC_MENU to FIREFOX_PACKAGES,
     )
 
 private val moduleIcons: Map<String, Int> =
@@ -331,6 +340,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "KdeConnectQuiet" to Icons.Outlined.WifiOff,
         "FirefoxMaterialYou" to Icons.Outlined.Palette,
         "FirefoxLoadingIndicator" to Icons.Outlined.Refresh,
+        "FirefoxClassicMenu" to Icons.Outlined.MoreVert,
     )
 
 @Composable
