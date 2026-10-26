@@ -73,6 +73,14 @@ private val inverseRoleFallbacks =
         "inverse_on_surface" to ("surface_container" to false),
     )
 
+private val tertiaryRoleSources =
+    mapOf(
+        "tertiary" to "primary",
+        "on_tertiary" to "on_primary",
+        "tertiary_container" to "primary_container",
+        "on_tertiary_container" to "on_primary_container",
+    )
+
 private val colorResourceRoles =
     mapOf(
         "homepage_edge_to_edge_gradient_start" to "surface_container",
@@ -231,6 +239,12 @@ private class MaterialYouBindings(
     val gradients: Gradients?,
 ) {
     fun roleIndex(role: String) = schemeColors.indexOfFirst { it.role == role }
+
+    val sourceIndices =
+        IntArray(schemeColors.size) { index ->
+            tertiaryRoleSources[schemeColors[index].role]?.let(::roleIndex)?.takeIf { it >= 0 }
+                ?: index
+        }
 
     companion object {
         fun resolve(cl: ClassLoader): MaterialYouBindings {
@@ -420,18 +434,19 @@ private fun MaterialYouBindings.applyOverlay(
         resources.getIdentifier(name, "color", packageName).takeIf { it != 0 }
     schemeColors.forEachIndexed { index, schemeColor ->
         val role = fxMobileRoleNames[schemeColor.role] ?: schemeColor.role
-        colorId("fx_mobile_$role")?.let { putDayNight(it, index) }
+        val source = sourceIndices[index]
+        colorId("fx_mobile_$role")?.let { putDayNight(it, source) }
         colorId("fx_mobile_oled_$role")?.let { id ->
-            put(id, night.getColor(id, null), colors.dark[index], null)
+            put(id, night.getColor(id, null), colors.dark[source], null)
         }
         colorId("fx_mobile_private_$role")?.let { id ->
-            put(id, night.getColor(id, null), colors.privateMode[index], null)
+            put(id, night.getColor(id, null), colors.privateMode[source], null)
         }
         colorId("m3_sys_color_light_${schemeColor.role}")?.let { id ->
-            put(id, day.getColor(id, null), colors.light[index], null)
+            put(id, day.getColor(id, null), colors.light[source], null)
         }
         colorId("m3_sys_color_dark_${schemeColor.role}")?.let { id ->
-            put(id, night.getColor(id, null), colors.dark[index], null)
+            put(id, night.getColor(id, null), colors.dark[source], null)
         }
     }
     colorResourceRoles.forEach { (name, role) ->
@@ -571,7 +586,7 @@ private fun XposedModule.installFirefoxMaterialYou(cl: ClassLoader): Boolean {
             }
         bindings.schemeColors.forEachIndexed { index, schemeColor ->
             if (!isBlack(schemeColor.field.getLong(scheme))) {
-                schemeColor.field.setLong(scheme, packColor(argb[index]))
+                schemeColor.field.setLong(scheme, packColor(argb[bindings.sourceIndices[index]]))
             }
         }
         val gradients =
