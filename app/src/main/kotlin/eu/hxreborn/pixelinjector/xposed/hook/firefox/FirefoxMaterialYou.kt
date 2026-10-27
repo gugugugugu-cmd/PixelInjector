@@ -231,6 +231,7 @@ private class MaterialYouBindings(
     val acornTheme: Method,
     val applicationOnCreate: Method,
     val privatePalette: Any,
+    val oledPalette: Any?,
     val paletteIndex: Int,
     val schemeIndex: Int,
     val gradientIndex: Int,
@@ -248,9 +249,12 @@ private class MaterialYouBindings(
 
     companion object {
         fun resolve(cl: ClassLoader): MaterialYouBindings {
+            val acornColors = cl.loadClass(ACORN_COLORS)
             val privatePalette =
-                cl.loadClass(ACORN_COLORS).requiredField("privateColorPalette").get(null)
+                acornColors.requiredField("privateColorPalette").get(null)
                     ?: throw NoSuchFieldException("$ACORN_COLORS#privateColorPalette")
+            val oledPalette =
+                orNullIfMissing { acornColors.requiredField("oledColorPalette").get(null) }
             val colorScheme = cl.loadClass(COLOR_SCHEME)
             val acornTheme =
                 cl
@@ -266,6 +270,7 @@ private class MaterialYouBindings(
                 acornTheme = acornTheme,
                 applicationOnCreate = Application::class.java.requiredMethod("onCreate"),
                 privatePalette = privatePalette,
+                oledPalette = oledPalette,
                 paletteIndex = acornTheme.parameterTypes.indexOf(privatePalette.javaClass),
                 schemeIndex = acornTheme.parameterTypes.indexOf(colorScheme),
                 gradientIndex =
@@ -411,12 +416,12 @@ private fun MaterialYouBindings.applyOverlay(
         stock: Int,
         color: Int,
         configuration: String?,
+        keepBlack: Boolean = true,
     ) {
-        if (stock == BLACK) return
         overlay.setResourceValue(
             resources.getResourceName(id),
             TypedValue.TYPE_INT_COLOR_ARGB8,
-            color,
+            if (keepBlack && stock == BLACK) BLACK else color,
             configuration,
         )
         count++
@@ -426,8 +431,14 @@ private fun MaterialYouBindings.applyOverlay(
         id: Int,
         index: Int,
     ) {
-        put(id, day.getColor(id, null), colors.light[index], null)
-        put(id, night.getColor(id, null), colors.dark[index], NIGHT_CONFIGURATION)
+        put(id, day.getColor(id, null), colors.light[index], null, keepBlack = false)
+        put(
+            id,
+            night.getColor(id, null),
+            colors.dark[index],
+            NIGHT_CONFIGURATION,
+            keepBlack = false,
+        )
     }
 
     fun colorId(name: String) =
@@ -577,15 +588,17 @@ private fun XposedModule.installFirefoxMaterialYou(cl: ClassLoader): Boolean {
         if (!switch.enabled) return@intercept chain.proceed()
         val colors = wallpaperColors ?: return@intercept chain.proceed()
         val scheme = chain.getArg(bindings.schemeIndex) ?: return@intercept chain.proceed()
+        val palette = chain.getArg(bindings.paletteIndex)
+        val keepBlack = palette === bindings.oledPalette
         val argb =
-            if (chain.getArg(bindings.paletteIndex) === bindings.privatePalette) {
+            if (palette === bindings.privatePalette) {
                 colors.privateMode
             } else {
                 val surfaceArgb = (bindings.surface.getLong(scheme) ushr COLOR_SHIFT).toInt()
                 colors.forMode(Color.luminance(surfaceArgb) < DARK_LUMINANCE)
             }
         bindings.schemeColors.forEachIndexed { index, schemeColor ->
-            if (!isBlack(schemeColor.field.getLong(scheme))) {
+            if (!keepBlack || !isBlack(schemeColor.field.getLong(scheme))) {
                 schemeColor.field.setLong(scheme, packColor(argb[bindings.sourceIndices[index]]))
             }
         }
