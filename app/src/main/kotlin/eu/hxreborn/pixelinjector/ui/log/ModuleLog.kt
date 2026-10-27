@@ -83,8 +83,18 @@ fun deriveErrors(entries: List<LogEntry>): Map<String, String> {
             }
         }
     }
-    return buildMap { errorsByProc.values.forEach { putAll(it) } }
+    return buildMap {
+        errorsByProc.forEach { (proc, errors) ->
+            putAll(errors)
+            errors.forEach { (tweak, build) -> put(processKey(tweak, proc), build) }
+        }
+    }
 }
+
+fun processKey(
+    tweak: String,
+    process: String,
+): String = "$tweak@$process"
 
 fun deriveErrorLines(
     entries: List<LogEntry>,
@@ -92,10 +102,12 @@ fun deriveErrorLines(
 ): Map<String, String> {
     val currentVersionPids = mutableSetOf<Int>()
     val errorLinesByPid = mutableMapOf<Int, MutableMap<String, String>>()
+    val procByPid = mutableMapOf<Int, String>()
     for ((_, pid, level, tweak, _, body) in entries) {
         when {
             body.startsWith("install proc=") -> {
                 errorLinesByPid.remove(pid)
+                field(body, "proc")?.let { procByPid[pid] = it }
                 if (field(body, "version") == BuildConfig.VERSION_CODE.toString()) {
                     currentVersionPids += pid
                 } else {
@@ -114,5 +126,10 @@ fun deriveErrorLines(
             }
         }
     }
-    return buildMap { errorLinesByPid.filterKeys { it in livePids }.values.forEach { putAll(it) } }
+    return buildMap {
+        errorLinesByPid.filterKeys { it in livePids }.forEach { (pid, lines) ->
+            putAll(lines)
+            procByPid[pid]?.let { proc -> lines.forEach { (tweak, line) -> put(processKey(tweak, proc), line) } }
+        }
+    }
 }

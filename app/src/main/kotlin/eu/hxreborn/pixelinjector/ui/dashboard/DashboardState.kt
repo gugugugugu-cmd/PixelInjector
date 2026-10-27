@@ -11,6 +11,7 @@ import eu.hxreborn.pixelinjector.ui.viewmodel.HomeApp
 data class HookedPackages(
     val packages: List<String>,
     val scoped: Boolean,
+    val labels: Map<String, String> = emptyMap(),
 )
 
 @Immutable

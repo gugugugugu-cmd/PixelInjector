@@ -1,6 +1,7 @@
 package eu.hxreborn.pixelinjector.prefs
 
 import android.content.SharedPreferences
+import androidx.core.content.edit
 
 sealed class PrefSpec<T : Any>(
     val key: String,
@@ -81,5 +82,33 @@ class StringSetPref(
         value: Set<String>,
     ) {
         editor.putStringSet(key, if (value.isEmpty()) null else HashSet(value))
+    }
+}
+
+class PerPackage<out P : PrefSpec<*>>(
+    val key: String,
+    packages: Set<String>,
+    make: (String) -> P,
+) {
+    val byPackage: Map<String, P> = packages.associateWith { make("$key@$it") }
+
+    operator fun get(packageName: String): P = byPackage.getValue(packageName)
+
+    fun packageOf(pref: PrefSpec<*>): String? =
+        byPackage.entries.firstOrNull { it.value == pref }?.key
+
+    fun migrate(prefs: SharedPreferences) {
+        if (!prefs.contains(key)) return
+        val legacy = prefs.all[key]
+        prefs.edit {
+            byPackage.values.filterNot { prefs.contains(it.key) }.forEach { pref ->
+                when (legacy) {
+                    is Boolean -> putBoolean(pref.key, legacy)
+                    is String -> putString(pref.key, legacy)
+                    is Set<*> -> putStringSet(pref.key, legacy.filterIsInstance<String>().toSet())
+                }
+            }
+            remove(key)
+        }
     }
 }

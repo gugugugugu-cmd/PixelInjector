@@ -44,6 +44,7 @@ import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.prefs.AppPrefs
 import eu.hxreborn.pixelinjector.prefs.BoolPref
 import eu.hxreborn.pixelinjector.prefs.IntPref
+import eu.hxreborn.pixelinjector.prefs.PerPackage
 import eu.hxreborn.pixelinjector.prefs.PrefSpec
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.prefs.StringPref
@@ -87,7 +88,7 @@ class TweakSound(
 
 class TweakUi(
     val key: String,
-    val pref: BoolPref,
+    private val pref: BoolPref?,
     val title: Int,
     val description: Int,
     val group: TweakGroup,
@@ -95,7 +96,12 @@ class TweakUi(
     val slider: TweakSlider? = null,
     val sound: TweakSound? = null,
     val minSdk: Int = Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
-)
+    private val browserPref: PerPackage<BoolPref>? = null,
+) {
+    val prefs: Collection<BoolPref> get() = browserPref?.byPackage?.values ?: listOfNotNull(pref)
+
+    fun pref(packageName: String?): BoolPref = browserPref?.get(checkNotNull(packageName)) ?: checkNotNull(pref)
+}
 
 val tweakUis: List<TweakUi> =
     listOf(
@@ -276,37 +282,38 @@ val tweakUis: List<TweakUi> =
         TweakUi("GhFastPass", Prefs.GH_FAST_PASS, R.string.tweak_gh_fast_pass, R.string.tweak_gh_fast_pass_desc, TweakGroup.GITHUB),
         TweakUi(
             "FirefoxMaterialYou",
-            Prefs.FIREFOX_MATERIAL_YOU,
+            null,
             R.string.tweak_firefox_material_you,
             R.string.tweak_firefox_material_you_desc,
             TweakGroup.FIREFOX,
+            browserPref = Prefs.FIREFOX_MATERIAL_YOU,
         ),
         TweakUi(
             "FirefoxLoadingIndicator",
-            Prefs.FIREFOX_LOADING_INDICATOR,
+            null,
             R.string.tweak_firefox_loading_indicator,
             R.string.tweak_firefox_loading_indicator_desc,
             TweakGroup.FIREFOX,
+            browserPref = Prefs.FIREFOX_LOADING_INDICATOR,
         ),
         TweakUi(
             "FirefoxClassicMenu",
-            Prefs.FIREFOX_CLASSIC_MENU,
+            null,
             R.string.tweak_firefox_classic_menu,
             R.string.tweak_firefox_classic_menu_desc,
             TweakGroup.FIREFOX,
+            browserPref = Prefs.FIREFOX_CLASSIC_MENU,
         ),
     ).filter { Build.VERSION.SDK_INT >= it.minSdk }
 
 val restartOnChange: Map<PrefSpec<*>, Set<String>> =
-    mapOf(
-        Prefs.HIDE_SEARCH_BAR to LAUNCHER_PACKAGES,
-        Prefs.NAV_SPACE to LAUNCHER_PACKAGES,
-        Prefs.GBOARD_BLACK to GBOARD_PACKAGES,
-        Prefs.KDE_CONNECT_QUIET to setOf(KDE_CONNECT_PACKAGE),
-        Prefs.FIREFOX_MATERIAL_YOU to FIREFOX_PACKAGES,
-        Prefs.FIREFOX_LOADING_INDICATOR to FIREFOX_PACKAGES,
-        Prefs.FIREFOX_CLASSIC_MENU to FIREFOX_PACKAGES,
-    )
+    buildMap {
+        put(Prefs.HIDE_SEARCH_BAR, LAUNCHER_PACKAGES)
+        put(Prefs.NAV_SPACE, LAUNCHER_PACKAGES)
+        put(Prefs.GBOARD_BLACK, GBOARD_PACKAGES)
+        put(Prefs.KDE_CONNECT_QUIET, setOf(KDE_CONNECT_PACKAGE))
+        Prefs.perBrowser.forEach { prefs -> prefs.byPackage.forEach { (pkg, pref) -> put(pref, setOf(pkg)) } }
+    }
 
 private val moduleIcons: Map<String, Int> =
     mapOf(

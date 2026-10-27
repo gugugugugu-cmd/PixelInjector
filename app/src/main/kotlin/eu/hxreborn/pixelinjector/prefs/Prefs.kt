@@ -11,7 +11,19 @@ object Prefs {
     val all: List<PrefSpec<*>>
         field = mutableListOf<PrefSpec<*>>()
 
+    val perBrowser: List<PerPackage<*>>
+        field = mutableListOf<PerPackage<*>>()
+
     private fun <P : PrefSpec<*>> P.register(): P = also { all += it }
+
+    private fun <P : PrefSpec<*>> browser(
+        key: String,
+        make: (String) -> P,
+    ): PerPackage<P> =
+        PerPackage(key, ModuleConstants.FIREFOX_PACKAGES, make).also {
+            perBrowser += it
+            all += it.byPackage.values
+        }
 
     val WARM_TILES = BoolPref("systemui.warmTiles", true).register()
     val PILL_SHOT = BoolPref("systemui.pillShot", true).register()
@@ -75,7 +87,7 @@ object Prefs {
     val FILES_SORT_BY_DATE = BoolPref("files.sortByDate", false).register()
     val KDE_CONNECT_QUIET = BoolPref("kdeconnect.quiet", false).register()
     val GH_FAST_PASS = BoolPref("github.fastPass", false).register()
-    val FIREFOX_MATERIAL_YOU = BoolPref("firefox.materialYou", false).register()
-    val FIREFOX_LOADING_INDICATOR = BoolPref("firefox.loadingIndicator", false).register()
-    val FIREFOX_CLASSIC_MENU = BoolPref("firefox.classicMenu", false).register()
+    val FIREFOX_MATERIAL_YOU = browser("firefox.materialYou") { BoolPref(it, false) }
+    val FIREFOX_LOADING_INDICATOR = browser("firefox.loadingIndicator") { BoolPref(it, false) }
+    val FIREFOX_CLASSIC_MENU = browser("firefox.classicMenu") { BoolPref(it, false) }
 }

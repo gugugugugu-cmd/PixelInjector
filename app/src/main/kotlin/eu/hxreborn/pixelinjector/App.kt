@@ -49,8 +49,10 @@ class App :
                 .setFlags(Shell.FLAG_MOUNT_MASTER)
                 .setTimeout(SHELL_TIMEOUT_SECONDS),
         )
+        val local = getSharedPreferences(Prefs.GROUP, MODE_PRIVATE)
+        Prefs.perBrowser.forEach { it.migrate(local) }
         prefs =
-            PrefsRepository(getSharedPreferences(Prefs.GROUP, MODE_PRIVATE)) {
+            PrefsRepository(local) {
                 runCatching { _service.value?.getRemotePreferences(Prefs.GROUP) }.getOrNull()
             }
         _everBound.value = state.getBoolean(EVER_BOUND, false)

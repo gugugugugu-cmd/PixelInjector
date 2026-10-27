@@ -170,9 +170,10 @@ fun SectionHeader(
 fun LazyListScope.sectionHeader(
     title: String,
     details: List<String> = emptyList(),
+    key: String = title,
     leading: @Composable () -> Unit = {},
 ) {
-    item(key = "section:$title") { SectionHeader(title, details, leading) }
+    item(key = "section:$key") { SectionHeader(title, details, leading) }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

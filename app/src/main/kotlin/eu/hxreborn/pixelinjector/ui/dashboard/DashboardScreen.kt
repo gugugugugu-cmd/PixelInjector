@@ -114,6 +114,7 @@ import eu.hxreborn.pixelinjector.ui.component.compactHeight
 import eu.hxreborn.pixelinjector.ui.component.readableGutter
 import eu.hxreborn.pixelinjector.ui.component.sectionHeader
 import eu.hxreborn.pixelinjector.ui.component.tileGroup
+import eu.hxreborn.pixelinjector.ui.log.processKey
 import eu.hxreborn.pixelinjector.ui.navigation.Destination
 import eu.hxreborn.pixelinjector.ui.support.SupportState
 import eu.hxreborn.pixelinjector.ui.support.UpdateCard
@@ -144,6 +145,18 @@ private val ReportButtonInset = (-12).dp
 private const val CHEVRON_OPEN_ROTATION = 180f
 private const val RELOAD_COUNT_ALPHA = 0.85f
 
+private class Section(
+    val group: TweakGroup,
+    val title: String,
+    val packages: List<String>,
+    val scoped: Boolean,
+    val browser: String?,
+) {
+    val key: String get() = browser ?: group.name
+
+    fun errorKey(tweak: String): String = browser?.let { processKey(tweak, it) } ?: tweak
+}
+
 private class TweakRow(
     val toggle: DashTile.Toggle,
     val children: List<DashTile>,
@@ -154,7 +167,9 @@ private sealed interface DashTile {
 
     class Toggle(
         val tweak: TweakUi,
+        val pref: BoolPref,
         val checked: Boolean,
+        val errorKey: String,
     ) : DashTile {
         override val title: Int get() = tweak.title
     }
@@ -182,13 +197,14 @@ private sealed interface DashTile {
 }
 
 private fun rows(
-    group: TweakGroup,
+    section: Section,
     prefs: AppPrefs,
     hidden: Set<String>,
 ): List<TweakRow> =
-    tweakUis.filter { it.group == group && it.key !in hidden }.map { tweak ->
+    tweakUis.filter { it.group == section.group && section.errorKey(it.key) !in hidden }.map { tweak ->
+        val pref = tweak.pref(section.browser)
         TweakRow(
-            DashTile.Toggle(tweak, prefs[tweak.pref]),
+            DashTile.Toggle(tweak, pref, prefs[pref], section.errorKey(tweak.key)),
             listOfNotNull(
                 tweak.editor?.let { DashTile.Link(it, it.summary(prefs)) },
                 tweak.slider?.let { DashTile.Slide(it, prefs[it.pref]) },
@@ -257,7 +273,7 @@ fun DashboardScreen(
             !homeApp.loaded -> stringResource(R.string.home_app_not_loaded, homeApp.label)
             else -> null
         }
-    val sections =
+    val sectionTitles =
         listOf(
             TweakGroup.SYSTEM_UI to stringResource(R.string.scope_systemui),
             TweakGroup.SYSTEM to stringResource(R.string.scope_system),
@@ -269,6 +285,15 @@ fun DashboardScreen(
             TweakGroup.GITHUB to stringResource(R.string.scope_github),
             TweakGroup.FIREFOX to stringResource(R.string.scope_firefox),
         ).filter { (group, _) -> group == TweakGroup.LAUNCHER || group in state.packages }
+    val sections =
+        sectionTitles.flatMap { (group, title) ->
+            val hooked = state.packages[group]
+            if (group == TweakGroup.FIREFOX && hooked != null) {
+                hooked.packages.map { pkg -> Section(group, hooked.labels[pkg] ?: pkg, listOf(pkg), hooked.scoped, pkg) }
+            } else {
+                listOf(Section(group, title, hooked?.packages.orEmpty(), hooked?.scoped != false, null))
+            }
+        }
     val errorLines =
         buildMap {
             state.errorLines.forEach { (tweak, line) ->
@@ -286,11 +311,9 @@ fun DashboardScreen(
             launcherError?.let { error ->
                 tweakUis.filter { it.group == TweakGroup.LAUNCHER }.forEach { put(it.key, TileError(error, reportable = false)) }
             }
-            sections.forEach { (group, title) ->
-                if (state.packages[group]?.scoped == false) {
-                    val error = TileError(stringResource(R.string.home_app_not_loaded, title), reportable = false)
-                    tweakUis.filter { it.group == group }.forEach { put(it.key, error) }
-                }
+            sections.filterNot { it.scoped }.forEach { section ->
+                val error = TileError(stringResource(R.string.home_app_not_loaded, section.title), reportable = false)
+                tweakUis.filter { it.group == section.group }.forEach { put(section.errorKey(it.key), error) }
             }
         }
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -382,14 +405,12 @@ fun DashboardScreen(
                 }
                 val hidden = if (hideUnavailable) errorLines.keys else emptySet()
                 sections
-                    .map { (group, title) -> Triple(group, title, rows(group, state.prefs, hidden)) }
-                    .filter { (_, _, tiles) -> tiles.isNotEmpty() }
-                    .forEachIndexed { index, (group, title, tiles) ->
-                        if (index > 0) item(key = "gap:$group") { Spacer(Modifier.height(SectionGap)) }
+                    .map { section -> section to rows(section, state.prefs, hidden) }
+                    .filter { (_, tiles) -> tiles.isNotEmpty() }
+                    .forEachIndexed { index, (section, tiles) ->
+                        if (index > 0) item(key = "gap:${section.key}") { Spacer(Modifier.height(SectionGap)) }
                         scope(
-                            title,
-                            group,
-                            state.packages[group]?.packages.orEmpty(),
+                            section,
                             showPackages,
                             tiles,
                             errorLines,
@@ -410,9 +431,7 @@ private data class TileError(
 )
 
 private fun LazyListScope.scope(
-    title: String,
-    group: TweakGroup,
-    packages: List<String>,
+    section: Section,
     showPackages: Boolean,
     tiles: List<TweakRow>,
     errors: Map<String, TileError>,
@@ -421,16 +440,16 @@ private fun LazyListScope.scope(
     onOpen: (Destination) -> Unit,
     onReport: (String?) -> Unit,
 ) {
-    val iconPackageName = if (group == TweakGroup.SYSTEM) "android" else packages.firstOrNull()
-    val groupSymbol = groupSymbols[group]
-    sectionHeader(title, if (showPackages) packages else emptyList()) {
+    val iconPackageName = if (section.group == TweakGroup.SYSTEM) "android" else section.packages.firstOrNull()
+    val groupSymbol = groupSymbols[section.group]
+    sectionHeader(section.title, if (showPackages) section.packages else emptyList(), section.key) {
         Box(Modifier.size(HeaderGlyphSlot), contentAlignment = Alignment.Center) { AppGlyph(iconPackageName, groupSymbol) }
         Spacer(Modifier.width(0.dp))
     }
-    tileGroup(tiles, key = { it.toggle.title }, animatePlacement = false) { row, shape ->
+    tileGroup(tiles, key = { "${section.key}:${it.toggle.title}" }, animatePlacement = false) { row, shape ->
         val toggle = row.toggle
         Column(Modifier.clip(shape).background(MaterialTheme.colorScheme.surfaceContainer)) {
-            ToggleTile(toggle, errors[toggle.tweak.key], tweakSymbol(toggle.tweak.key), onToggle, onReport)
+            ToggleTile(toggle, errors[toggle.errorKey], tweakSymbol(toggle.tweak.key), onToggle, onReport)
             AnimatedVisibility(
                 visible = toggle.checked && row.children.isNotEmpty(),
                 enter =
@@ -546,7 +565,7 @@ private fun ToggleTile(
         checked = tile.checked,
         onCheckedChange = {
             haptic.performHapticFeedback(if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
-            onToggle(tile.tweak.pref, it)
+            onToggle(tile.pref, it)
         },
         modifier = Modifier.semantics { role = Role.Switch },
     ) {

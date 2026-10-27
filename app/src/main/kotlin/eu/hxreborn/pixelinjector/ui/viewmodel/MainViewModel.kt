@@ -183,7 +183,7 @@ class MainViewModel(
             hooked(FILES_PACKAGES)?.let { put(TweakGroup.FILES, it) }
             hooked(setOf(ModuleConstants.KDE_CONNECT_PACKAGE))?.let { put(TweakGroup.KDE_CONNECT, it) }
             hooked(setOf(ModuleConstants.GITHUB_PACKAGE))?.let { put(TweakGroup.GITHUB, it) }
-            hooked(ModuleConstants.FIREFOX_PACKAGES)?.let { put(TweakGroup.FIREFOX, it) }
+            hooked(ModuleConstants.FIREFOX_PACKAGES)?.let { put(TweakGroup.FIREFOX, it.copy(labels = it.packages.associateWith(::label))) }
         }
     }
 
@@ -314,7 +314,7 @@ class MainViewModel(
                 tweakUis.associate {
                     it.key to
                         when {
-                            !prefsNow[it.pref] -> "off"
+                            it.prefs.none { pref -> prefsNow[pref] } -> "off"
                             it.key in errors -> "miss"
                             it.key in errorLines.value -> "error"
                             else -> "ok"
