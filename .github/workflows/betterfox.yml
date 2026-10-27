@@ -1,0 +1,36 @@
+name: Betterfox list
+
+on:
+  schedule:
+    - cron: "23 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Regenerate the list from the newest Betterfox tag and Iceraven release
+        run: python3 tools/betterfox/betterfox.py
+
+      - name: Commit a new revision
+        run: |
+          list=app/src/main/assets/betterfox.json
+          old=$(git show HEAD:$list | python3 -c 'import json,sys; print(json.load(sys.stdin)["revision"])')
+          new=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["revision"])' $list)
+          if [ "$old" = "$new" ]; then
+            echo "revision $old unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: regenerate Betterfox list revision $new" -- $list
+          git push
