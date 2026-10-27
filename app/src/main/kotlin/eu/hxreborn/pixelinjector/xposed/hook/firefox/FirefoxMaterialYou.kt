@@ -14,6 +14,8 @@ import android.content.res.loader.ResourcesProvider
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.TypedValue
 import androidx.core.graphics.ColorUtils
 import eu.hxreborn.pixelinjector.prefs.Prefs
@@ -30,11 +32,14 @@ import eu.hxreborn.pixelinjector.xposed.Switch
 import eu.hxreborn.pixelinjector.xposed.Target
 import eu.hxreborn.pixelinjector.xposed.Tweak
 import io.github.libxposed.api.XposedModule
+import java.lang.ref.WeakReference
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.util.Collections
 import java.util.IdentityHashMap
+import java.util.WeakHashMap
 import kotlin.math.hypot
 
 private const val TWEAK = "FirefoxMaterialYou"
@@ -63,6 +68,10 @@ private const val BYTE_MASK = 0xFF
 private const val RGB_MASK = 0xFFFFFF
 private const val RED_SHIFT = 16
 private const val GREEN_SHIFT = 8
+private const val SAVED_COLORS = "colors"
+private const val SAVED_APPLICATION = "application"
+private const val SAVED_ACTIVITIES = "activities"
+private const val SAVED_LOADER = "loader"
 
 private val fxMobileRoleNames =
     mapOf(
@@ -187,9 +196,24 @@ private val gradientRoles =
         "tabOutline" to ("primary" to "tertiary"),
     )
 
-private val switch = Switch(Prefs.FIREFOX_MATERIAL_YOU)
+private val switch =
+    Switch(Prefs.FIREFOX_MATERIAL_YOU) { enabled ->
+        val bindings = current ?: return@Switch
+        val application = liveApplication?.get() ?: return@Switch
+        Handler(Looper.getMainLooper()).post { bindings.toggleLive(application, enabled) }
+    }
+
+@Volatile private var current: MaterialYouBindings? = null
 
 @Volatile private var wallpaperColors: WallpaperColors? = null
+
+@Volatile private var liveApplication: WeakReference<Application>? = null
+
+@Volatile private var overlayLoader: ResourcesLoader? = null
+
+@Volatile private var tracker: ActivityTracker? = null
+
+private val liveActivities: MutableSet<Activity> = Collections.newSetFromMap(WeakHashMap())
 
 @Volatile private var bannerInitThread: Thread? = null
 
@@ -200,17 +224,83 @@ internal val firefoxMaterialYou =
         key = TWEAK,
         targets = setOf(Target.FIREFOX),
         prefs = listOf(switch),
-        saveState = {
-            wallpaperColors?.let { listOf(it.light, it.dark, it.privateMode) }
-        },
-        restoreState = { saved ->
-            val arrays = (saved as? List<*>)?.filterIsInstance<IntArray>()
-            if (arrays?.size == 3) {
-                wallpaperColors = WallpaperColors(arrays[0], arrays[1], arrays[2])
-            }
-        },
+        saveState = ::saveMaterialYou,
+        restoreState = ::restoreMaterialYou,
         install = XposedModule::installFirefoxMaterialYou,
     )
+
+private fun saveMaterialYou(): Any {
+    val application = liveApplication?.get()
+    tracker?.let { application?.unregisterActivityLifecycleCallbacks(it) }
+    tracker = null
+    val activities = Collections.newSetFromMap(WeakHashMap<Activity, Boolean>())
+    activities.addAll(liveActivitySnapshot())
+    return hashMapOf(
+        SAVED_COLORS to wallpaperColors?.let { listOf(it.light, it.dark, it.privateMode) },
+        SAVED_APPLICATION to application,
+        SAVED_ACTIVITIES to activities,
+        SAVED_LOADER to overlayLoader,
+    )
+}
+
+private fun restoreMaterialYou(saved: Any?) {
+    val state = saved as? Map<*, *> ?: return
+    val arrays = (state[SAVED_COLORS] as? List<*>)?.filterIsInstance<IntArray>()
+    if (arrays?.size == 3) {
+        wallpaperColors = WallpaperColors(arrays[0], arrays[1], arrays[2])
+    }
+    overlayLoader = state[SAVED_LOADER] as? ResourcesLoader
+    val activities = (state[SAVED_ACTIVITIES] as? Set<*>).orEmpty().filterIsInstance<Activity>()
+    synchronized(liveActivities) { liveActivities.addAll(activities) }
+    val application = state[SAVED_APPLICATION] as? Application ?: return
+    trackActivities(application)
+    Logger.info(
+        "carried tweak=$TWEAK activities=${activities.size} overlay=${overlayLoader != null}",
+    )
+}
+
+private fun liveActivitySnapshot(): List<Activity> =
+    synchronized(liveActivities) {
+        liveActivities.toList()
+    }
+
+private fun trackActivities(application: Application) {
+    liveApplication = WeakReference(application)
+    if (tracker != null) return
+    tracker = ActivityTracker().also(application::registerActivityLifecycleCallbacks)
+}
+
+private fun MaterialYouBindings.toggleLive(
+    application: Application,
+    enabled: Boolean,
+) {
+    if (enabled == (overlayLoader != null)) return
+    runCatching {
+        if (enabled) {
+            val colors = readWallpaperColors(application)
+            wallpaperColors = colors
+            applyOverlay(application, colors)
+        } else {
+            removeOverlayLoader(application)
+            removeOverlay(application)
+        }
+        val activities = liveActivitySnapshot()
+        activities.forEach(Activity::recreate)
+        Logger.info(
+            "${if (enabled) "applied" else "reverted"} tweak=$TWEAK activities=${activities.size}",
+        )
+    }.onFailure {
+        val action = if (enabled) "apply" else "revert"
+        Logger.error("$action failed tweak=$TWEAK reason=${it.reason()} ${it.message}", it)
+    }
+}
+
+private fun removeOverlayLoader(application: Application) {
+    val loader = overlayLoader ?: return
+    application.resources.removeLoaders(loader)
+    liveActivitySnapshot().forEach { it.resources.removeLoaders(loader) }
+    overlayLoader = null
+}
 
 private class SchemeColor(
     val field: Field,
@@ -591,7 +681,7 @@ private fun MaterialYouBindings.applyOverlay(
     val info = overlayManager.findOverlay(packageName) ?: return
     val loader = ResourcesLoader().apply { addProvider(ResourcesProvider.loadOverlay(info)) }
     resources.addLoaders(loader)
-    application.registerActivityLifecycleCallbacks(LoaderCallbacks(loader))
+    overlayLoader = loader
     Logger.info("applied tweak=$TWEAK colors=$count overlayable=$overlayable")
 }
 
@@ -606,14 +696,13 @@ private fun removeOverlay(application: Application) {
     Logger.info("overlay removed tweak=$TWEAK")
 }
 
-private class LoaderCallbacks(
-    private val loader: ResourcesLoader,
-) : Application.ActivityLifecycleCallbacks {
+private class ActivityTracker : Application.ActivityLifecycleCallbacks {
     override fun onActivityPreCreated(
         activity: Activity,
         savedInstanceState: Bundle?,
     ) {
-        activity.resources.addLoaders(loader)
+        synchronized(liveActivities) { liveActivities.add(activity) }
+        overlayLoader?.let { activity.resources.addLoaders(it) }
     }
 
     override fun onActivityCreated(
@@ -634,7 +723,9 @@ private class LoaderCallbacks(
         outState: Bundle,
     ) = Unit
 
-    override fun onActivityDestroyed(activity: Activity) = Unit
+    override fun onActivityDestroyed(activity: Activity) {
+        synchronized(liveActivities) { liveActivities.remove(activity) }
+    }
 }
 
 private fun blend(
@@ -679,6 +770,7 @@ private fun XposedModule.installFirefoxMaterialYou(cl: ClassLoader): Boolean {
     }
     hook(bindings.applicationOnCreate).intercept { chain ->
         val application = chain.thisObject as? Application ?: return@intercept chain.proceed()
+        trackActivities(application)
         runCatching {
             if (switch.enabled) {
                 val colors = bindings.readWallpaperColors(application)
@@ -695,6 +787,7 @@ private fun XposedModule.installFirefoxMaterialYou(cl: ClassLoader): Boolean {
         }
         chain.proceed()
     }
+    current = bindings
     hook(bindings.acornTheme).intercept { chain ->
         if (!switch.enabled) return@intercept chain.proceed()
         val colors = wallpaperColors ?: return@intercept chain.proceed()

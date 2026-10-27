@@ -320,6 +320,9 @@ val tweakUis: List<TweakUi> =
         ),
     ).filter { Build.VERSION.SDK_INT >= it.minSdk }
 
+private val liveBrowserPrefs =
+    setOf(Prefs.FIREFOX_MATERIAL_YOU, Prefs.FIREFOX_LOADING_INDICATOR, Prefs.FIREFOX_CLASSIC_MENU)
+
 val restartOnChange: Map<PrefSpec<*>, Set<String>> =
     buildMap {
         put(Prefs.HIDE_SEARCH_BAR, LAUNCHER_PACKAGES)
@@ -327,7 +330,9 @@ val restartOnChange: Map<PrefSpec<*>, Set<String>> =
         put(Prefs.GBOARD_BLACK, GBOARD_PACKAGES)
         put(Prefs.KDE_CONNECT_QUIET, setOf(KDE_CONNECT_PACKAGE))
         put(Prefs.FIREFOX_BETTERFOX_LIST, FIREFOX_PACKAGES)
-        Prefs.perBrowser.forEach { prefs -> prefs.byPackage.forEach { (pkg, pref) -> put(pref, setOf(pkg)) } }
+        (Prefs.perBrowser - liveBrowserPrefs).forEach { prefs ->
+            prefs.byPackage.forEach { (pkg, pref) -> put(pref, setOf(pkg)) }
+        }
     }
 
 private val moduleIcons: Map<String, Int> =
