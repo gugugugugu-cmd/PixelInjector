@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.om.FabricatedOverlay
 import android.content.om.OverlayManager
 import android.content.om.OverlayManagerTransaction
+import android.content.res.AssetManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.content.res.loader.ResourcesLoader
@@ -14,6 +15,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
+import androidx.core.graphics.ColorUtils
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.orNullIfMissing
@@ -33,6 +35,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.IdentityHashMap
+import kotlin.math.hypot
 
 private const val TWEAK = "FirefoxMaterialYou"
 private const val THEME_PACKAGE = "mozilla.components.compose.base.theme"
@@ -46,6 +49,8 @@ private const val PROTECTION_BANNER = "$TRUST_PANEL.ProtectionPanelBannerKt"
 private const val COMPOSE_COLOR_KT = "androidx.compose.ui.graphics.ColorKt"
 private const val OVERLAY_NAME = "pixelinjector_material_you"
 private const val OVERLAYABLE_NAME = "PixelInjector"
+private const val POLICY_PUBLIC = 0x1
+private const val COLOR_TYPE = "color"
 private const val NIGHT_CONFIGURATION = "night"
 private const val BLACK = 0xFF000000.toInt()
 private const val SRGB_SPACE_MASK = 0x3FL
@@ -71,6 +76,41 @@ private val inverseRoleFallbacks =
         "inverse_primary" to ("primary" to true),
         "inverse_surface" to ("on_surface" to false),
         "inverse_on_surface" to ("surface_container" to false),
+    )
+
+private val overlayableLine =
+    Regex(
+        """resource='[^:]+:(\w+)/([^']+)' overlayable='([^']+)' actor='([^']*)' policy='0x([0-9a-f]+)'""",
+    )
+
+private val accentColors =
+    listOf(
+        android.R.color.system_accent1_0,
+        android.R.color.system_accent1_10,
+        android.R.color.system_accent1_50,
+        android.R.color.system_accent1_100,
+        android.R.color.system_accent1_200,
+        android.R.color.system_accent1_300,
+        android.R.color.system_accent1_400,
+        android.R.color.system_accent1_500,
+        android.R.color.system_accent1_600,
+        android.R.color.system_accent1_700,
+        android.R.color.system_accent1_800,
+        android.R.color.system_accent1_900,
+        android.R.color.system_accent1_1000,
+        android.R.color.system_accent2_0,
+        android.R.color.system_accent2_10,
+        android.R.color.system_accent2_50,
+        android.R.color.system_accent2_100,
+        android.R.color.system_accent2_200,
+        android.R.color.system_accent2_300,
+        android.R.color.system_accent2_400,
+        android.R.color.system_accent2_500,
+        android.R.color.system_accent2_600,
+        android.R.color.system_accent2_700,
+        android.R.color.system_accent2_800,
+        android.R.color.system_accent2_900,
+        android.R.color.system_accent2_1000,
     )
 
 private val tertiaryRoleSources =
@@ -238,6 +278,7 @@ private class MaterialYouBindings(
     val schemeColors: List<SchemeColor>,
     val surface: Field,
     val gradients: Gradients?,
+    val overlayablesToString: Method?,
 ) {
     fun roleIndex(role: String) = schemeColors.indexOfFirst { it.role == role }
 
@@ -277,6 +318,13 @@ private class MaterialYouBindings(
                     gradients?.let { acornTheme.parameterTypes.indexOf(it.schemeClass) } ?: -1,
                 surface = colorScheme.requiredField("surface"),
                 gradients = gradients,
+                overlayablesToString =
+                    orNullIfMissing {
+                        AssetManager::class.java.getMethod(
+                            "getOverlayablesToString",
+                            String::class.java,
+                        )
+                    },
                 schemeColors =
                     colorScheme.declaredFields
                         .filter {
@@ -383,6 +431,62 @@ private fun MaterialYouBindings.readWallpaperColors(context: Context): Wallpaper
     )
 }
 
+private fun OverlayManager.register(overlay: FabricatedOverlay) =
+    commit(OverlayManagerTransaction.newInstance().apply { registerFabricatedOverlay(overlay) })
+
+private class DeclaredOverlayable(
+    val name: String,
+    val colors: List<String>,
+)
+
+private fun MaterialYouBindings.declaredOverlayable(context: Context): DeclaredOverlayable? {
+    val dump =
+        overlayablesToString?.invoke(context.assets, context.packageName) as? String ?: return null
+    return overlayableLine
+        .findAll(dump)
+        .map { it.destructured }
+        .filter { (type, _, _, actor, policy) ->
+            type == COLOR_TYPE && actor.isEmpty() && policy.toInt(16) and POLICY_PUBLIC != 0
+        }.groupBy({ (_, _, overlayable) -> overlayable }, { (_, name) -> name })
+        .maxByOrNull { it.value.size }
+        ?.let { (name, colors) -> DeclaredOverlayable(name, colors) }
+}
+
+private fun lightnessAndChroma(color: Int): Pair<Double, Double> {
+    val lab = DoubleArray(3)
+    ColorUtils.colorToLAB(color or BLACK, lab)
+    return lab[0] to hypot(lab[1], lab[2])
+}
+
+private fun accentOverlay(
+    context: Context,
+    declared: DeclaredOverlayable,
+): Pair<FabricatedOverlay, Int> {
+    val resources = context.resources
+    val packageName = context.packageName
+    val accents = accentColors.map(context::getColor).map { it to lightnessAndChroma(it) }
+    val overlay =
+        FabricatedOverlay(OVERLAY_NAME, packageName).apply {
+            setTargetOverlayable(declared.name)
+        }
+    var count = 0
+    for (name in declared.colors) {
+        val id =
+            resources.getIdentifier(name, COLOR_TYPE, packageName).takeIf { it != 0 } ?: continue
+        val stock = context.getColor(id)
+        val (lightness, chroma) = lightnessAndChroma(stock)
+        val (nearest) = accents.minBy { (_, lc) -> hypot(lc.first - lightness, lc.second - chroma) }
+        overlay.setResourceValue(
+            resources.getResourceName(id),
+            TypedValue.TYPE_INT_COLOR_ARGB8,
+            (stock and BLACK) or (nearest and RGB_MASK),
+            null,
+        )
+        count++
+    }
+    return overlay to count
+}
+
 private fun OverlayManager.findOverlay(packageName: String) =
     getOverlayInfosForTarget(packageName).firstOrNull { it.overlayName == OVERLAY_NAME }
 
@@ -474,14 +578,21 @@ private fun MaterialYouBindings.applyOverlay(
             put(id, night.getColor(id, null), colors.privateMode[index], null)
         }
     }
-    overlayManager.commit(
-        OverlayManagerTransaction.newInstance().apply { registerFabricatedOverlay(overlay) },
-    )
+    var overlayable = OVERLAYABLE_NAME
+    val declared = declaredOverlayable(application)
+    if (declared == null) {
+        overlayManager.register(overlay)
+    } else {
+        val (accent, accentCount) = accentOverlay(application, declared)
+        overlayManager.register(accent)
+        count = accentCount
+        overlayable = declared.name
+    }
     val info = overlayManager.findOverlay(packageName) ?: return
     val loader = ResourcesLoader().apply { addProvider(ResourcesProvider.loadOverlay(info)) }
     resources.addLoaders(loader)
     application.registerActivityLifecycleCallbacks(LoaderCallbacks(loader))
-    Logger.info("applied tweak=$TWEAK colors=$count")
+    Logger.info("applied tweak=$TWEAK colors=$count overlayable=$overlayable")
 }
 
 private fun removeOverlay(application: Application) {
