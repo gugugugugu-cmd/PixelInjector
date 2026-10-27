@@ -7,6 +7,7 @@ import androidx.core.content.edit
 import com.topjohnwu.superuser.Shell
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.prefs.PrefsRepository
+import eu.hxreborn.pixelinjector.support.GeckoWatch
 import eu.hxreborn.pixelinjector.support.Support
 import eu.hxreborn.pixelinjector.ui.util.DateStyle
 import io.github.libxposed.service.XposedService
@@ -62,6 +63,7 @@ class App :
             DateStyle.entries.firstOrNull { it.name == state.getString(DATE_STYLE, null) }
                 ?: DateStyle.SYSTEM
         XposedServiceHelper.registerListener(this)
+        GeckoWatch.schedule(this)
     }
 
     override fun onServiceBind(service: XposedService) {

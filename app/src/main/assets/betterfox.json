@@ -1,0 +1,773 @@
+{
+ "schema": 2,
+ "revision": 2,
+ "betterfox": "154.0",
+ "commit": "067172a4b0dc90e78e5b8b94d9abfe6430c6a7be",
+ "source": "iceraven-2.51.0",
+ "gecko": "158.0",
+ "notice": "MIT License\n\nCopyright (c) 2020 yokoffing\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
+ "prefs": [
+  {
+   "pref": "gfx.content.skia-font-cache-size",
+   "value": 20,
+   "group": "Fastfox",
+   "note": "Font rendering cache in Skia",
+   "file": "Fastfox.js",
+   "line": 29,
+   "about": {
+    "text": "Increases font cache size to improve performance on text-heavy websites. Especially beneficial for sites with many font faces or complex typography.",
+    "links": [
+     "https://bugzilla.mozilla.org/show_bug.cgi?id=1239151#c2"
+    ],
+    "inline": "20 MB; default=5; Chrome=20"
+   },
+   "stock": 5
+  },
+  {
+   "pref": "content.notify.interval",
+   "value": 100000,
+   "group": "Fastfox",
+   "note": "Content notification delay",
+   "file": "Fastfox.js",
+   "line": 56,
+   "about": {
+    "text": "When Firefox is loading a page, it periodically reformats or \"reflows\" the page as it loads. The page displays new elements every 0.12 seconds by default. These redraws increase the total page load time. The default value provides good incremental display of content without causing an increase in page load time.",
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "Lowering the interval will increase responsiveness but also increase the total load time."
+     },
+     {
+      "tag": "WARNING",
+      "text": "If this value is set below 1/10 of a second, it starts to impact page load performance."
+     },
+     {
+      "tag": "EXAMPLE",
+      "text": "100000 = .10s = 100 reflows/second"
+     }
+    ],
+    "links": [
+     "https://searchfox.org/mozilla-central/rev/c1180ea13e73eb985a49b15c0d90e977a1aa919c/modules/libpref/init/StaticPrefList.yaml#1824-1834",
+     "https://web.archive.org/web/20240115073722/https://dev.opera.com/articles/efficient-javascript/?page=3#reflow",
+     "https://web.archive.org/web/20240115073722/https://dev.opera.com/articles/efficient-javascript/?page=3#smoothspeed"
+    ],
+    "inline": "(.10s); default=120000 (.12s)"
+   },
+   "stock": 120000
+  },
+  {
+   "pref": "gfx.canvas.accelerated.cache-size",
+   "value": 512,
+   "group": "Fastfox",
+   "note": "GPU-accelerated Canvas2D",
+   "file": "Fastfox.js",
+   "line": 131,
+   "about": {
+    "text": "Uses Accelerated Canvas2D for hardware acceleration of Canvas2D. This provides a consistent acceleration architecture across all platforms by utilizing WebGL instead of relying upon Direct2D.",
+    "tags": [
+     {
+      "tag": "WARNING",
+      "text": "May cause issues on some Windows machines using integrated GPUs Add to your overrides if you have a dedicated GPU."
+     },
+     {
+      "tag": "NOTE",
+      "text": "Higher values will use more memory."
+     }
+    ],
+    "links": [
+     "https://bugzilla.mozilla.org/show_bug.cgi?id=1741501",
+     "https://github.com/yokoffing/Betterfox/issues/153",
+     "https://github.com/yokoffing/Betterfox/issues/198",
+     "https://github.com/yokoffing/Betterfox/issues/460#issuecomment-3983660306"
+    ],
+    "inline": "Chrome=512; max=2048"
+   },
+   "stock": 256
+  },
+  {
+   "pref": "media.cache_readahead_limit",
+   "value": 3600,
+   "group": "Fastfox",
+   "note": "Adjust video buffering periods when not using MSE",
+   "file": "Fastfox.js",
+   "line": 312,
+   "about": {
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "Does not affect videos over 720p since they use DASH playback or Web Audio API"
+     }
+    ],
+    "links": [
+     "https://lifehacker.com/preload-entire-youtube-videos-by-disabling-dash-playbac-1186454034"
+    ],
+    "inline": "60 min; default=60 sec; stop reading ahead when our buffered data is this many seconds ahead of the current playback"
+   },
+   "stock": 60
+  },
+  {
+   "pref": "media.cache_resume_threshold",
+   "value": 1800,
+   "group": "Fastfox",
+   "note": "Adjust video buffering periods when not using MSE",
+   "file": "Fastfox.js",
+   "line": 313,
+   "about": {
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "Does not affect videos over 720p since they use DASH playback or Web Audio API"
+     }
+    ],
+    "links": [
+     "https://lifehacker.com/preload-entire-youtube-videos-by-disabling-dash-playbac-1186454034"
+    ],
+    "inline": "30 min; default=30 sec; when a network connection is suspended, don't resume it until the amount of buffered data falls below this threshold"
+   },
+   "stock": 30
+  },
+  {
+   "pref": "image.mem.decode_bytes_at_a_time",
+   "value": 32768,
+   "group": "Fastfox",
+   "note": "Image cache",
+   "file": "Fastfox.js",
+   "line": 321,
+   "about": {
+    "inline": "chunk size for calls to the image decoders"
+   },
+   "stock": 16384
+  },
+  {
+   "pref": "network.buffer.cache.count",
+   "value": 48,
+   "group": "Fastfox",
+   "note": "Use bigger packets",
+   "file": "Fastfox.js",
+   "line": 343,
+   "about": {
+    "text": "Reduce Firefox's CPU usage by requiring fewer application-to-driver data transfers. However, it does not affect the actual packet sizes transmitted over the network.",
+    "tags": [
+     {
+      "tag": "WARNING",
+      "text": "Cannot open HTML files bigger than 4MB if value is too large."
+     }
+    ],
+    "links": [
+     "https://www.mail-archive.com/support-seamonkey@lists.mozilla.org/msg74561.html",
+     "https://github.com/yokoffing/Betterfox/issues/279",
+     "https://ra1ahq.blog/en/optimizaciya-proizvoditelnosti-mozilla-firefox"
+    ],
+    "inline": "128 too large"
+   },
+   "stock": 24
+  },
+  {
+   "pref": "network.http.max-connections",
+   "value": 1800,
+   "group": "Fastfox",
+   "note": "Increase the absolute number of HTTP connections",
+   "file": "Fastfox.js",
+   "line": 349,
+   "about": {
+    "links": [
+     "https://kb.mozillazine.org/Network.http.max-connections",
+     "https://kb.mozillazine.org/Network.http.max-persistent-connections-per-server",
+     "https://www.reddit.com/r/firefox/comments/11m2yuh/how_do_i_make_firefox_use_more_of_my_900_megabit/jbfmru6/"
+    ]
+   },
+   "stock": 128
+  },
+  {
+   "pref": "network.http.max-persistent-connections-per-server",
+   "value": 10,
+   "group": "Fastfox",
+   "note": "Increase the absolute number of HTTP connections",
+   "file": "Fastfox.js",
+   "line": 350,
+   "about": {
+    "links": [
+     "https://kb.mozillazine.org/Network.http.max-connections",
+     "https://kb.mozillazine.org/Network.http.max-persistent-connections-per-server",
+     "https://www.reddit.com/r/firefox/comments/11m2yuh/how_do_i_make_firefox_use_more_of_my_900_megabit/jbfmru6/"
+    ],
+    "inline": "download connections; anything above 10 is excessive"
+   },
+   "stock": 6
+  },
+  {
+   "pref": "network.http.max-urgent-start-excessive-connections-per-host",
+   "value": 5,
+   "group": "Fastfox",
+   "note": "Increase the absolute number of HTTP connections",
+   "file": "Fastfox.js",
+   "line": 351,
+   "about": {
+    "links": [
+     "https://kb.mozillazine.org/Network.http.max-connections",
+     "https://kb.mozillazine.org/Network.http.max-persistent-connections-per-server",
+     "https://www.reddit.com/r/firefox/comments/11m2yuh/how_do_i_make_firefox_use_more_of_my_900_megabit/jbfmru6/"
+    ]
+   },
+   "stock": 3
+  },
+  {
+   "pref": "network.http.request.max-start-delay",
+   "value": 5,
+   "group": "Fastfox",
+   "note": "Increase the absolute number of HTTP connections",
+   "file": "Fastfox.js",
+   "line": 353,
+   "about": {
+    "links": [
+     "https://kb.mozillazine.org/Network.http.max-connections",
+     "https://kb.mozillazine.org/Network.http.max-persistent-connections-per-server",
+     "https://www.reddit.com/r/firefox/comments/11m2yuh/how_do_i_make_firefox_use_more_of_my_900_megabit/jbfmru6/"
+    ]
+   },
+   "stock": 10
+  },
+  {
+   "pref": "network.dnsCacheExpiration",
+   "value": 3600,
+   "group": "Fastfox",
+   "note": "Adjust DNS expiration time",
+   "file": "Fastfox.js",
+   "line": 376,
+   "about": {
+    "tags": [
+     {
+      "tag": "ABOUT",
+      "text": "about:networking#dns"
+     },
+     {
+      "tag": "NOTE",
+      "text": "These prefs will be ignored by DNS resolver if using DoH/TRR."
+     }
+    ],
+    "inline": "keep entries for 1 hour; default=60"
+   },
+   "stock": 60
+  },
+  {
+   "pref": "security.OCSP.enabled",
+   "value": 0,
+   "group": "Securefox",
+   "note": "Disable OCSP fetching to confirm current validity of certificates",
+   "file": "Securefox.js",
+   "line": 259,
+   "about": {
+    "text": "OCSP (non-stapled) leaks information about the sites you visit to the CA (cert authority). It's a trade-off between security (checking) and privacy (leaking info to the CA). Unlike Chrome, Firefox's default settings also query OCSP responders to confirm the validity of SSL/TLS certificates. However, because OCSP query failures are so common, Firefox (like other browsers) implements a \"soft-fail\" policy. 0=disabled, 1=enabled (default), 2=enabled for EV certificates only",
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "This pref only controls OCSP fetching and does not affect OCSP stapling"
+     },
+     {
+      "tag": "SETTING",
+      "text": "Privacy & Security>Security>Certificates>Query OCSP responder servers..."
+     }
+    ],
+    "links": [
+     "https://en.wikipedia.org/wiki/Ocsp",
+     "https://www.ssl.com/blogs/how-do-browsers-handle-revoked-ssl-tls-certificates/#ftoc-heading-3"
+    ]
+   },
+   "stock": 2
+  },
+  {
+   "pref": "privacy.antitracking.isolateContentScriptResources",
+   "value": true,
+   "group": "Securefox",
+   "note": "Disable referrer and storage access for resources injected by content scripts",
+   "file": "Securefox.js",
+   "line": 325,
+   "about": {},
+   "stock": false
+  },
+  {
+   "pref": "security.csp.reporting.enabled",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disable CSP Level 2 Reporting",
+   "file": "Securefox.js",
+   "line": 329,
+   "about": {
+    "links": [
+     "https://github.com/yokoffing/Betterfox/issues/415"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "security.ssl.treat_unsafe_negotiation_as_broken",
+   "value": true,
+   "group": "Securefox",
+   "note": "Display warning on the padlock for \"broken security\"",
+   "file": "Securefox.js",
+   "line": 339,
+   "about": {
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "Warning padlock not indicated for subresources on a secure page!"
+     }
+    ],
+    "links": [
+     "https://wiki.mozilla.org/Security:Renegotiation",
+     "https://bugzilla.mozilla.org/1353705"
+    ]
+   },
+   "stock": false
+  },
+  {
+   "pref": "security.tls.enable_0rtt_data",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disable 0-RTT (round-trip time) to improve TLS 1.3 security",
+   "file": "Securefox.js",
+   "line": 370,
+   "about": {
+    "text": "This data is not forward secret, as it is encrypted solely under keys derived using the offered PSK. There are no guarantees of non-replay between connections.",
+    "links": [
+     "https://github.com/tlswg/tls13-spec/issues/1001",
+     "https://www.rfc-editor.org/rfc/rfc9001.html#name-replay-attacks-with-0-rtt",
+     "https://blog.cloudflare.com/tls-1-3-overview-and-q-and-a/"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "browser.cache.disk.enable",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disk cache",
+   "file": "Securefox.js",
+   "line": 427,
+   "about": {
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "If you think it helps performance, then feel free to override this."
+     },
+     {
+      "tag": "SETTINGS",
+      "text": "See about:cache More efficient to keep the browser cache instead of having to re-download objects for the websites you visit frequently."
+     }
+    ],
+    "links": [
+     "https://www.janbambas.cz/new-firefox-http-cache-enabled/"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "browser.privatebrowsing.forceMediaMemoryCache",
+   "value": true,
+   "group": "Securefox",
+   "note": "Set media cache in Private Browsing to in-memory and increase its maximum size",
+   "file": "Securefox.js",
+   "line": 433,
+   "about": {
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "MSE (Media Source Extensions) are already stored in-memory in PB"
+     }
+    ],
+    "links": [
+     "https://hg.mozilla.org/mozilla-central/file/tip/modules/libpref/init/StaticPrefList.yaml#l9652",
+     "https://github.com/arkenfox/user.js/pull/941#issuecomment-668278121"
+    ]
+   },
+   "stock": false
+  },
+  {
+   "pref": "media.memory_cache_max_size",
+   "value": 65536,
+   "group": "Securefox",
+   "note": "Set media cache in Private Browsing to in-memory and increase its maximum size",
+   "file": "Securefox.js",
+   "line": 434,
+   "about": {
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "MSE (Media Source Extensions) are already stored in-memory in PB"
+     }
+    ],
+    "links": [
+     "https://hg.mozilla.org/mozilla-central/file/tip/modules/libpref/init/StaticPrefList.yaml#l9652",
+     "https://github.com/arkenfox/user.js/pull/941#issuecomment-668278121"
+    ],
+    "inline": "64 MB; default=8192; AF=65536"
+   },
+   "stock": 8192
+  },
+  {
+   "pref": "network.http.speculative-parallel-limit",
+   "value": 0,
+   "group": "Securefox",
+   "note": "Link-mouseover opening connection to linked server",
+   "file": "Securefox.js",
+   "line": 606,
+   "about": {
+    "text": "When accessing content online, devices use sockets as endpoints. The global limit on half-open sockets controls how many speculative connection attempts can occur at once when starting new connections. If the user follows through, pages can load faster since some work was done in advance. Firefox opens predictive connections to sites when hovering over New Tab thumbnails or starting a URL Bar search and hyperlinks within a page.",
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "DNS (if enabled), TCP, and SSL handshakes are set up in advance, but page contents are not downloaded until a click on the link is registered."
+     }
+    ],
+    "links": [
+     "https://support.mozilla.org/en-US/kb/how-stop-firefox-making-automatic-connections?redirectslug=how-stop-firefox-automatically-making-connections&redirectlocale=en-US#:~:text=Speculative%20pre%2Dconnections",
+     "https://news.slashdot.org/story/15/08/14/2321202/how-to-quash-firefoxs-silent-requests",
+     "https://searchfox.org/mozilla-central/rev/028c68d5f32df54bca4cf96376f79e48dfafdf08/modules/libpref/init/all.js#1280-1282",
+     "https://www.keycdn.com/blog/resource-hints#prefetch",
+     "https://3perf.com/blog/link-rels/#prefetch"
+    ]
+   },
+   "stock": 20
+  },
+  {
+   "pref": "network.dns.disablePrefetch",
+   "value": true,
+   "group": "Securefox",
+   "note": "DNS prefetching for HTMLLinkElement <link rel=\"dns-prefetch\">",
+   "file": "Securefox.js",
+   "line": 617,
+   "about": {
+    "text": "Used for cross-origin connections to provide small performance improvements. You can enable rel=dns-prefetch for the HTTPS document without prefetching DNS for anchors, whereas the latter makes more specualtive requests.",
+    "links": [
+     "https://bitsup.blogspot.com/2008/11/dns-prefetching-for-firefox.html",
+     "https://css-tricks.com/prefetching-preloading-prebrowsing/#dns-prefetching",
+     "https://www.keycdn.com/blog/resource-hints#2-dns-prefetching",
+     "http://www.mecs-press.org/ijieeb/ijieeb-v7-n5/IJIEEB-V7-N5-2.pdf",
+     "https://bugzilla.mozilla.org/show_bug.cgi?id=1596935#c28"
+    ]
+   },
+   "stock": false
+  },
+  {
+   "pref": "network.dns.disablePrefetchFromHTTPS",
+   "value": true,
+   "group": "Securefox",
+   "note": "DNS prefetching for HTMLLinkElement <link rel=\"dns-prefetch\">",
+   "file": "Securefox.js",
+   "line": 618,
+   "about": {
+    "text": "Used for cross-origin connections to provide small performance improvements. You can enable rel=dns-prefetch for the HTTPS document without prefetching DNS for anchors, whereas the latter makes more specualtive requests.",
+    "links": [
+     "https://bitsup.blogspot.com/2008/11/dns-prefetching-for-firefox.html",
+     "https://css-tricks.com/prefetching-preloading-prebrowsing/#dns-prefetching",
+     "https://www.keycdn.com/blog/resource-hints#2-dns-prefetching",
+     "http://www.mecs-press.org/ijieeb/ijieeb-v7-n5/IJIEEB-V7-N5-2.pdf",
+     "https://bugzilla.mozilla.org/show_bug.cgi?id=1596935#c28"
+    ],
+    "inline": "[FF127+ false]"
+   },
+   "stock": false
+  },
+  {
+   "pref": "network.prefetch-next",
+   "value": false,
+   "group": "Securefox",
+   "note": "Link prefetching <link rel=\"prefetch\">",
+   "file": "Securefox.js",
+   "line": 673,
+   "about": {
+    "text": "Pre-populates the HTTP cache by prefetching same-site future navigation resources or subresources used on those pages. Enabling link prefetching allows Firefox to preload pages tagged as important. The browser prefetches links with the prefetch-link tag, fetching resources likely needed for the next navigation at low priority. When clicking a link or loading a new page, prefetching stops and discards hints. Prefetching downloads resources without executing them.",
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "Since link prefetch uses the HTTP cache, it has a number of issues with document prefetches, such as being potentially blocked by Cache-Control headers (e.g. cache partitioning)."
+     }
+    ],
+    "links": [
+     "https://developer.mozilla.org/en-US/docs/Glossary/Prefetch",
+     "http://www.mecs-press.org/ijieeb/ijieeb-v7-n5/IJIEEB-V7-N5-2.pdf",
+     "https://timkadlec.com/remembers/2020-06-17-prefetching-at-this-age/",
+     "https://3perf.com/blog/link-rels/#prefetch",
+     "https://developer.mozilla.org/docs/Web/HTTP/Link_prefetching_FAQ"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "browser.formfill.enable",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disable search and form history",
+   "file": "Securefox.js",
+   "line": 770,
+   "about": {
+    "text": "Be aware that autocomplete form data can be read by third parties. Form data can easily be stolen by third parties.",
+    "tags": [
+     {
+      "tag": "SETTING",
+      "text": "Privacy & Security>History>Custom Settings>Remember search and form history"
+     }
+    ],
+    "links": [
+     "https://blog.mindedsecurity.com/2011/10/autocompleteagain.html",
+     "https://bugzilla.mozilla.org/381681"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "network.IDN_show_punycode",
+   "value": true,
+   "group": "Securefox",
+   "note": "Enforce Punycode for Internationalized Domain Names to eliminate possible spoofing",
+   "file": "Securefox.js",
+   "line": 794,
+   "about": {
+    "text": "Firefox has some protections, but it is better to be safe than sorry. [!] Might be undesirable for non-latin alphabet users since legitimate IDN's are also punycoded. CVE-2017-5383: https://www.mozilla.org/security/advisories/mfsa2017-02/",
+    "tags": [
+     {
+      "tag": "EXAMPLE",
+      "text": "https://www.techspot.com/news/100555-malvertising-attack-uses-punycode-character-spread-malware-through.html"
+     },
+     {
+      "tag": "TEST",
+      "text": "https://www.xn--80ak6aa92e.com/ (www.apple.com)"
+     }
+    ],
+    "links": [
+     "https://wiki.mozilla.org/IDN_Display_Algorithm",
+     "https://en.wikipedia.org/wiki/IDN_homograph_attack",
+     "https://www.xudongz.com/blog/2017/idn-phishing/"
+    ]
+   },
+   "stock": false
+  },
+  {
+   "pref": "dom.security.https_only_mode_error_page_user_suggestions",
+   "value": true,
+   "group": "Securefox",
+   "note": "Offer suggestion for HTTPS site when available",
+   "file": "Securefox.js",
+   "line": 864,
+   "about": {
+    "links": [
+     "https://x.com/leli_gibts_scho/status/1371463866606059528"
+    ]
+   },
+   "stock": false
+  },
+  {
+   "pref": "signon.formlessCapture.enabled",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disable formless login capture for Password Manager",
+   "file": "Securefox.js",
+   "line": 1022,
+   "about": {
+    "links": [
+     "https://bugzilla.mozilla.org/show_bug.cgi?id=1166947"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "signon.privateBrowsingCapture.enabled",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disable capturing credentials in private browsing",
+   "file": "Securefox.js",
+   "line": 1025,
+   "about": {},
+   "stock": true
+  },
+  {
+   "pref": "network.auth.subresource-http-auth-allow",
+   "value": 1,
+   "group": "Securefox",
+   "note": "Limit (or disable) HTTP authentication credentials dialogs triggered by sub-resources",
+   "file": "Securefox.js",
+   "line": 1061,
+   "about": {
+    "text": "Hardens against potential credentials phishing.",
+    "tags": [
+     {
+      "tag": "WARNING",
+      "text": "Hardening this pref may prevent you from subscribing to SoGo calendars in Thunderbird 138 0=don't allow sub-resources to open HTTP authentication credentials dialogs 1=don't allow cross-origin sub-resources to open HTTP authentication credentials dialogs 2=allow sub-resources to open HTTP authentication credentials dialogs (default)"
+     }
+    ],
+    "links": [
+     "https://web.archive.org/web/20181123134351/https://www.fxsitecompat.com/en-CA/docs/2015/http-auth-dialog-can-no-longer-be-triggered-by-cross-origin-resources/"
+    ]
+   },
+   "stock": 2
+  },
+  {
+   "pref": "editor.truncate_user_pastes",
+   "value": false,
+   "group": "Securefox",
+   "note": "Prevent password truncation when submitting form data",
+   "file": "Securefox.js",
+   "line": 1065,
+   "about": {
+    "links": [
+     "https://www.ghacks.net/2020/05/18/firefox-77-wont-truncate-text-exceeding-max-length-to-address-password-pasting-issues/"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "network.http.referer.XOriginTrimmingPolicy",
+   "value": 2,
+   "group": "Securefox",
+   "note": "Control the amount of cross-origin information to send",
+   "file": "Securefox.js",
+   "line": 1184,
+   "about": {
+    "text": "Controls how much referrer to send across origins (different domains). 0=send full URI (default), 1=scheme+host+port+path, 2=scheme+host+port",
+    "links": [
+     "https://blog.mozilla.org/security/2021/03/22/firefox-87-trims-http-referrers-by-default-to-protect-user-privacy/",
+     "https://web.dev/referrer-best-practices/",
+     "https://www.reddit.com/r/waterfox/comments/16px8yq/comment/k29r6bu/?context=3"
+    ]
+   },
+   "stock": 0
+  },
+  {
+   "pref": "pdfjs.enableScripting",
+   "value": false,
+   "group": "Securefox",
+   "note": "Enforce PDFJS, disable PDFJS scripting",
+   "file": "Securefox.js",
+   "line": 1355,
+   "about": {
+    "text": "This setting controls if the option \"Display in Firefox\" is available in the setting below and by effect controls whether PDFs are handled in-browser or externally (\"Ask\" or \"Open With\"). It doesn't break \"state separation\" of browser content (by not sharing with OS, independent apps). It maintains disk avoidance and application data isolation. It's convenient. You can still save to disk.",
+    "tags": [
+     {
+      "tag": "WHY",
+      "text": "pdfjs is lightweight, open source, and secure: the last exploit was June 2015."
+     },
+     {
+      "tag": "NOTE",
+      "text": "JS can still force a pdf to open in-browser by bundling its own code."
+     },
+     {
+      "tag": "SETUP-CHROME",
+      "text": "You may prefer a different pdf reader for security/workflow reasons."
+     },
+     {
+      "tag": "SETTING",
+      "text": "General>Applications>Portable Document Format (PDF)"
+     }
+    ],
+    "links": [
+     "https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=pdf.js+firefox",
+     "https://www.reddit.com/r/uBlockOrigin/comments/mulc86/firefox_88_now_supports_javascript_in_pdf_files/"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "browser.safebrowsing.downloads.remote.enabled",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disable SB checks for downloads",
+   "file": "Securefox.js",
+   "line": 1435,
+   "about": {
+    "text": "To verify the safety of certain executable files, Firefox may submit some information about the file, including the name, origin, size and a cryptographic hash of the contents, to the Google Safe Browsing service which helps Firefox determine whether or not the file should be blocked.",
+    "tags": [
+     {
+      "tag": "NOTE",
+      "text": "If you do not understand the consequences, override this."
+     }
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "permissions.manager.defaultsUrl",
+   "value": "",
+   "group": "Securefox",
+   "note": "Remove special permissions for certain mozilla domains",
+   "file": "Securefox.js",
+   "line": 1547,
+   "about": {
+    "text": "default = resource://app/defaults/permissions"
+   },
+   "stock": null
+  },
+  {
+   "pref": "datareporting.policy.dataSubmissionEnabled",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disable new data submission",
+   "file": "Securefox.js",
+   "line": 1563,
+   "about": {
+    "text": "If disabled, no policy is shown or upload takes place, ever.",
+    "links": [
+     "https://bugzilla.mozilla.org/1195552"
+    ]
+   },
+   "stock": true
+  },
+  {
+   "pref": "datareporting.healthreport.uploadEnabled",
+   "value": false,
+   "group": "Securefox",
+   "note": "Disable Health Reports",
+   "file": "Securefox.js",
+   "line": 1567,
+   "about": {
+    "tags": [
+     {
+      "tag": "SETTING",
+      "text": "Privacy & Security>Firefox Data Collection & Use>Allow Firefox to send technical data."
+     }
+    ]
+   },
+   "stock": false
+  },
+  {
+   "pref": "layout.css.prefers-color-scheme.content-override",
+   "value": 2,
+   "group": "Peskyfox",
+   "note": "Preferred color scheme for websites",
+   "file": "Peskyfox.js",
+   "line": 83,
+   "about": {
+    "text": "Set this pref to choose Dark on sites that support it (0) or Light (1). Before FF95, the pref was 2, which determined site color based on OS theme. Dark (0), Light (1), System (2), Browser (3) [DEFAULT FF95+]",
+    "tags": [
+     {
+      "tag": "SETTING",
+      "text": "General>Language and Appearance>Website appearance By default, color scheme matches the theme of your browser toolbar (3)."
+     }
+    ],
+    "links": [
+     "https://www.reddit.com/r/firefox/comments/rfj6yc/how_to_stop_firefoxs_dark_theme_from_overriding/hoe82i5/?context=3"
+    ]
+   },
+   "stock": 2
+  },
+  {
+   "pref": "full-screen-api.transition-duration.enter",
+   "value": "0 0",
+   "group": "Peskyfox",
+   "note": "Remove fullscreen delay",
+   "file": "Peskyfox.js",
+   "line": 153,
+   "about": {},
+   "stock": "200 200"
+  },
+  {
+   "pref": "full-screen-api.transition-duration.leave",
+   "value": "0 0",
+   "group": "Peskyfox",
+   "note": "Remove fullscreen delay",
+   "file": "Peskyfox.js",
+   "line": 154,
+   "about": {},
+   "stock": "200 200"
+  }
+ ]
+}

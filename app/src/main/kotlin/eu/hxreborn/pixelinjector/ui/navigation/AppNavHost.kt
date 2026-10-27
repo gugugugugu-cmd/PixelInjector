@@ -1,7 +1,11 @@
 package eu.hxreborn.pixelinjector.ui.navigation
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -9,16 +13,20 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -31,6 +39,15 @@ import androidx.navigation3.ui.NavDisplay
 import eu.hxreborn.pixelinjector.R
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.support.ReportConfig
+import eu.hxreborn.pixelinjector.ui.betterfox.BackupEntry
+import eu.hxreborn.pixelinjector.ui.betterfox.BetterfoxActions
+import eu.hxreborn.pixelinjector.ui.betterfox.BetterfoxBackupSheet
+import eu.hxreborn.pixelinjector.ui.betterfox.BetterfoxPrefSheet
+import eu.hxreborn.pixelinjector.ui.betterfox.BetterfoxRestoreConfirmSheet
+import eu.hxreborn.pixelinjector.ui.betterfox.BetterfoxRestoreSheet
+import eu.hxreborn.pixelinjector.ui.betterfox.BetterfoxRunSheet
+import eu.hxreborn.pixelinjector.ui.betterfox.BetterfoxScreen
+import eu.hxreborn.pixelinjector.ui.betterfox.shareIntent
 import eu.hxreborn.pixelinjector.ui.dashboard.DashboardActions
 import eu.hxreborn.pixelinjector.ui.dashboard.DashboardScreen
 import eu.hxreborn.pixelinjector.ui.editor.AppsSheet
@@ -56,6 +73,8 @@ import eu.hxreborn.pixelinjector.ui.support.UpdateActions
 import eu.hxreborn.pixelinjector.ui.support.UpdateSheet
 import eu.hxreborn.pixelinjector.ui.support.WhatsNewSheet
 import eu.hxreborn.pixelinjector.ui.viewmodel.MainViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private val SlideDistance = 30.dp
 private const val ENTERING_SCREEN_ABOVE = 1f
@@ -70,6 +89,12 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
 ) {
     val backStack = rememberNavBackStack(Destination.Dashboard)
+    val testNavigation by viewModel.testNavigation.collectAsStateWithLifecycle()
+    LaunchedEffect(testNavigation) {
+        val navigation = testNavigation ?: return@LaunchedEffect
+        backStack.retainAll(listOf(Destination.Dashboard))
+        backStack.addAll(navigation.destinations)
+    }
     val sheetStrategy = remember { BottomSheetSceneStrategy<NavKey>() }
     val dashboard by viewModel.dashboard.collectAsStateWithLifecycle()
     val hideUnavailable by viewModel.hideUnavailable.collectAsStateWithLifecycle()
@@ -80,6 +105,8 @@ fun AppNavHost(
     val run by viewModel.reload.collectAsStateWithLifecycle()
     val moduleLog by viewModel.moduleLog.collectAsStateWithLifecycle()
     val launcherApps by viewModel.launcherApps.collectAsStateWithLifecycle()
+    val betterfox by viewModel.betterfox.screen.collectAsStateWithLifecycle()
+    val betterfoxRun by viewModel.betterfox.run.collectAsStateWithLifecycle()
     val support by viewModel.supportState.collectAsStateWithLifecycle()
     val reportPreview by viewModel.reportPreview.collectAsStateWithLifecycle()
     val reportPhase by viewModel.reportPhase.collectAsStateWithLifecycle()
@@ -237,6 +264,122 @@ fun AppNavHost(
                         onHideHeadsUpChange = { viewModel.save(Prefs.DOWNLOAD_CHIP_HIDE_HEADS_UP, it) },
                         onHideStatusIconChange = { viewModel.save(Prefs.DOWNLOAD_CHIP_HIDE_STATUS_ICON, it) },
                     )
+                }
+                entry<Destination.BetterfoxEditor> { destination ->
+                    val notifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
+                    LaunchedEffect(destination.packageName) {
+                        viewModel.betterfox.onOpen(destination.packageName)
+                        if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                            notifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    }
+                    if (betterfox.browser?.packageName == destination.packageName) {
+                        BetterfoxScreen(
+                            state = betterfox,
+                            scrollTo = testNavigation?.scrollTo,
+                            openMenu = testNavigation?.openMenu == true,
+                            openInfo = testNavigation?.openInfo == true,
+                            messages = viewModel.betterfox.messages,
+                            actions =
+                                BetterfoxActions(
+                                    onBack = { if (backStack.lastOrNull() == destination) backStack.removeLastOrNull() },
+                                    onOpenUrl = uriHandler::openUri,
+                                    onPref = { push(Destination.BetterfoxPref(it)) },
+                                    onEnabled = { viewModel.save(Prefs.FIREFOX_BETTERFOX[destination.packageName], it) },
+                                    onClearOverrides = viewModel.betterfox::clearOverrides,
+                                    onCheck = { viewModel.betterfox.checkForUpdate() },
+                                    onBackUp = { push(Destination.BetterfoxBackup) },
+                                    onRestore = {
+                                        viewModel.betterfox.refreshBackups()
+                                        push(Destination.BetterfoxRestore)
+                                    },
+                                    onResetAll = viewModel.betterfox::resetAll,
+                                    onShare = { uri, name -> context.startActivity(shareIntent(context, uri, name)) },
+                                    onUndoRestore = viewModel.betterfox::undoRestore,
+                                    onUndoClear = viewModel.betterfox::undoClear,
+                                ),
+                        )
+                    }
+                    betterfoxRun?.let {
+                        BetterfoxRunSheet(it, onCancel = viewModel.betterfox::cancelRun, onClose = viewModel.betterfox::dismissRun)
+                    }
+                }
+                entry<Destination.BetterfoxPref>(metadata = BottomSheetSceneStrategy.bottomSheet()) { destination ->
+                    val list = betterfox.list
+                    val entry = list?.pref(destination.pref)
+                    if (list == null || entry == null) {
+                        LaunchedEffect(destination) { backStack.remove(destination) }
+                    } else {
+                        BetterfoxPrefSheet(
+                            list = list,
+                            entry = entry,
+                            override = betterfox.overrides[entry.pref],
+                            state = betterfox,
+                            onOverrideChange = { viewModel.betterfox.setOverride(entry.pref, it) },
+                            onOpenUrl = uriHandler::openUri,
+                        )
+                    }
+                }
+                entry<Destination.BetterfoxBackup>(metadata = BottomSheetSceneStrategy.bottomSheet()) {
+                    betterfox.list?.let { list ->
+                        BetterfoxBackupSheet(
+                            state = betterfox,
+                            list = list,
+                            suggestedName = remember { viewModel.betterfox.suggestedName() },
+                            onPickFolder = viewModel.betterfox::setFolder,
+                            onSave = {
+                                viewModel.betterfox.backUp(it)
+                                backStack.remove(Destination.BetterfoxBackup)
+                            },
+                            onCancel = { backStack.remove(Destination.BetterfoxBackup) },
+                        )
+                    }
+                }
+                entry<Destination.BetterfoxRestore>(metadata = BottomSheetSceneStrategy.bottomSheet()) {
+                    BetterfoxRestoreSheet(
+                        backups = betterfox.backups,
+                        onChooseFile = {
+                            backStack.remove(Destination.BetterfoxRestore)
+                            push(Destination.BetterfoxRestoreConfirm(it.toString()))
+                        },
+                        onNext = {
+                            backStack.remove(Destination.BetterfoxRestore)
+                            push(Destination.BetterfoxRestoreConfirm(it.uri.toString()))
+                        },
+                        onCancel = { backStack.remove(Destination.BetterfoxRestore) },
+                    )
+                }
+                entry<Destination.BetterfoxRestoreConfirm>(metadata = BottomSheetSceneStrategy.bottomSheet()) { destination ->
+                    val uri = remember(destination) { destination.uri.toUri() }
+                    val entry by produceState<BackupEntry?>(null, destination) {
+                        value = betterfox.backups.firstOrNull { it.uri == uri && it.backup != null }
+                            ?: withContext(Dispatchers.IO) { viewModel.betterfox.readBackup(uri) }
+                    }
+                    val list = betterfox.list
+                    val loaded = entry
+                    if (loaded?.backup != null && list != null) {
+                        val (changes, groups) =
+                            remember(loaded, betterfox.overrides, betterfox.offGroups) {
+                                viewModel.betterfox.changesFor(checkNotNull(loaded.backup))
+                            }
+                        BetterfoxRestoreConfirmSheet(
+                            list = list,
+                            entry = loaded,
+                            changes = changes,
+                            groups = groups,
+                            browser = betterfox.browser?.label ?: stringResource(R.string.betterfox_browser),
+                            onRestore = {
+                                viewModel.betterfox.restore(loaded)
+                                backStack.remove(destination)
+                            },
+                            onCancel = { backStack.remove(destination) },
+                        )
+                    } else {
+                        Text(
+                            stringResource(R.string.betterfox_not_a_backup),
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+                        )
+                    }
                 }
                 entry<Destination.Settings> {
                     SettingsScreen(

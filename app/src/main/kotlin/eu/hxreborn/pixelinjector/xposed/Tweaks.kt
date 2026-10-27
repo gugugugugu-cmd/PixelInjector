@@ -3,6 +3,7 @@ package eu.hxreborn.pixelinjector.xposed
 import android.content.SharedPreferences
 import eu.hxreborn.pixelinjector.xposed.hook.dialer.dialerDechip
 import eu.hxreborn.pixelinjector.xposed.hook.files.filesSortByDate
+import eu.hxreborn.pixelinjector.xposed.hook.firefox.firefoxBetterfox
 import eu.hxreborn.pixelinjector.xposed.hook.firefox.firefoxClassicMenu
 import eu.hxreborn.pixelinjector.xposed.hook.firefox.firefoxLoadingIndicator
 import eu.hxreborn.pixelinjector.xposed.hook.firefox.firefoxMaterialYou
@@ -58,6 +59,7 @@ internal val tweaks: List<Tweak> =
         firefoxMaterialYou,
         firefoxLoadingIndicator,
         firefoxClassicMenu,
+        firefoxBetterfox,
     )
 
 internal fun tweaksFor(target: Target): List<Tweak> = tweaks.filter { target in it.targets }

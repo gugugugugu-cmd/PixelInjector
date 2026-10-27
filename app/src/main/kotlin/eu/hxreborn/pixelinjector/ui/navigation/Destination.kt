@@ -32,6 +32,27 @@ sealed interface Destination : NavKey {
     data object DownloadChipEditor : Destination
 
     @Serializable
+    data class BetterfoxEditor(
+        val packageName: String,
+    ) : Destination
+
+    @Serializable
+    data class BetterfoxPref(
+        val pref: String,
+    ) : Destination
+
+    @Serializable
+    data object BetterfoxBackup : Destination
+
+    @Serializable
+    data object BetterfoxRestore : Destination
+
+    @Serializable
+    data class BetterfoxRestoreConfirm(
+        val uri: String,
+    ) : Destination
+
+    @Serializable
     data object ModuleLog : Destination
 
     @Serializable

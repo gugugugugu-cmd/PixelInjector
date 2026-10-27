@@ -34,6 +34,7 @@ import eu.hxreborn.pixelinjector.support.ReportPreview
 import eu.hxreborn.pixelinjector.support.RomCode
 import eu.hxreborn.pixelinjector.support.SendResult
 import eu.hxreborn.pixelinjector.support.SentReport
+import eu.hxreborn.pixelinjector.ui.betterfox.BetterfoxController
 import eu.hxreborn.pixelinjector.ui.dashboard.DashboardState
 import eu.hxreborn.pixelinjector.ui.dashboard.HookedPackages
 import eu.hxreborn.pixelinjector.ui.dashboard.TweakGroup
@@ -44,6 +45,9 @@ import eu.hxreborn.pixelinjector.ui.log.ModuleLogState
 import eu.hxreborn.pixelinjector.ui.log.deriveErrorLines
 import eu.hxreborn.pixelinjector.ui.log.deriveErrors
 import eu.hxreborn.pixelinjector.ui.log.parseModuleLog
+import eu.hxreborn.pixelinjector.ui.navigation.TestNavigation
+import eu.hxreborn.pixelinjector.ui.navigation.testBetterfoxCommand
+import eu.hxreborn.pixelinjector.ui.navigation.testNavigation
 import eu.hxreborn.pixelinjector.ui.reload.HotReloadRunner
 import eu.hxreborn.pixelinjector.ui.reload.ReloadRun
 import eu.hxreborn.pixelinjector.ui.support.ReportPhase
@@ -62,6 +66,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -72,6 +77,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.FileOutputStream
 
 private const val SYSTEM_PROCESS = "system"
@@ -210,6 +216,16 @@ class MainViewModel(
 
     fun refreshLauncherApps() {
         viewModelScope.launch { _launcherApps.value = loadLauncherApps(getApplication()) }
+    }
+
+    val betterfox = BetterfoxController(application, viewModelScope, ::restartApps)
+
+    private val _testNavigation = MutableStateFlow<TestNavigation?>(null)
+    val testNavigation: StateFlow<TestNavigation?> = _testNavigation.asStateFlow()
+
+    fun handleTestIntent(intent: Intent?) {
+        testNavigation(intent)?.let { _testNavigation.value = it }
+        testBetterfoxCommand(intent)?.let(betterfox::runCommand)
     }
 
     private val _moduleLog = MutableStateFlow(ModuleLogState())
@@ -433,6 +449,7 @@ class MainViewModel(
     }
 
     fun onResumeSupport() {
+        betterfox.onResume(support.autoCheckUpdates.value)
         support.checkRelease(force = false)
         support.refreshStatuses()
         support.retryWaiting()
@@ -510,6 +527,18 @@ class MainViewModel(
     }
 
     fun <T : Any> save(
+        pref: PrefSpec<T>,
+        value: T,
+    ) {
+        val betterfoxPackage = Prefs.FIREFOX_BETTERFOX.packageOf(pref)
+        if (betterfoxPackage != null && value == true) {
+            betterfox.enable(betterfoxPackage)
+            return
+        }
+        commit(pref, value)
+    }
+
+    private fun <T : Any> commit(
         pref: PrefSpec<T>,
         value: T,
     ) {

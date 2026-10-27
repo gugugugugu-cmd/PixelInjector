@@ -169,6 +169,7 @@ private sealed interface DashTile {
         val tweak: TweakUi,
         val pref: BoolPref,
         val checked: Boolean,
+        val screen: Destination?,
         val errorKey: String,
     ) : DashTile {
         override val title: Int get() = tweak.title
@@ -204,7 +205,7 @@ private fun rows(
     tweakUis.filter { it.group == section.group && section.errorKey(it.key) !in hidden }.map { tweak ->
         val pref = tweak.pref(section.browser)
         TweakRow(
-            DashTile.Toggle(tweak, pref, prefs[pref], section.errorKey(tweak.key)),
+            DashTile.Toggle(tweak, pref, prefs[pref], tweak.screen(section.browser), section.errorKey(tweak.key)),
             listOfNotNull(
                 tweak.editor?.let { DashTile.Link(it, it.summary(prefs)) },
                 tweak.slider?.let { DashTile.Slide(it, prefs[it.pref]) },
@@ -449,7 +450,7 @@ private fun LazyListScope.scope(
     tileGroup(tiles, key = { "${section.key}:${it.toggle.title}" }, animatePlacement = false) { row, shape ->
         val toggle = row.toggle
         Column(Modifier.clip(shape).background(MaterialTheme.colorScheme.surfaceContainer)) {
-            ToggleTile(toggle, errors[toggle.errorKey], tweakSymbol(toggle.tweak.key), onToggle, onReport)
+            ToggleTile(toggle, errors[toggle.errorKey], tweakSymbol(toggle.tweak.key), onToggle, onOpen, onReport)
             AnimatedVisibility(
                 visible = toggle.checked && row.children.isNotEmpty(),
                 enter =
@@ -556,18 +557,21 @@ private fun ToggleTile(
     error: TileError?,
     icon: ImageVector?,
     onToggle: (BoolPref, Boolean) -> Unit,
+    onOpen: (Destination) -> Unit,
     onReport: (String?) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
+    val screen = tile.screen
     Tile(
         shape = ChildShape,
         color = Color.Transparent,
-        checked = tile.checked,
+        onClick = screen?.let { { onOpen(it) } },
+        checked = tile.checked.takeIf { screen == null },
         onCheckedChange = {
             haptic.performHapticFeedback(if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
             onToggle(tile.pref, it)
         },
-        modifier = Modifier.semantics { role = Role.Switch },
+        modifier = if (screen == null) Modifier.semantics { role = Role.Switch } else Modifier,
     ) {
         TileLeading(icon)
         if (error != null) {
@@ -587,6 +591,10 @@ private fun ToggleTile(
             }
         } else {
             TileText(stringResource(tile.title), stringResource(tile.tweak.description))
+        }
+        if (screen != null) {
+            ChildChevron()
+            return@Tile
         }
         Switch(
             checked = tile.checked,

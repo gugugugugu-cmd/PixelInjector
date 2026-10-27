@@ -1,0 +1,14 @@
+{
+ "prefs": {
+  "browser.ml.enable": "gates the on-device ML engine the translations feature runs on",
+  "browser.ai.control.default": "shares the ML engine gate with translations",
+  "toolkit.legacyUserProfileCustomizations.stylesheets": "desktop userChrome.css",
+  "findbar.highlightAll": "desktop find bar, find in page is app UI",
+  "extensions.htmlaboutaddons.recommendations.enabled": "desktop about:addons page",
+  "browser.download.start_downloads_in_tmp_dir": "desktop download manager"
+ },
+ "prefixes": {},
+ "keep": {
+  "pdfjs.enableScripting": "read by the built-in PDF viewer"
+ }
+}

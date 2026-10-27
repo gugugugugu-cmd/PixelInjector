@@ -20,6 +20,8 @@ android {
         versionName = versionNameProvider.get()
         listOf("baseUrl" to "REPORT_BASE_URL", "app" to "REPORT_APP", "repo" to "REPORT_REPO", "keyId" to "REPORT_KEY_ID", "publicKey" to "REPORT_PUBLIC_KEY", "assetPattern" to "REPORT_ASSET_PATTERN", "signer" to "REPORT_SIGNER")
             .forEach { (property, field) -> buildConfigField("String", field, "\"${providers.gradleProperty("report.$property").get().replace("\\", "\\\\")}\"") }
+        buildConfigField("boolean", "TEST_INTENTS", providers.gradleProperty("test.intents").orElse("false").get())
+        buildConfigField("String", "BETTERFOX_URL", "\"${providers.gradleProperty("betterfox.url").get()}\"")
 
         ndk {
             abiFilters += "arm64-v8a"

@@ -90,4 +90,9 @@ object Prefs {
     val FIREFOX_MATERIAL_YOU = browser("firefox.materialYou") { BoolPref(it, false) }
     val FIREFOX_LOADING_INDICATOR = browser("firefox.loadingIndicator") { BoolPref(it, false) }
     val FIREFOX_CLASSIC_MENU = browser("firefox.classicMenu") { BoolPref(it, false) }
+    val FIREFOX_BETTERFOX = browser("firefox.betterfox") { BoolPref(it, false) }
+    val FIREFOX_BETTERFOX_OFF_GROUPS =
+        browser("firefox.betterfox.offGroups") { StringSetPref(it, emptySet()) }
+    val FIREFOX_BETTERFOX_OVERRIDES = browser("firefox.betterfox.overrides") { StringPref(it, "") }
+    val FIREFOX_BETTERFOX_LIST = StringPref("firefox.betterfox.list", "").register()
 }

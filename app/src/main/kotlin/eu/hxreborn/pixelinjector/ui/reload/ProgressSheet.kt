@@ -183,7 +183,7 @@ fun ProgressSheet(
 }
 
 @Composable
-private fun ButtonLabel(
+internal fun ButtonLabel(
     icon: ImageVector,
     label: String,
 ) {

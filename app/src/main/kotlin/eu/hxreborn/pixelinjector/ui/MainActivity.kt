@@ -1,5 +1,6 @@
 package eu.hxreborn.pixelinjector.ui
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -35,5 +36,11 @@ class MainActivity : ComponentActivity() {
                 CompositionLocalProvider(LocalDateStyle provides dateStyle) { AppNavHost(viewModel) }
             }
         }
+        if (savedInstanceState == null) viewModel.handleTestIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        viewModel.handleTestIntent(intent)
     }
 }

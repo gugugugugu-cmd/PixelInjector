@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.UnfoldMore
 import androidx.compose.material.icons.outlined.VolumeOff
 import androidx.compose.material.icons.outlined.WifiOff
@@ -95,12 +96,16 @@ class TweakUi(
     val editor: TweakEditor? = null,
     val slider: TweakSlider? = null,
     val sound: TweakSound? = null,
+    private val screen: Destination? = null,
     val minSdk: Int = Build.VERSION_CODES.UPSIDE_DOWN_CAKE,
     private val browserPref: PerPackage<BoolPref>? = null,
+    private val browserScreen: ((String) -> Destination)? = null,
 ) {
     val prefs: Collection<BoolPref> get() = browserPref?.byPackage?.values ?: listOfNotNull(pref)
 
     fun pref(packageName: String?): BoolPref = browserPref?.get(checkNotNull(packageName)) ?: checkNotNull(pref)
+
+    fun screen(packageName: String?): Destination? = browserScreen?.invoke(checkNotNull(packageName)) ?: screen
 }
 
 val tweakUis: List<TweakUi> =
@@ -304,6 +309,15 @@ val tweakUis: List<TweakUi> =
             TweakGroup.FIREFOX,
             browserPref = Prefs.FIREFOX_CLASSIC_MENU,
         ),
+        TweakUi(
+            "FirefoxBetterfox",
+            null,
+            R.string.tweak_firefox_betterfox,
+            R.string.tweak_firefox_betterfox_desc,
+            TweakGroup.FIREFOX,
+            browserPref = Prefs.FIREFOX_BETTERFOX,
+            browserScreen = { Destination.BetterfoxEditor(it) },
+        ),
     ).filter { Build.VERSION.SDK_INT >= it.minSdk }
 
 val restartOnChange: Map<PrefSpec<*>, Set<String>> =
@@ -312,6 +326,7 @@ val restartOnChange: Map<PrefSpec<*>, Set<String>> =
         put(Prefs.NAV_SPACE, LAUNCHER_PACKAGES)
         put(Prefs.GBOARD_BLACK, GBOARD_PACKAGES)
         put(Prefs.KDE_CONNECT_QUIET, setOf(KDE_CONNECT_PACKAGE))
+        put(Prefs.FIREFOX_BETTERFOX_LIST, FIREFOX_PACKAGES)
         Prefs.perBrowser.forEach { prefs -> prefs.byPackage.forEach { (pkg, pref) -> put(pref, setOf(pkg)) } }
     }
 
@@ -348,6 +363,7 @@ private val tweakSymbols: Map<String, ImageVector> =
         "FirefoxMaterialYou" to Icons.Outlined.Palette,
         "FirefoxLoadingIndicator" to Icons.Outlined.Refresh,
         "FirefoxClassicMenu" to Icons.Outlined.MoreVert,
+        "FirefoxBetterfox" to Icons.Outlined.Tune,
     )
 
 @Composable
