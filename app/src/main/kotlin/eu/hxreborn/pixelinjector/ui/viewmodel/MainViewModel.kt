@@ -21,6 +21,7 @@ import eu.hxreborn.pixelinjector.ModuleConstants.FILES_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.GBOARD_PACKAGES
 import eu.hxreborn.pixelinjector.ModuleConstants.LAUNCHER_PACKAGES
 import eu.hxreborn.pixelinjector.R
+import eu.hxreborn.pixelinjector.Target
 import eu.hxreborn.pixelinjector.icons.FingerprintStyles
 import eu.hxreborn.pixelinjector.prefs.AppPrefs
 import eu.hxreborn.pixelinjector.prefs.PrefSpec
@@ -138,6 +139,9 @@ class MainViewModel(
             target.processName.startsWith(ModuleConstants.SYSTEMUI_PACKAGE) -> 1
             else -> 2
         }
+
+    private fun HookedTarget.hasTarget(): Boolean =
+        Target.of(processName, systemServer = uid == Process.SYSTEM_UID && processName == SYSTEM_PROCESS) != null
 
     val reloadTargets: StateFlow<List<HookedTarget>> =
         targets
@@ -475,7 +479,7 @@ class MainViewModel(
         val service = app.service.value ?: return
         viewModelScope.launch(Dispatchers.IO) {
             targets.value =
-                runCatching { service.runningTargets }
+                runCatching { service.runningTargets.filter { it.hasTarget() } }
                     .onFailure { Log.w(ModuleConstants.LOG_TAG, "getRunningTargets failed reason=${it.message}", it) }
                     .getOrDefault(emptyList())
             announceUpdate(targets.value)

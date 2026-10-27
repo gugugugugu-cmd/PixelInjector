@@ -1,6 +1,7 @@
 package eu.hxreborn.pixelinjector.xposed.hook.firefox
 
 import android.os.Build
+import eu.hxreborn.pixelinjector.Target
 import eu.hxreborn.pixelinjector.betterfox.BETTERFOX_ASSET
 import eu.hxreborn.pixelinjector.betterfox.BetterfoxList
 import eu.hxreborn.pixelinjector.betterfox.chooseList
@@ -15,7 +16,6 @@ import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
-import eu.hxreborn.pixelinjector.xposed.Target
 import eu.hxreborn.pixelinjector.xposed.Tweak
 import eu.hxreborn.pixelinjector.xposed.Value
 import eu.hxreborn.pixelinjector.xposed.module

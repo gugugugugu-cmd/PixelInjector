@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.IBinder
+import eu.hxreborn.pixelinjector.Target
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.optionalField
@@ -15,7 +16,6 @@ import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
 import eu.hxreborn.pixelinjector.xposed.Switch
-import eu.hxreborn.pixelinjector.xposed.Target
 import eu.hxreborn.pixelinjector.xposed.Tweak
 import eu.hxreborn.pixelinjector.xposed.Value
 import io.github.libxposed.api.XposedModule

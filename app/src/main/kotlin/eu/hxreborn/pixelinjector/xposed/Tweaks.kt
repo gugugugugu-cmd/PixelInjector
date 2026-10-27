@@ -1,6 +1,7 @@
 package eu.hxreborn.pixelinjector.xposed
 
 import android.content.SharedPreferences
+import eu.hxreborn.pixelinjector.Target
 import eu.hxreborn.pixelinjector.xposed.hook.dialer.dialerDechip
 import eu.hxreborn.pixelinjector.xposed.hook.files.filesSortByDate
 import eu.hxreborn.pixelinjector.xposed.hook.firefox.firefoxBetterfox
