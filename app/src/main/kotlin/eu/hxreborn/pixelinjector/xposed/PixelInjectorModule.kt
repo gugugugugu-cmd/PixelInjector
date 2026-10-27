@@ -146,7 +146,7 @@ class PixelInjectorModule : XposedModule() {
         val target = Target.of(process, systemServer)
         this.target = target
         if (target == null) {
-            Logger.warn("install skipped proc=$process reason=no-target")
+            Logger.debug { "install skipped proc=$process reason=no-target" }
             return
         }
         runCatching { getRemotePreferences(Prefs.GROUP) }
