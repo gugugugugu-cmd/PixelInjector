@@ -1,3 +1,18 @@
+## [1.21.0](https://github.com/hxreborn/PixelInjector/compare/v1.20.0...v1.21.0) (2026-10-27)
+
+### Features
+
+* **tweak:** add FirefoxBetterfox with per pref sources and backups ([ca3aea3](https://github.com/hxreborn/PixelInjector/commit/ca3aea3ff7d8bdd0073f1da055c84d1dd9d3582a))
+* **tweak:** add FirefoxClassicMenu popup menu for Iceraven and Firefox ([fc07da6](https://github.com/hxreborn/PixelInjector/commit/fc07da629fa5349a989c7780e4a4ecdfc713489a))
+* **tweak:** apply Firefox tweak toggles without restarting the browser ([c24ce1f](https://github.com/hxreborn/PixelInjector/commit/c24ce1f415e5a4a85e61b31c87562d5f93187da4))
+* **tweak:** set Firefox tweaks per browser with one section each ([29eea7a](https://github.com/hxreborn/PixelInjector/commit/29eea7af776152fb2e3f1326fb40d44acfe8531f))
+
+### Bug Fixes
+
+* **tweak:** keep FirefoxMaterialYou pure black only in the OLED palette ([e5d22f7](https://github.com/hxreborn/PixelInjector/commit/e5d22f74006fac232fdb1c3f04ed63290bb5f26a))
+* **tweak:** map FirefoxMaterialYou tertiary roles to wallpaper primary ([3c3b704](https://github.com/hxreborn/PixelInjector/commit/3c3b70417847d039c3cd8222025a1333842ca71f))
+* **tweak:** recolor FirefoxMaterialYou through a declared overlayable ([e0d4c8f](https://github.com/hxreborn/PixelInjector/commit/e0d4c8fefcc4b95de8acb032dfa97e463341d2e4))
+
 ## [1.20.0](https://github.com/hxreborn/PixelInjector/compare/v1.19.0...v1.20.0) (2026-10-25)
 
 ### Features
