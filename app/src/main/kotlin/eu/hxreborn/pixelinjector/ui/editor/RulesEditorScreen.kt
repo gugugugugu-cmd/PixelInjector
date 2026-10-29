@@ -74,7 +74,7 @@ fun RulesEditorScreen(
     val gutter = readableGutter()
     DetailScaffold(
         title = stringResource(R.string.tweak_new_task_rules),
-        subtitle = stringResource(R.string.tweak_new_task_rules_desc),
+        subtitle = { stringResource(R.string.tweak_new_task_rules_desc) },
         onBack = onBack,
         contentPadding = PaddingValues(horizontal = gutter),
     ) { padding ->

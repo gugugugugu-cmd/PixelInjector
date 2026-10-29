@@ -169,10 +169,11 @@ fun ModuleLogScreen(
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     DetailScaffold(
         title = stringResource(R.string.module_log),
-        subtitle =
+        subtitle = {
             (range ?: Triple(minOf(1, visible.size), visible.size, visible.size)).let { (first, last, total) ->
                 stringResource(R.string.log_lines_range, first, last, total)
-            },
+            }
+        },
         onBack = onBack,
         actions = {
             IconToggleButton(checked = wrap, onCheckedChange = { wrap = it }, shapes = IconButtonDefaults.toggleableShapes()) {

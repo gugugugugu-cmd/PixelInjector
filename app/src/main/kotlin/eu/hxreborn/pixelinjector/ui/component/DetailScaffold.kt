@@ -36,7 +36,7 @@ fun DetailScaffold(
     title: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
+    subtitle: (@Composable () -> String)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable ColumnScope.(PaddingValues) -> Unit,
@@ -54,7 +54,7 @@ fun DetailScaffold(
             if (compactHeight()) {
                 TopAppBar(
                     title = { Text(title) },
-                    subtitle = { subtitle?.let { Text(it) } },
+                    subtitle = { subtitle?.let { Text(it()) } },
                     navigationIcon = navigationIcon,
                     actions = actions,
                     scrollBehavior = scrollBehavior,
@@ -62,7 +62,7 @@ fun DetailScaffold(
             } else {
                 LargeFlexibleTopAppBar(
                     title = { Text(title) },
-                    subtitle = subtitle?.let { { Text(it) } },
+                    subtitle = subtitle?.let { { Text(it()) } },
                     navigationIcon = navigationIcon,
                     actions = actions,
                     scrollBehavior = scrollBehavior,

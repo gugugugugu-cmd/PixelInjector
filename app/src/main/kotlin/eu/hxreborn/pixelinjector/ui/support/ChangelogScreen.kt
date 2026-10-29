@@ -147,7 +147,7 @@ fun ChangelogScreen(onBack: () -> Unit) {
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     DetailScaffold(
         title = stringResource(R.string.changelog),
-        subtitle = loaded?.let { pluralStringResource(R.plurals.changelog_count, releases.size, releases.size) },
+        subtitle = loaded?.let { { pluralStringResource(R.plurals.changelog_count, releases.size, releases.size) } },
         onBack = onBack,
         contentPadding = PaddingValues(0.dp),
     ) { padding ->
