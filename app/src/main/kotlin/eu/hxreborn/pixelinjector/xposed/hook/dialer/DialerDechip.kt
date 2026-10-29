@@ -14,6 +14,7 @@ import eu.hxreborn.pixelinjector.xposed.hook.DexKit
 import io.github.libxposed.api.XposedModule
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
 
 private const val TWEAK = "DialerDechip"
@@ -30,32 +31,81 @@ internal val dialerDechip =
         install = XposedModule::installDialerDechip,
     )
 
+private class ChipList(
+    val holder: Field?,
+    val list: Field,
+    val copyFactory: Method?,
+)
+
 private class ChipBindings(
     val adapters: List<Method>,
 ) {
-    private val listFields = ConcurrentHashMap<Class<*>, List<Field>>()
+    private val chipLists = ConcurrentHashMap<Class<*>, List<ChipList>>()
     private val enumFields = ConcurrentHashMap<Class<*>, List<Field>>()
 
     fun removeFeedbackChips(model: Any) {
-        val fields =
-            listFields.getOrPut(model.javaClass) {
-                fieldsOf(model.javaClass) { List::class.java.isAssignableFrom(it) }
-            }
-        for (field in fields) {
-            val list = field.get(model) as? MutableList<*> ?: continue
-            runCatching { list.removeIf { chip -> chip != null && isFeedback(chip) } }
+        for (chipList in chipLists.getOrPut(model.javaClass) { chipListsOf(model.javaClass) }) {
+            val holder = chipList.holder
+            val owner = if (holder == null) model else holder.get(model) ?: continue
+            val chips = chipList.list.get(owner) as? List<*> ?: continue
+            if (chips.none { it != null && isFeedback(it) }) continue
+            val kept = chips.filterNot { it != null && isFeedback(it) }
+            chipList.list.set(owner, chipList.copyFactory?.invoke(null, kept) ?: ArrayList(kept))
         }
+    }
+
+    private fun chipListsOf(cls: Class<*>): List<ChipList> =
+        instanceFields(cls).flatMap { field ->
+            when {
+                isList(field.type) -> {
+                    listOfNotNull(chipList(null, field))
+                }
+
+                field.type.classLoader === cls.classLoader && !field.type.isEnum -> {
+                    instanceFields(field.type)
+                        .filter { isList(it.type) }
+                        .mapNotNull { chipList(field, it) }
+                }
+
+                else -> {
+                    emptyList()
+                }
+            }
+        }
+
+    private fun chipList(
+        holder: Field?,
+        list: Field,
+    ): ChipList? {
+        if (list.type.isAssignableFrom(ArrayList::class.java)) return ChipList(holder, list, null)
+        val copyFactory =
+            list.type.declaredMethods.firstOrNull {
+                Modifier.isStatic(it.modifiers) &&
+                    it.returnType == list.type &&
+                    it.parameterTypes.contentEquals(arrayOf(Collection::class.java))
+            }
+        if (copyFactory == null) {
+            Logger.error(
+                "strip skipped tweak=$TWEAK field=${list.declaringClass.name}#${list.name} " +
+                    "reason=no-copy-factory type=${list.type.name}",
+            )
+            return null
+        }
+        copyFactory.isAccessible = true
+        return ChipList(holder, list, copyFactory)
     }
 
     private fun isFeedback(chip: Any): Boolean =
         enumFields
-            .getOrPut(chip.javaClass) { fieldsOf(chip.javaClass) { it.isEnum } }
+            .getOrPut(chip.javaClass) { instanceFields(chip.javaClass).filter { it.type.isEnum } }
             .any { (it.get(chip) as? Enum<*>)?.name.equals(FEEDBACK_CHIP, ignoreCase = true) }
 
-    private fun fieldsOf(
-        cls: Class<*>,
-        typed: (Class<*>) -> Boolean,
-    ): List<Field> = cls.declaredFields.filter { typed(it.type) }.onEach { it.isAccessible = true }
+    private fun isList(type: Class<*>): Boolean = List::class.java.isAssignableFrom(type)
+
+    private fun instanceFields(cls: Class<*>): List<Field> =
+        cls.declaredFields
+            .filterNot { Modifier.isStatic(it.modifiers) }
+            .onEach { it.isAccessible = true }
 
     companion object {
         fun resolve(cl: ClassLoader): ChipBindings {
@@ -83,15 +133,16 @@ private fun XposedModule.installDialerDechip(cl: ClassLoader): Boolean {
     )
     for (adapter in bindings.adapters) {
         hook(adapter).intercept { chain ->
+            val enabled = switch.enabled
             val model = chain.proceed()
-            if (switch.enabled && model != null) {
-                runCatching { bindings.removeFeedbackChips(model) }
-                    .onFailure {
-                        Logger.error(
-                            "strip failed tweak=$TWEAK reason=${it.message}",
-                            it,
-                        )
-                    }
+            if (enabled && model != null) {
+                try {
+                    bindings.removeFeedbackChips(model)
+                } catch (e: Exception) {
+                    Logger.error("strip failed tweak=$TWEAK reason=${e.message}", e)
+                } catch (e: LinkageError) {
+                    Logger.error("strip failed tweak=$TWEAK reason=${e.message}", e)
+                }
             }
             model
         }
