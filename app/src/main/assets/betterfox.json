@@ -1,10 +1,10 @@
 {
  "schema": 2,
- "revision": 3,
+ "revision": 4,
  "betterfox": "154.0",
  "commit": "067172a4b0dc90e78e5b8b94d9abfe6430c6a7be",
- "source": "iceraven-2.51.1-arm64-v8a",
- "gecko": "158.0.2",
+ "source": "iceraven-2.52.0-arm64-v8a",
+ "gecko": "159.0",
  "notice": "MIT License\n\nCopyright (c) 2020 yokoffing\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.",
  "prefs": [
   {
@@ -22,38 +22,6 @@
     "inline": "20 MB; default=5; Chrome=20"
    },
    "stock": 5
-  },
-  {
-   "pref": "content.notify.interval",
-   "value": 100000,
-   "group": "Fastfox",
-   "note": "Content notification delay",
-   "file": "Fastfox.js",
-   "line": 56,
-   "about": {
-    "text": "When Firefox is loading a page, it periodically reformats or \"reflows\" the page as it loads. The page displays new elements every 0.12 seconds by default. These redraws increase the total page load time. The default value provides good incremental display of content without causing an increase in page load time.",
-    "tags": [
-     {
-      "tag": "NOTE",
-      "text": "Lowering the interval will increase responsiveness but also increase the total load time."
-     },
-     {
-      "tag": "WARNING",
-      "text": "If this value is set below 1/10 of a second, it starts to impact page load performance."
-     },
-     {
-      "tag": "EXAMPLE",
-      "text": "100000 = .10s = 100 reflows/second"
-     }
-    ],
-    "links": [
-     "https://searchfox.org/mozilla-central/rev/c1180ea13e73eb985a49b15c0d90e977a1aa919c/modules/libpref/init/StaticPrefList.yaml#1824-1834",
-     "https://web.archive.org/web/20240115073722/https://dev.opera.com/articles/efficient-javascript/?page=3#reflow",
-     "https://web.archive.org/web/20240115073722/https://dev.opera.com/articles/efficient-javascript/?page=3#smoothspeed"
-    ],
-    "inline": "(.10s); default=120000 (.12s)"
-   },
-   "stock": 120000
   },
   {
    "pref": "gfx.canvas.accelerated.cache-size",
