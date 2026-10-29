@@ -23,6 +23,7 @@ object ModuleConstants {
     val FIREFOX_PACKAGES: Set<String> =
         setOf(
             "io.github.forkmaintainers.iceraven",
+            "org.ironfoxoss.ironfox",
             "org.mozilla.firefox",
             "org.mozilla.firefox_beta",
             "org.mozilla.fenix",
