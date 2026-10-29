@@ -1,3 +1,20 @@
+## [1.22.0](https://github.com/hxreborn/PixelInjector/compare/v1.21.0...v1.22.0) (2026-10-29)
+
+### Features
+
+* **tweak:** add support for IronFox in Firefox tweaks ([4427f09](https://github.com/hxreborn/PixelInjector/commit/4427f09a458711fbb04ef53ab92623807338f94d)), closes [#46](https://github.com/hxreborn/PixelInjector/issues/46)
+
+### Bug Fixes
+
+* **hook:** log install skips for processes without tweaks at debug ([a145982](https://github.com/hxreborn/PixelInjector/commit/a14598289cbfe7ad6e8a04e48f1bcff3827d5bdf))
+* **reload:** hide processes without tweaks from hot reload ([77a5cf0](https://github.com/hxreborn/PixelInjector/commit/77a5cf04daf6774470e65351f3b9e30ee0b2419d))
+* **tweak:** stop FirefoxClassicMenu crashing Iceraven 2.52.0 ([99a04c4](https://github.com/hxreborn/PixelInjector/commit/99a04c45de5637157312db34b4984e42fb3be571))
+* **tweak:** strip DialerDechip chips from the Compose call log model ([916aebc](https://github.com/hxreborn/PixelInjector/commit/916aebce158ad1de2c0ece59e930cd1cec045486))
+
+### Performance Improvements
+
+* **log:** recompose only the subtitle while the module log scrolls ([c2d81a8](https://github.com/hxreborn/PixelInjector/commit/c2d81a8c51c66d4b493a7be69d4bb55f107eb493))
+
 ## [1.21.0](https://github.com/hxreborn/PixelInjector/compare/v1.20.0...v1.21.0) (2026-10-27)
 
 ### Features
