@@ -1,0 +1,77 @@
+name: Fork build
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Keep upstream's Betterfox list instead of the URL in gradle.properties.
+  BETTERFOX_URL: https://raw.githubusercontent.com/hxreborn/PixelInjector/main/app/src/main/assets/betterfox.json
+
+jobs:
+  # Same checks as upstream ci.yml so a PR here proves what upstream will run.
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: gradle/actions/wrapper-validation@v6.4.0
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Check and build
+        run: ./gradlew -Pbetterfox.url="$BETTERFOX_URL" :app:ktlintCheck :app:assembleDebug :app:lint
+
+  # Fails when zh-rCN drifts from values/strings.xml: missing keys, extra keys,
+  # or a placeholder that does not match the English one.
+  translations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Compare zh-rCN with the default strings
+        run: python3 tools/i18n-check.py app/src/main/res
+
+  # Debug APK built with the Chinese resources, kept as a workflow artifact.
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Build debug APK
+        run: ./gradlew -Pbetterfox.url="$BETTERFOX_URL" :app:assembleDebug
+
+      - name: Name the APK
+        run: |
+          dest="pixelinjector-${{ github.ref_name }}-$(git rev-parse --short HEAD)-zh-rCN-debug.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$dest"
+          echo "APK=$dest" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: ${{ env.APK }}
+          if-no-files-found: error
