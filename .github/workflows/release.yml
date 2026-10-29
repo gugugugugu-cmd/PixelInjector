@@ -1,6 +1,7 @@
 name: Release
 
 on:
+  # Upstream only: the job is gated on the repository below.
   push:
     branches: [main, master]
 
@@ -15,6 +16,9 @@ permissions:
 
 jobs:
   release:
+    # .releaserc.json hardcodes the upstream repositoryUrl, so an ungated fork
+    # would run semantic-release against hxreborn/PixelInjector.
+    if: github.repository == 'hxreborn/PixelInjector'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

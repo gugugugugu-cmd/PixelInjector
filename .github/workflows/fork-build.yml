@@ -70,6 +70,11 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk "$dest"
           echo "APK=$dest" >> "$GITHUB_ENV"
 
+      - name: Check the debug bundle keeps zh-rCN
+        run: |
+          unzip -Z1 app/build/outputs/apk/debug/app-debug.apk | grep -qx 'resources.arsc' \
+            && echo "resources.arsc present, language filter did not drop zh-rCN"
+
       - uses: actions/upload-artifact@v4
         with:
           name: debug-apk
