@@ -1,3 +1,9 @@
+## [1.23.0](https://github.com/hxreborn/PixelInjector/compare/v1.22.1...v1.23.0) (2026-10-31)
+
+### Features
+
+* **tweak:** remove the Help us improve notification in DialerDechip ([d2efd80](https://github.com/hxreborn/PixelInjector/commit/d2efd809faf0fc93a7a9ebb472bd8dd037ea6ce6))
+
 ## [1.22.1](https://github.com/hxreborn/PixelInjector/compare/v1.22.0...v1.22.1) (2026-10-31)
 
 ### Bug Fixes
