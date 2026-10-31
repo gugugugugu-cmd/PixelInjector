@@ -88,7 +88,7 @@
     <string name="tweak_gboard_black">AMOLED 黑色键盘</string>
     <string name="tweak_gboard_black_desc">在深色模式下把灰色调的键盘表面改为纯黑</string>
     <string name="tweak_dialer_dechip">移除反馈横幅</string>
-    <string name="tweak_dialer_dechip_desc">从通话记录中移除“帮助我们改进”横幅</string>
+    <string name="tweak_dialer_dechip_desc">移除通话记录中的“帮助我们改进”横幅，以及通话后弹出的通知</string>
     <string name="tweak_files_sort_by_date">强制按最新优先排序</string>
     <string name="tweak_files_sort_by_date_desc">文件夹默认按修改时间而非名称排序</string>
     <string name="tweak_kde_connect_quiet">KDE Connect 静默</string>
