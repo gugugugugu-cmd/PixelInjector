@@ -58,7 +58,7 @@ private class TaskbarBindings(
     val updateHandleColor: Method,
     val lightColor: Field,
     val darkColor: Field,
-    val regionDark: Field,
+    val regionDark: Field?,
     val notifyUpdateLayoutParams: Method,
     val windowParams: Field,
     val providedInsets: Field,
@@ -73,6 +73,8 @@ private class TaskbarBindings(
     @Volatile var live: WeakReference<View>? = null
 
     @Volatile var liveActivityContext: WeakReference<Any>? = null
+
+    @Volatile var lastRegionDark = false
     private val stockBottoms = WeakHashMap<Array<*>, IntArray>()
 
     @Volatile private var stockLight: Int? = null
@@ -102,9 +104,8 @@ private class TaskbarBindings(
         view.post {
             runCatching {
                 updateHandleColors(view)
-                val dark = regionDark.get(view) as Boolean?
-                regionDark.set(view, null)
-                updateHandleColor.invoke(view, dark ?: false, true)
+                regionDark?.set(view, null)
+                updateHandleColor.invoke(view, lastRegionDark, true)
                 Logger.info("applied tweak=$TWEAK hidePill=${hidePill.enabled}")
             }.onFailure { Logger.error("apply failed tweak=$TWEAK reason=${it.message}", it) }
         }
@@ -177,7 +178,7 @@ private class TaskbarBindings(
                     ),
                 lightColor = handle.requiredField("mStashedHandleLightColor"),
                 darkColor = handle.requiredField("mStashedHandleDarkColor"),
-                regionDark = handle.requiredField("mIsRegionDark"),
+                regionDark = handle.optionalField("mIsRegionDark"),
                 notifyUpdateLayoutParams =
                     context.requiredMethods("notifyUpdateLayoutParams").minBy { it.parameterCount },
                 windowParams = context.requiredField("mWindowLayoutParams"),
@@ -212,6 +213,7 @@ private fun XposedModule.installTaskbarHandle(cl: ClassLoader): Boolean {
         runCatching {
             val view = chain.thisObject as View
             if (bindings.live?.get() !== view) bindings.live = WeakReference(view)
+            bindings.lastRegionDark = chain.getArg(0) as Boolean
             bindings.updateHandleColors(view)
         }.onFailure { Logger.error("paint failed tweak=$TWEAK reason=${it.message}", it) }
         chain.proceed()
