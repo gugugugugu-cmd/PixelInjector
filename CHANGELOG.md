@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/hxreborn/PixelInjector/compare/v1.22.0...v1.22.1) (2026-10-31)
+
+### Bug Fixes
+
+* **tweak:** call FingerprintIcon getIconState on the live view ([2218eef](https://github.com/hxreborn/PixelInjector/commit/2218eef81e7c189bc4003ed357f0f909c0c3f355)), closes [#47](https://github.com/hxreborn/PixelInjector/issues/47)
+* **tweak:** resolve TaskbarHandle without mIsRegionDark on Android 14 ([be809c9](https://github.com/hxreborn/PixelInjector/commit/be809c99c1062c9ea08edf8558358c0f62822aff))
+
 ## [1.22.0](https://github.com/hxreborn/PixelInjector/compare/v1.21.0...v1.22.0) (2026-10-29)
 
 ### Features
