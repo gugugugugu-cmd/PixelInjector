@@ -116,11 +116,20 @@ private sealed interface IconTarget {
 private class DeviceEntryTarget(
     val iconView: Field,
     val bgView: Field,
-    val fingerprintStates: List<IntArray>,
+    val getIconState: Method,
+    val fingerprint: Any,
 ) : IconTarget {
     override val viewClass: Class<*> = iconView.declaringClass
     override val members = "${iconView.signature()},${bgView.signature()}"
     override val refresh: Method? = null
+
+    @Volatile private var fingerprintStates: List<IntArray>? = null
+
+    private fun fingerprintStates(view: View): List<IntArray> =
+        fingerprintStates
+            ?: listOf(false, true)
+                .map { getIconState.invoke(view, fingerprint, it) as IntArray }
+                .also { fingerprintStates = it }
 
     override fun apply(
         view: View,
@@ -135,7 +144,7 @@ private class DeviceEntryTarget(
         if (swap != null || hidden) {
             val wrapper =
                 icon.drawable as? FingerprintSwap
-                    ?: FingerprintSwap(stock, fingerprintStates).also(icon::setImageDrawable)
+                    ?: FingerprintSwap(stock, fingerprintStates(view)).also(icon::setImageDrawable)
             wrapper.replacement = swap
         } else if (icon.drawable !== stock) {
             icon.setImageDrawable(stock)
@@ -324,13 +333,13 @@ private class FingerprintBindings(
                     iconType,
                     Boolean::class.javaPrimitiveType,
                 )
-            val fingerprint = iconType.enumConstants.first { (it as Enum<*>).name == "FINGERPRINT" }
             return DeviceEntryTarget(
                 iconView = view.requiredField("iconView"),
                 bgView = view.requiredField("bgView"),
-                fingerprintStates =
-                    listOf(false, true).map {
-                        getIconState.invoke(null, fingerprint, it) as IntArray
+                getIconState = getIconState,
+                fingerprint =
+                    iconType.enumConstants.first {
+                        (it as Enum<*>).name == "FINGERPRINT"
                     },
             )
         }
