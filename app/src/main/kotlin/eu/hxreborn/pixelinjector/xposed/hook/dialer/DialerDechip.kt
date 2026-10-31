@@ -1,10 +1,13 @@
 package eu.hxreborn.pixelinjector.xposed.hook.dialer
 
+import android.app.Notification
+import android.app.NotificationManager
 import android.os.Build
 import eu.hxreborn.pixelinjector.Target
 import eu.hxreborn.pixelinjector.prefs.Prefs
 import eu.hxreborn.pixelinjector.util.member
 import eu.hxreborn.pixelinjector.util.reason
+import eu.hxreborn.pixelinjector.util.requiredMethod
 import eu.hxreborn.pixelinjector.util.resolving
 import eu.hxreborn.pixelinjector.util.signature
 import eu.hxreborn.pixelinjector.xposed.Logger
@@ -20,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 private const val TWEAK = "DialerDechip"
 private const val ANCHOR = "exception thrown when producing chip"
 private const val FEEDBACK_CHIP = "TRANSCRIPT_AUDIO_FEEDBACK"
+private const val FEEDBACK_CHANNEL = "phone_feedback"
 
 private val switch = Switch(Prefs.DIALER_DECHIP)
 
@@ -37,8 +41,9 @@ private class ChipList(
     val copyFactory: Method?,
 )
 
-private class ChipBindings(
+private class FeedbackBindings(
     val adapters: List<Method>,
+    val notify: Method,
 ) {
     private val chipLists = ConcurrentHashMap<Class<*>, List<ChipList>>()
     private val enumFields = ConcurrentHashMap<Class<*>, List<Field>>()
@@ -108,28 +113,36 @@ private class ChipBindings(
             .onEach { it.isAccessible = true }
 
     companion object {
-        fun resolve(cl: ClassLoader): ChipBindings {
+        fun resolve(cl: ClassLoader): FeedbackBindings {
             val adapters =
                 DexKit.methods(
                     TWEAK,
                     cl,
                 ) { it.findMethod { matcher { usingStrings(ANCHOR) } } }
             if (adapters.isEmpty()) throw NoSuchMethodException("usingStrings($ANCHOR)")
-            return ChipBindings(adapters)
+            val notify =
+                NotificationManager::class.java.requiredMethod(
+                    "notify",
+                    String::class.java,
+                    Int::class.javaPrimitiveType,
+                    Notification::class.java,
+                )
+            return FeedbackBindings(adapters, notify)
         }
     }
 }
 
 private fun XposedModule.installDialerDechip(cl: ClassLoader): Boolean {
     val bindings =
-        resolving { ChipBindings.resolve(cl) }.getOrElse {
+        resolving { FeedbackBindings.resolve(cl) }.getOrElse {
             Logger.error(
                 "target not found tweak=$TWEAK member=${it.member()} build=${Build.ID} reason=${it.reason()}",
             )
             return false
         }
     Logger.info(
-        "resolved tweak=$TWEAK members=${bindings.adapters.joinToString(",") { it.signature() }}",
+        "resolved tweak=$TWEAK members=" +
+            (bindings.adapters + bindings.notify).joinToString(",") { it.signature() },
     )
     for (adapter in bindings.adapters) {
         hook(adapter).intercept { chain ->
@@ -146,6 +159,14 @@ private fun XposedModule.installDialerDechip(cl: ClassLoader): Boolean {
             }
             model
         }
+    }
+    hook(bindings.notify).intercept { chain ->
+        if (!switch.enabled) return@intercept chain.proceed()
+        if ((chain.getArg(2) as? Notification)?.channelId != FEEDBACK_CHANNEL) {
+            return@intercept chain.proceed()
+        }
+        Logger.info("notification skipped tweak=$TWEAK tag=${chain.getArg(0)}")
+        null
     }
     return true
 }

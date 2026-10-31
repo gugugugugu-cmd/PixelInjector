@@ -88,7 +88,7 @@
     <string name="tweak_gboard_black">AMOLED black keyboard</string>
     <string name="tweak_gboard_black_desc">Makes the tinted grey keyboard surfaces pure black in dark mode</string>
     <string name="tweak_dialer_dechip">Remove feedback chip</string>
-    <string name="tweak_dialer_dechip_desc">Removes the Help us improve chip from the call list</string>
+    <string name="tweak_dialer_dechip_desc">Removes the Help us improve chip from the call list and its notification after calls</string>
     <string name="tweak_files_sort_by_date">Force sort by newest first</string>
     <string name="tweak_files_sort_by_date_desc">Opens folders sorted by newest instead of by name</string>
     <string name="tweak_kde_connect_quiet">KDE Connect Quiet</string>
