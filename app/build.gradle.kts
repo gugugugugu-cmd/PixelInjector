@@ -73,7 +73,7 @@ android {
     }
 
     androidResources {
-        localeFilters += listOf("en", "in-rID")
+        localeFilters += listOf("en", "in-rID", "zh-rCN")
     }
 
     dependenciesInfo {
